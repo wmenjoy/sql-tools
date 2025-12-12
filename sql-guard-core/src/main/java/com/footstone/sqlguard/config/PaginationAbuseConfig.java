@@ -60,8 +60,8 @@ public class PaginationAbuseConfig {
         return largePageSize;
     }
 
-    public void setLargePageSize(LargePageSizeConfig physicalLargePageSize) {
-        this.largePageSize = physicalLargePageSize;
+    public void setLargePageSize(LargePageSizeConfig largePageSize) {
+        this.largePageSize = largePageSize;
     }
 
     public NoOrderByConfig getNoOrderBy() {
