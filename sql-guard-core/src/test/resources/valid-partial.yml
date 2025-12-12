@@ -1,0 +1,9 @@
+enabled: false
+activeStrategy: dev
+
+rules:
+  noWhereClause:
+    enabled: false
+  
+  dummyCondition:
+    riskLevel: MEDIUM

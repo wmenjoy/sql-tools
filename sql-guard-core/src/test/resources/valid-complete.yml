@@ -1,0 +1,89 @@
+enabled: true
+activeStrategy: prod
+
+interceptors:
+  mybatis:
+    enabled: true
+  mybatisPlus:
+    enabled: false
+  jdbc:
+    enabled: true
+    type: auto
+
+deduplication:
+  enabled: true
+  cacheSize: 1000
+  ttlMs: 100
+
+rules:
+  noWhereClause:
+    enabled: true
+    riskLevel: CRITICAL
+  
+  dummyCondition:
+    enabled: true
+    riskLevel: HIGH
+    patterns:
+      - "1=1"
+      - "2=2"
+    customPatterns:
+      - "custom1"
+  
+  blacklistFields:
+    enabled: true
+    riskLevel: HIGH
+    fields:
+      - deleted
+      - del_flag
+      - status
+  
+  whitelistFields:
+    enabled: true
+    riskLevel: MEDIUM
+    fields:
+      - id
+      - name
+    byTable:
+      users:
+        - id
+        - username
+        - email
+      orders:
+        - id
+        - order_no
+    enforceForUnknownTables: false
+  
+  paginationAbuse:
+    enabled: true
+    riskLevel: HIGH
+    logicalPagination:
+      enabled: true
+    physicalNoCondition:
+      enabled: true
+    physicalDeepPagination:
+      enabled: true
+      maxOffset: 10000
+      maxPageNum: 1000
+    largePageSize:
+      enabled: true
+      maxPageSize: 1000
+    noOrderBy:
+      enabled: true
+  
+  noPagination:
+    enabled: true
+    riskLevel: MEDIUM
+    enforceForAllQueries: false
+    whitelistMapperIds:
+      - UserMapper.selectById
+    whitelistTables:
+      - config
+      - dictionary
+    uniqueKeyFields:
+      - id
+      - uuid
+  
+  estimatedRows:
+    enabled: true
+    riskLevel: HIGH
+

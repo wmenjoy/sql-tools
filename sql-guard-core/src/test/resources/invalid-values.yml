@@ -1,0 +1,10 @@
+enabled: true
+activeStrategy: prod
+
+rules:
+  paginationAbuse:
+    enabled: true
+    physicalDeepPagination:
+      enabled: true
+      maxOffset: -1
+      maxPageNum: 1000

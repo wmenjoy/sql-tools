@@ -1,0 +1,4 @@
+# Configuration with missing critical sections
+# Should still work with defaults
+
+enabled: true

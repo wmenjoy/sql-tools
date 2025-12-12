@@ -1,0 +1,7 @@
+enabled: true
+activeStrategy: prod
+
+deduplication:
+  enabled: true
+  cacheSize: "not_a_number"
+  ttlMs: 100

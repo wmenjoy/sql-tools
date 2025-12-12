@@ -1,0 +1,4 @@
+enabled: true
+activeStrategy: [unclosed array
+rules:
+  noWhereClause:

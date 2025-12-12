@@ -1,0 +1,6 @@
+enabled: true
+activeStrategy: invalid_strategy
+
+rules:
+  noWhereClause:
+    enabled: true
