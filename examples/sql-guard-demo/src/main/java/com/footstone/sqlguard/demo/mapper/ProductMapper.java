@@ -11,3 +11,5 @@ import org.apache.ibatis.annotations.Mapper;
 public interface ProductMapper extends BaseMapper<Product> {
     // MyBatis-Plus provides built-in CRUD methods
 }
+
+

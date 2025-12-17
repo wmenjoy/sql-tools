@@ -149,3 +149,5 @@ public class GoodQueryWrapperService {
         // mapper.selectPage(page, wrapper); // Complex query with pagination
     }
 }
+
+

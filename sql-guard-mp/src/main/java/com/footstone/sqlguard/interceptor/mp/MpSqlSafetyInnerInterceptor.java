@@ -87,6 +87,12 @@ public class MpSqlSafetyInnerInterceptor implements InnerInterceptor {
   private final SqlDeduplicationFilter deduplicationFilter;
 
   /**
+   * ThreadLocal storage for ValidationResult to enable coordination with MpSqlAuditInnerInterceptor.
+   * This allows the audit interceptor to access pre-execution validation results.
+   */
+  private static final ThreadLocal<ValidationResult> VALIDATION_RESULT = new ThreadLocal<>();
+
+  /**
    * Constructs MpSqlSafetyInnerInterceptor with validator and default BLOCK strategy.
    *
    * @param validator the SQL safety validator
@@ -221,10 +227,32 @@ public class MpSqlSafetyInnerInterceptor implements InnerInterceptor {
     // Step 5: Validate
     ValidationResult result = validator.validate(context);
 
-    // Step 6: Handle violations
+    // Step 6: Store validation result in ThreadLocal for audit interceptor coordination
+    VALIDATION_RESULT.set(result);
+
+    // Step 7: Handle violations
     if (!result.isPassed()) {
       handleViolation(result, ms.getId(), sql, hasWrapper);
     }
+  }
+
+  /**
+   * Retrieves the validation result from the current thread's context.
+   * This method is called by MpSqlAuditInnerInterceptor to correlate pre-execution
+   * validation violations with post-execution audit events.
+   *
+   * @return the validation result, or null if no validation was performed
+   */
+  public static ValidationResult getValidationResult() {
+    return VALIDATION_RESULT.get();
+  }
+
+  /**
+   * Clears the validation result from the current thread's context.
+   * This should be called after audit logging to prevent memory leaks.
+   */
+  public static void clearValidationResult() {
+    VALIDATION_RESULT.remove();
   }
 
   /**

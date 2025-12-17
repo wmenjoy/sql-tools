@@ -260,6 +260,7 @@
         <module>sql-scanner-maven</module>
         <module>sql-scanner-gradle</module>
         <module>sql-guard-core</module>
+        <module>sql-guard-audit-api</module>
         <module>sql-guard-mybatis</module>
         <module>sql-guard-mp</module>
         <module>sql-guard-jdbc</module>

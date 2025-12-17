@@ -11,3 +11,5 @@ assert content.contains("SQL Safety Guard") : "Report missing title"
 println "✓ With violations test passed (build did not fail)"
 return true
 
+
+

@@ -75,6 +75,12 @@ public class P6SpySqlSafetyListener extends JdbcEventListener {
       Pattern.compile("^\\s*(SELECT|UPDATE|DELETE|INSERT)", Pattern.CASE_INSENSITIVE);
 
   /**
+   * ThreadLocal storage for sharing ValidationResult with P6SpySqlAuditListener.
+   * This allows audit listener to correlate pre-execution violations with execution results.
+   */
+  private static final ThreadLocal<ValidationResult> VALIDATION_RESULT_HOLDER = new ThreadLocal<>();
+
+  /**
    * SQL safety validator for validation pipeline.
    */
   private final DefaultSqlSafetyValidator validator;
@@ -201,6 +207,9 @@ public class P6SpySqlSafetyListener extends JdbcEventListener {
 
     // Validate
     ValidationResult result = validator.validate(context);
+
+    // Store ValidationResult in ThreadLocal for audit listener
+    VALIDATION_RESULT_HOLDER.set(result);
 
     // Handle violations
     if (!result.isPassed()) {
@@ -341,5 +350,35 @@ public class P6SpySqlSafetyListener extends JdbcEventListener {
     }
     return sql.substring(0, 100) + "...";
   }
+
+  /**
+   * Gets the ValidationResult from ThreadLocal storage.
+   * This is used by P6SpySqlAuditListener to correlate violations with audit events.
+   *
+   * @return ValidationResult or null if not set
+   */
+  public static ValidationResult getValidationResult() {
+    return VALIDATION_RESULT_HOLDER.get();
+  }
+
+  /**
+   * Sets the ValidationResult in ThreadLocal storage.
+   * Used for testing purposes.
+   *
+   * @param result the ValidationResult to store
+   */
+  public static void setValidationResult(ValidationResult result) {
+    VALIDATION_RESULT_HOLDER.set(result);
+  }
+
+  /**
+   * Clears the ValidationResult from ThreadLocal storage.
+   * Should be called after audit logging completes to prevent memory leaks.
+   */
+  public static void clearValidationResult() {
+    VALIDATION_RESULT_HOLDER.remove();
+  }
 }
+
+
 

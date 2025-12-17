@@ -840,3 +840,5 @@ All source code from this tutorial is available in:
 - `sql-guard-core/src/test/java/com/footstone/sqlguard/validator/rule/impl/CountStarCheckerTest.java`
 
 Copy-paste the code examples above to get started!
+
+

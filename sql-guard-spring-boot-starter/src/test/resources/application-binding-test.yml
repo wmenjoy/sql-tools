@@ -17,3 +17,5 @@ sql-guard:
       enabled: true
       risk-level: CRITICAL
 
+
+

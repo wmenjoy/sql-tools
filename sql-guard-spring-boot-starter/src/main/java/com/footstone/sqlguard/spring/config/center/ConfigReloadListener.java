@@ -47,3 +47,5 @@ public interface ConfigReloadListener {
     void onConfigReloaded(SqlGuardConfig oldConfig, SqlGuardConfig newConfig);
 }
 
+
+

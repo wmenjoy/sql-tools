@@ -125,3 +125,5 @@ logging:
 # Server Configuration
 server:
   port: 8080
+
+

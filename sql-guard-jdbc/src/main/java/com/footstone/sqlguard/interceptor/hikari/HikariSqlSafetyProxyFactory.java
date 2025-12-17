@@ -66,6 +66,41 @@ public class HikariSqlSafetyProxyFactory {
   private static final Logger logger = LoggerFactory.getLogger(HikariSqlSafetyProxyFactory.class);
 
   /**
+   * ThreadLocal storage for ValidationResult to coordinate with HikariSqlAuditProxyFactory.
+   * <p>This allows audit logging to correlate pre-execution violations with post-execution results.</p>
+   * <p>Lifecycle: Set by SafetyProxy during validation, read and cleared by AuditProxy after execution.</p>
+   */
+  private static final ThreadLocal<ValidationResult> VALIDATION_RESULT = new ThreadLocal<>();
+
+  /**
+   * Gets pre-execution validation result for current thread.
+   * Used by HikariSqlAuditProxyFactory for violation correlation.
+   *
+   * @return the validation result for current thread, or null if not set
+   */
+  public static ValidationResult getValidationResult() {
+    return VALIDATION_RESULT.get();
+  }
+
+  /**
+   * Sets pre-execution validation result for current thread.
+   * Should be called during SQL validation.
+   *
+   * @param result the validation result to store
+   */
+  static void setValidationResult(ValidationResult result) {
+    VALIDATION_RESULT.set(result);
+  }
+
+  /**
+   * Clears validation result for current thread.
+   * Should be called by audit proxy after reading to prevent memory leaks.
+   */
+  public static void clearValidationResult() {
+    VALIDATION_RESULT.remove();
+  }
+
+  /**
    * Wraps a DataSource (typically HikariDataSource) with SQL safety validation.
    *
    * @param dataSource the datasource to wrap (typically HikariDataSource)
@@ -221,6 +256,10 @@ public class HikariSqlSafetyProxyFactory {
 
         // Validate
         ValidationResult result = validator.validate(context);
+
+        // Store validation result in ThreadLocal for audit correlation
+        // Will be read by AuditProxy in execute() finally block
+        setValidationResult(result);
 
         // Handle violations
         if (!result.isPassed()) {
@@ -465,6 +504,10 @@ public class HikariSqlSafetyProxyFactory {
 
         // Validate
         ValidationResult result = validator.validate(context);
+
+        // Store validation result in ThreadLocal for audit correlation
+        // Will be read by AuditProxy in execute() finally block
+        setValidationResult(result);
 
         // Handle violations
         if (!result.isPassed()) {

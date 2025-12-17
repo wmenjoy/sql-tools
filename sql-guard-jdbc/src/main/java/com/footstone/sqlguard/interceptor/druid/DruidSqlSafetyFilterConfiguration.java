@@ -1,6 +1,7 @@
 package com.footstone.sqlguard.interceptor.druid;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import com.footstone.sqlguard.audit.AuditLogWriter;
 import com.footstone.sqlguard.validator.DefaultSqlSafetyValidator;
 import java.util.ArrayList;
 import java.util.List;
@@ -189,6 +190,146 @@ public class DruidSqlSafetyFilterConfiguration {
   }
 
   /**
+   * Registers both DruidSqlSafetyFilter and DruidSqlAuditFilter with a DruidDataSource.
+   *
+   * <p>This method creates and registers both filters with proper ordering:</p>
+   * <ul>
+   *   <li>Position 0: DruidSqlSafetyFilter (pre-execution validation)</li>
+   *   <li>Position N-1: DruidSqlAuditFilter (post-execution audit, added at end)</li>
+   * </ul>
+   *
+   * <p><strong>Filter Execution Order:</strong></p>
+   * <ol>
+   *   <li>DruidSqlSafetyFilter validates SQL and stores ValidationResult in ThreadLocal</li>
+   *   <li>Druid's StatFilter (if present) collects statistics</li>
+   *   <li>SQL executes</li>
+   *   <li>DruidSqlAuditFilter captures results, retrieves ValidationResult, writes audit log</li>
+   * </ol>
+   *
+   * @param dataSource the DruidDataSource to register filters with
+   * @param validator the SQL safety validator
+   * @param strategy the violation handling strategy
+   * @param auditLogWriter the audit log writer
+   * @throws IllegalArgumentException if any parameter is null
+   */
+  public static void registerFilters(
+      DruidDataSource dataSource,
+      DefaultSqlSafetyValidator validator,
+      ViolationStrategy strategy,
+      AuditLogWriter auditLogWriter) {
+
+    if (dataSource == null) {
+      throw new IllegalArgumentException("dataSource cannot be null");
+    }
+    if (validator == null) {
+      throw new IllegalArgumentException("validator cannot be null");
+    }
+    if (strategy == null) {
+      throw new IllegalArgumentException("strategy cannot be null");
+    }
+    if (auditLogWriter == null) {
+      throw new IllegalArgumentException("auditLogWriter cannot be null");
+    }
+
+    DruidSqlSafetyFilter safetyFilter = new DruidSqlSafetyFilter(validator, strategy);
+    DruidSqlAuditFilter auditFilter = new DruidSqlAuditFilter(auditLogWriter);
+
+    // Get existing filters or create new list
+    List<com.alibaba.druid.filter.Filter> filters = dataSource.getProxyFilters();
+    if (filters == null) {
+      filters = new ArrayList<>();
+    } else {
+      filters = new ArrayList<>(filters);
+    }
+
+    // Add safety filter at the beginning (pre-execution)
+    filters.add(0, safetyFilter);
+    
+    // Add audit filter at the end (post-execution)
+    filters.add(auditFilter);
+    
+    dataSource.setProxyFilters(filters);
+  }
+
+  /**
+   * Registers both pre-configured DruidSqlSafetyFilter and DruidSqlAuditFilter instances.
+   *
+   * <p>This method is useful when you want to share filter instances across multiple
+   * datasources or when using Spring dependency injection.</p>
+   *
+   * @param dataSource the DruidDataSource to register filters with
+   * @param safetyFilter the pre-configured safety filter instance
+   * @param auditFilter the pre-configured audit filter instance
+   * @throws IllegalArgumentException if any parameter is null
+   */
+  public static void registerFilters(
+      DruidDataSource dataSource,
+      DruidSqlSafetyFilter safetyFilter,
+      DruidSqlAuditFilter auditFilter) {
+
+    if (dataSource == null) {
+      throw new IllegalArgumentException("dataSource cannot be null");
+    }
+    if (safetyFilter == null) {
+      throw new IllegalArgumentException("safetyFilter cannot be null");
+    }
+    if (auditFilter == null) {
+      throw new IllegalArgumentException("auditFilter cannot be null");
+    }
+
+    // Get existing filters or create new list
+    List<com.alibaba.druid.filter.Filter> filters = dataSource.getProxyFilters();
+    if (filters == null) {
+      filters = new ArrayList<>();
+    } else {
+      filters = new ArrayList<>(filters);
+    }
+
+    // Add safety filter at the beginning (pre-execution)
+    filters.add(0, safetyFilter);
+    
+    // Add audit filter at the end (post-execution)
+    filters.add(auditFilter);
+    
+    dataSource.setProxyFilters(filters);
+  }
+
+  /**
+   * Registers only DruidSqlAuditFilter with a DruidDataSource.
+   *
+   * <p>This method is useful when you only need audit logging without pre-execution validation.</p>
+   *
+   * @param dataSource the DruidDataSource to register the filter with
+   * @param auditLogWriter the audit log writer
+   * @throws IllegalArgumentException if any parameter is null
+   */
+  public static void registerAuditFilter(
+      DruidDataSource dataSource,
+      AuditLogWriter auditLogWriter) {
+
+    if (dataSource == null) {
+      throw new IllegalArgumentException("dataSource cannot be null");
+    }
+    if (auditLogWriter == null) {
+      throw new IllegalArgumentException("auditLogWriter cannot be null");
+    }
+
+    DruidSqlAuditFilter auditFilter = new DruidSqlAuditFilter(auditLogWriter);
+
+    // Get existing filters or create new list
+    List<com.alibaba.druid.filter.Filter> filters = dataSource.getProxyFilters();
+    if (filters == null) {
+      filters = new ArrayList<>();
+    } else {
+      filters = new ArrayList<>(filters);
+    }
+
+    // Add audit filter at the end
+    filters.add(auditFilter);
+    dataSource.setProxyFilters(filters);
+  }
+
+  /**
    * Removes all DruidSqlSafetyFilter instances from a DruidDataSource.
    *
    * <p>This method is useful for testing or dynamic filter management.</p>
@@ -214,5 +355,52 @@ public class DruidSqlSafetyFilterConfiguration {
     // Remove all DruidSqlSafetyFilter instances
     filters.removeIf(filter -> filter instanceof DruidSqlSafetyFilter);
   }
+
+  /**
+   * Removes all DruidSqlAuditFilter instances from a DruidDataSource.
+   *
+   * <p>This method is useful for testing or dynamic filter management.</p>
+   *
+   * @param dataSource the DruidDataSource to remove filters from
+   * @throws IllegalArgumentException if dataSource is null
+   */
+  public static void removeAuditFilter(DruidDataSource dataSource) {
+    if (dataSource == null) {
+      throw new IllegalArgumentException("dataSource cannot be null");
+    }
+
+    List<com.alibaba.druid.filter.Filter> filters = dataSource.getProxyFilters();
+    if (filters == null || filters.isEmpty()) {
+      return;
+    }
+
+    // Remove all DruidSqlAuditFilter instances
+    filters.removeIf(filter -> filter instanceof DruidSqlAuditFilter);
+  }
+
+  /**
+   * Removes all SQL Guard filters (both Safety and Audit) from a DruidDataSource.
+   *
+   * <p>This method is useful for testing or dynamic filter management.</p>
+   *
+   * @param dataSource the DruidDataSource to remove filters from
+   * @throws IllegalArgumentException if dataSource is null
+   */
+  public static void removeAllFilters(DruidDataSource dataSource) {
+    if (dataSource == null) {
+      throw new IllegalArgumentException("dataSource cannot be null");
+    }
+
+    List<com.alibaba.druid.filter.Filter> filters = dataSource.getProxyFilters();
+    if (filters == null || filters.isEmpty()) {
+      return;
+    }
+
+    // Remove all SQL Guard filter instances
+    filters.removeIf(filter -> 
+        filter instanceof DruidSqlSafetyFilter || filter instanceof DruidSqlAuditFilter);
+  }
 }
+
+
 

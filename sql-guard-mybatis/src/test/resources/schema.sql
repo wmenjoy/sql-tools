@@ -58,3 +58,5 @@ INSERT INTO products (name, price, category, stock) VALUES
     ('4K Monitor', 400.00, 'Electronics', 15),
     ('Noise-Cancelling Headphones', 200.00, 'Electronics', 25);
 
+
+

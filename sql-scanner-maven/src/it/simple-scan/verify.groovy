@@ -10,3 +10,5 @@ assert content.contains("SQL Safety Guard") : "Report missing title"
 println "✓ Simple scan test passed"
 return true
 
+
+

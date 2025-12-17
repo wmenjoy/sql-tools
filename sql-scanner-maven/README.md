@@ -521,3 +521,5 @@ For issues and questions:
 - GitHub Issues: https://github.com/footstone/sql-safety-guard/issues
 - Documentation: https://github.com/footstone/sql-safety-guard/wiki
 
+
+

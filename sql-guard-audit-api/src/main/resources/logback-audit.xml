@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Dedicated Audit Logger Configuration -->
+    <appender name="ASYNC_AUDIT" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- Queue Configuration -->
+        <queueSize>8192</queueSize>
+        <discardingThreshold>0</discardingThreshold> <!-- Block when full, no event loss -->
+        <includeCallerData>false</includeCallerData> <!-- Performance optimization -->
+        <neverBlock>false</neverBlock> <!-- Block to prevent audit loss -->
+        
+        <!-- Nested File Appender -->
+        <appender-ref ref="AUDIT_FILE"/>
+    </appender>
+    
+    <appender name="AUDIT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/audit/current/audit.log</file>
+        
+        <!-- JSON-per-line format (AuditEvent already JSON-serialized) -->
+        <encoder>
+            <pattern>%msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        
+        <!-- Time and Size Based Rolling Policy -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- Hourly rotation with date-based directories -->
+            <fileNamePattern>logs/audit/%d{yyyy-MM-dd}/audit.%d{yyyy-MM-dd-HH}.%i.log</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>720</maxHistory> <!-- 30 days * 24 hours -->
+            <totalSizeCap>10GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+    
+    <!-- Audit Logger (isolated from root) -->
+    <logger name="com.footstone.sqlguard.audit.AUDIT" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_AUDIT"/>
+    </logger>
+</configuration>

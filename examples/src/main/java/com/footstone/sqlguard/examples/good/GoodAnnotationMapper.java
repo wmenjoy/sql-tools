@@ -120,3 +120,5 @@ public interface GoodAnnotationMapper {
     @Select("SELECT * FROM users WHERE email = #{email} AND deleted = 0 ORDER BY id LIMIT 20")
     java.util.List<java.util.Map<String, Object>> selectUsersByEmail(@Param("email") String email);
 }
+
+

@@ -16,3 +16,5 @@ INSERT INTO user (id, name, age, email, status, deleted) VALUES
 (3, 'Charlie', 35, 'charlie@example.com', 'inactive', 0),
 (4, 'David', 28, 'david@example.com', 'active', 1);
 
+
+

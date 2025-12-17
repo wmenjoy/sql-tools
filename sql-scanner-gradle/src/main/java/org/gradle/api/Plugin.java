@@ -8,3 +8,5 @@ public interface Plugin<T> {
     void apply(T target);
 }
 
+
+

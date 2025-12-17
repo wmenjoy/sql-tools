@@ -144,6 +144,10 @@ public class SqlSafetyInterceptor implements Interceptor {
     // Validate SQL
     ValidationResult result = validator.validate(context);
 
+    // Store validation result in ThreadLocal for SqlAuditInterceptor
+    // Note: SqlAuditInterceptor is responsible for cleanup
+    SqlInterceptorContext.VALIDATION_RESULT.set(result);
+
     // Handle violations
     if (!result.isPassed()) {
       handleViolation(result, ms.getId());

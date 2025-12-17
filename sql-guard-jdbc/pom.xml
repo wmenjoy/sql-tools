@@ -23,6 +23,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Audit API dependency -->
+        <dependency>
+            <groupId>com.footstone</groupId>
+            <artifactId>sql-guard-audit-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Druid Connection Pool -->
         <dependency>
             <groupId>com.alibaba</groupId>
@@ -97,6 +104,8 @@
         </dependency>
     </dependencies>
 </project>
+
+
 
 
 

@@ -8,3 +8,5 @@ sql-guard:
 logging:
   level:
     com.footstone.sqlguard: INFO
+
+

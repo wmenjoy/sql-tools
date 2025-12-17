@@ -142,3 +142,5 @@ public interface BadAnnotationMapper {
     @Select("SELECT * FROM users WHERE 1=1 AND deleted = 0")
     java.util.List<java.util.Map<String, Object>> selectMultipleViolations();
 }
+
+

@@ -1,5 +1,8 @@
 package com.footstone.sqlguard.core.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Objects;
 
 /**
@@ -54,12 +57,19 @@ public final class ViolationInfo {
   /**
    * Constructs a new ViolationInfo with validation.
    *
+   * <p>This constructor is also used by Jackson for JSON deserialization.
+   * The @JsonCreator and @JsonProperty annotations enable proper deserialization.</p>
+   *
    * @param riskLevel the risk level (must not be null)
    * @param message the violation message (must not be null or empty)
    * @param suggestion the suggested fix (may be null)
    * @throws IllegalArgumentException if riskLevel or message is null/empty
    */
-  public ViolationInfo(RiskLevel riskLevel, String message, String suggestion) {
+  @JsonCreator
+  public ViolationInfo(
+      @JsonProperty("riskLevel") RiskLevel riskLevel,
+      @JsonProperty("message") String message,
+      @JsonProperty("suggestion") String suggestion) {
     // Validate required fields
     if (riskLevel == null) {
       throw new IllegalArgumentException("riskLevel cannot be null");

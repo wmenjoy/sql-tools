@@ -774,3 +774,5 @@ This document covered comprehensive usage examples for the SQL Guard Gradle Plug
 
 For more information, see the main [README.md](../README.md) or visit the [project documentation](https://github.com/footstone/sql-safety-guard).
 
+
+

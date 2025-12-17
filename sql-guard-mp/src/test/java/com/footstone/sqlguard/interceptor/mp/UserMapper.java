@@ -20,3 +20,5 @@ public interface UserMapper extends BaseMapper<User> {
   // No additional methods needed for basic testing
 }
 
+
+

@@ -61,3 +61,5 @@ public interface UserAnnotationMapper {
     @Select("SELECT * FROM user LIMIT #{limit}")
     List<User> findTopNUnsafe(@Param("limit") int limit);
 }
+
+

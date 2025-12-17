@@ -23,6 +23,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Audit API dependency -->
+        <dependency>
+            <groupId>com.footstone</groupId>
+            <artifactId>sql-guard-audit-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- MyBatis-Plus Core (provided scope - user's project will supply) -->
         <dependency>
             <groupId>com.baomidou</groupId>
@@ -94,18 +101,20 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- HikariCP for connection pooling -->
+        <!-- HikariCP for connection pooling (Java 8 compatible version) -->
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
-            <version>5.0.1</version>
+            <version>4.0.3</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Spring Core for MyBatis-Plus (test only) -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>5.3.30</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
-
-
-
-
-
-

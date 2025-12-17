@@ -69,6 +69,14 @@ public class DruidSqlSafetyFilter extends FilterAdapter {
   private final SqlDeduplicationFilter deduplicationFilter;
 
   /**
+   * ThreadLocal storage for ValidationResult to enable coordination with DruidSqlAuditFilter.
+   * 
+   * <p>This allows the audit filter to retrieve pre-execution validation results
+   * and include violations in audit events.</p>
+   */
+  private static final ThreadLocal<ValidationResult> validationResultThreadLocal = new ThreadLocal<>();
+
+  /**
    * Constructs a DruidSqlSafetyFilter with validator and violation strategy.
    *
    * @param validator the SQL safety validator
@@ -155,10 +163,16 @@ public class DruidSqlSafetyFilter extends FilterAdapter {
       FilterChain chain,
       StatementProxy statement,
       String sql) throws SQLException {
-    // Validate SQL at execute time (Statement)
-    validateSql(sql, statement.getConnectionProxy());
+    try {
+      // Validate SQL at execute time (Statement)
+      validateSql(sql, statement.getConnectionProxy());
 
-    return super.statement_executeQuery(chain, statement, sql);
+      return super.statement_executeQuery(chain, statement, sql);
+    } finally {
+      // Clear ThreadLocal after execution completes
+      // This ensures cleanup even if AuditFilter is not configured
+      clearValidationResult();
+    }
   }
 
   /**
@@ -179,9 +193,15 @@ public class DruidSqlSafetyFilter extends FilterAdapter {
       StatementProxy statement,
       String sql) throws SQLException {
 
-    validateSql(sql, statement.getConnectionProxy());
+    try {
+      validateSql(sql, statement.getConnectionProxy());
 
-    return super.statement_executeUpdate(chain, statement, sql);
+      return super.statement_executeUpdate(chain, statement, sql);
+    } finally {
+      // Clear ThreadLocal after execution completes
+      // This ensures cleanup even if AuditFilter is not configured
+      clearValidationResult();
+    }
   }
 
   /**
@@ -224,10 +244,40 @@ public class DruidSqlSafetyFilter extends FilterAdapter {
     // Validate
     ValidationResult result = validator.validate(context);
 
+    // Store result in ThreadLocal for audit filter coordination
+    validationResultThreadLocal.set(result);
+
     // Handle violations
     if (!result.isPassed()) {
       handleViolation(result, datasourceName);
     }
+  }
+
+  /**
+   * Retrieves the ValidationResult from ThreadLocal for audit filter coordination.
+   * 
+   * @return the ValidationResult from pre-execution validation, or null if not available
+   */
+  public static ValidationResult getValidationResult() {
+    return validationResultThreadLocal.get();
+  }
+
+  /**
+   * Sets the ValidationResult in ThreadLocal (for testing purposes).
+   * 
+   * @param result the ValidationResult to store
+   */
+  public static void setValidationResult(ValidationResult result) {
+    validationResultThreadLocal.set(result);
+  }
+
+  /**
+   * Clears the ValidationResult from ThreadLocal.
+   * 
+   * <p>Should be called after SQL execution completes to prevent memory leaks.</p>
+   */
+  public static void clearValidationResult() {
+    validationResultThreadLocal.remove();
   }
 
   /**

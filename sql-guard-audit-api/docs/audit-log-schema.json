@@ -1,0 +1,182 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://footstone.com/schemas/sql-guard-audit-event.json",
+  "title": "SQL Guard Audit Event",
+  "description": "Schema for SQL Guard audit log events capturing SQL execution context, timing, results, and validation violations",
+  "type": "object",
+  "required": [
+    "sqlId",
+    "sql",
+    "sqlType",
+    "mapperId",
+    "timestamp"
+  ],
+  "properties": {
+    "sqlId": {
+      "type": "string",
+      "description": "MD5 hash of the SQL statement for deduplication and indexing",
+      "pattern": "^[a-f0-9]{32}$",
+      "examples": ["5d41402abc4b2a76b9719d911017c592"]
+    },
+    "sql": {
+      "type": "string",
+      "description": "The SQL statement being audited",
+      "minLength": 1,
+      "examples": ["SELECT * FROM users WHERE id = ?"]
+    },
+    "sqlType": {
+      "type": "string",
+      "description": "The SQL command type",
+      "enum": ["SELECT", "UPDATE", "DELETE", "INSERT", "UNKNOWN"],
+      "examples": ["SELECT"]
+    },
+    "mapperId": {
+      "type": "string",
+      "description": "The mapper identifier (e.g., MyBatis mapper method)",
+      "minLength": 1,
+      "examples": ["com.example.UserMapper.selectById"]
+    },
+    "datasource": {
+      "type": ["string", "null"],
+      "description": "The datasource name (nullable)",
+      "examples": ["primary", "secondary", null]
+    },
+    "params": {
+      "type": ["object", "null"],
+      "description": "Parameter bindings for the SQL statement (nullable)",
+      "additionalProperties": true,
+      "examples": [
+        {"id": 123, "name": "John"},
+        null
+      ]
+    },
+    "executionTimeMs": {
+      "type": "integer",
+      "description": "Execution time in milliseconds",
+      "minimum": 0,
+      "default": 0,
+      "examples": [150, 250, 0]
+    },
+    "rowsAffected": {
+      "type": "integer",
+      "description": "Number of rows affected (-1 if not applicable)",
+      "minimum": -1,
+      "default": -1,
+      "examples": [1, 10, 0, -1]
+    },
+    "errorMessage": {
+      "type": ["string", "null"],
+      "description": "Error message if execution failed (nullable)",
+      "examples": ["Foreign key constraint violation", null]
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "Event timestamp in ISO-8601 format (UTC)",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$",
+      "examples": ["2024-01-15T10:30:45.123Z"]
+    },
+    "violations": {
+      "type": ["object", "null"],
+      "description": "Pre-execution validation violations (nullable)",
+      "properties": {
+        "passed": {
+          "type": "boolean",
+          "description": "Whether validation passed (no violations)"
+        },
+        "riskLevel": {
+          "type": "string",
+          "description": "Overall risk level (highest among all violations)",
+          "enum": ["SAFE", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
+        },
+        "violations": {
+          "type": "array",
+          "description": "List of all violations detected",
+          "items": {
+            "type": "object",
+            "properties": {
+              "riskLevel": {
+                "type": "string",
+                "enum": ["SAFE", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
+              },
+              "message": {
+                "type": "string",
+                "description": "Violation message"
+              },
+              "suggestion": {
+                "type": "string",
+                "description": "Suggested fix"
+              }
+            },
+            "required": ["riskLevel", "message", "suggestion"]
+          }
+        },
+        "details": {
+          "type": "object",
+          "description": "Additional details map for custom metadata",
+          "additionalProperties": true
+        }
+      },
+      "required": ["passed", "riskLevel", "violations"],
+      "examples": [
+        {
+          "passed": false,
+          "riskLevel": "HIGH",
+          "violations": [
+            {
+              "riskLevel": "HIGH",
+              "message": "Missing WHERE clause in UPDATE statement",
+              "suggestion": "Add WHERE condition to limit affected rows"
+            }
+          ],
+          "details": {}
+        },
+        null
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "sqlId": "5d41402abc4b2a76b9719d911017c592",
+      "sql": "SELECT * FROM users WHERE id = ?",
+      "sqlType": "SELECT",
+      "mapperId": "com.example.UserMapper.selectById",
+      "datasource": "primary",
+      "params": {
+        "id": 123
+      },
+      "executionTimeMs": 150,
+      "rowsAffected": 1,
+      "errorMessage": null,
+      "timestamp": "2024-01-15T10:30:45.123Z",
+      "violations": null
+    },
+    {
+      "sqlId": "7d793037a0760186574b0282f2f435e7",
+      "sql": "UPDATE users SET status = ?",
+      "sqlType": "UPDATE",
+      "mapperId": "com.example.UserMapper.updateStatus",
+      "datasource": "primary",
+      "params": {
+        "status": "active"
+      },
+      "executionTimeMs": 250,
+      "rowsAffected": -1,
+      "errorMessage": null,
+      "timestamp": "2024-01-15T10:31:00.456Z",
+      "violations": {
+        "passed": false,
+        "riskLevel": "HIGH",
+        "violations": [
+          {
+            "riskLevel": "HIGH",
+            "message": "Missing WHERE clause in UPDATE statement",
+            "suggestion": "Add WHERE condition to limit affected rows"
+          }
+        ],
+        "details": {}
+      }
+    }
+  ]
+}

@@ -23,3 +23,5 @@ INSERT INTO orders (id, user_id, amount, status) VALUES (1, 1, 100.00, 'COMPLETE
 INSERT INTO orders (id, user_id, amount, status) VALUES (2, 1, 200.00, 'PENDING');
 INSERT INTO orders (id, user_id, amount, status) VALUES (3, 2, 150.00, 'COMPLETED');
 
+
+

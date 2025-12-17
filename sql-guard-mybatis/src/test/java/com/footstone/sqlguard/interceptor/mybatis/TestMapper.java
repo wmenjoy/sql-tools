@@ -82,6 +82,27 @@ public interface TestMapper {
   List<User> findByDynamicConditions(@Param("name") String name, @Param("age") Integer age);
 
   /**
+   * Alias methods for integration tests.
+   */
+  @Select("SELECT * FROM users")
+  List<User> selectAllUsers();
+
+  @Update("UPDATE users SET name = #{name} WHERE id = #{id}")
+  int updateUser(@Param("id") Long id, @Param("name") String name);
+
+  @Select("SELECT * FROM users WHERE name = #{name}")
+  List<User> selectUsersByName(@Param("name") String name);
+
+  @Insert("INSERT INTO users (id, name, email) VALUES (#{id}, #{name}, #{email})")
+  int insertUser(@Param("id") Long id, @Param("name") String name, @Param("email") String email);
+
+  @Insert("INSERT INTO users (id, name, email) VALUES (#{id}, #{name}, #{email})")
+  int insertDuplicateUser(@Param("id") Long id, @Param("name") String name, @Param("email") String email);
+
+  @Delete("DELETE FROM users WHERE id = #{id}")
+  int deleteUser(@Param("id") Long id);
+
+  /**
    * Simple POJO for test data.
    */
   class User {
@@ -154,4 +175,6 @@ public interface TestMapper {
     }
   }
 }
+
+
 

@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 /**
  * User entity for integration testing.
  */
-@TableName("user")
+@TableName("mp_user")
 public class User {
 
   @TableId(type = IdType.AUTO)

@@ -67,6 +67,7 @@ class HikariEdgeCasesTest {
       stmt.execute("CREATE TABLE IF NOT EXISTS test_user (id INT PRIMARY KEY, name VARCHAR(100))");
       stmt.execute("INSERT INTO test_user VALUES (1, 'test1')");
       stmt.execute("INSERT INTO test_user VALUES (2, 'test2')");
+      stmt.execute("INSERT INTO test_user VALUES (3, 'test3')");
     } catch (SQLException e) {
       throw new RuntimeException("Failed to setup test database", e);
     }
@@ -95,6 +96,10 @@ class HikariEdgeCasesTest {
   void testPreparedStatement_reuse_shouldNotRevalidate() throws SQLException {
     // Given
     String sql = "SELECT * FROM test_user WHERE id = ?";
+
+    // Clear any validation calls from setUp
+    reset(validator);
+    when(validator.validate(any())).thenReturn(ValidationResult.pass());
 
     // When
     try (Connection conn = wrappedDataSource.getConnection();
@@ -136,20 +141,20 @@ class HikariEdgeCasesTest {
     // Given - H2 doesn't support stored procedures easily, so we'll test the proxy behavior
     String sql = "{call some_proc()}";
 
-    // When/Then - Should validate SQL even though proc doesn't exist
+    // When - Try to prepare a callable statement (will fail because proc doesn't exist)
+    boolean exceptionThrown = false;
     try (Connection conn = wrappedDataSource.getConnection()) {
-      assertDoesNotThrow(() -> {
-        // Validation should pass (mocked), but call will fail (proc doesn't exist)
-        // We're just testing that the proxy intercepts prepareCall
-        try {
-          CallableStatement cs = conn.prepareCall(sql);
-          cs.close();
-        } catch (SQLException e) {
-          // Expected - procedure doesn't exist
-        }
-      });
+      try {
+        CallableStatement cs = conn.prepareCall(sql);
+        cs.close();
+      } catch (Exception e) {
+        // Expected - any exception is fine, the important thing is validation was called
+        exceptionThrown = true;
+      }
     }
 
+    // Then - Verify that an exception was thrown and validation was called
+    assertTrue(exceptionThrown, "Should have thrown exception for non-existent procedure");
     verify(validator, atLeastOnce()).validate(any());
   }
 
@@ -350,4 +355,6 @@ class HikariEdgeCasesTest {
     }
   }
 }
+
+
 

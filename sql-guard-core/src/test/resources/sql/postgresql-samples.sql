@@ -26,3 +26,5 @@ SELECT * FROM products p WHERE EXISTS (SELECT 1 FROM categories c WHERE c.id = p
 
 
 
+
+
