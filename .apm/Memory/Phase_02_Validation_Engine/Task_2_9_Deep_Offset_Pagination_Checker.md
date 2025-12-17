@@ -180,3 +180,8 @@ None - All tests pass, no regressions introduced.
 - Task 2.13: Integration with DefaultSqlSafetyValidator
 - Consider documenting JSqlParser 4.6 API patterns for future pagination checker implementations
 
+
+
+
+
+

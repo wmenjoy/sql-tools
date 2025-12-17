@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.UserMapper">
+    <select id="complexQuery" resultType="User">
+        SELECT 
+            u.id,
+            u.name,
+            u.email,
+            u.created_at
+        FROM user u
+        WHERE u.status = 'active'
+        ORDER BY u.created_at DESC
+        LIMIT 100
+    </select>
+</mapper>
+
+
+
+

@@ -1,0 +1,25 @@
+# Production Profile - Observation mode initially, then WARN
+# Start with: mvn spring-boot:run -Dspring-boot.run.profiles=prod
+
+spring:
+  datasource:
+    url: jdbc:mysql://mysql:3306/sqlguard_demo?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+
+sql-guard:
+  active-strategy: WARN
+  
+  # Production-tuned settings
+  deduplication:
+    cache-size: 5000
+    ttl-ms: 200
+  
+  rules:
+    deep-pagination:
+      max-offset: 20000
+    large-page-size:
+      max-page-size: 2000
+
+logging:
+  level:
+    com.footstone.sqlguard: WARN
+    com.footstone.sqlguard.demo: INFO

@@ -27,3 +27,8 @@ public class NoWhereClauseConfig {
         this.riskLevel = riskLevel;
     }
 }
+
+
+
+
+

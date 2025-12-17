@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.OrderMapper">
+    <select id="findOrders" resultType="Order">
+        SELECT * FROM orders
+        <where>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="startDate != null">
+                AND created_at >= #{startDate}
+            </if>
+        </where>
+        ORDER BY created_at DESC
+    </select>
+    
+    <insert id="createOrder">
+        INSERT INTO orders (user_id, total, status)
+        VALUES (#{userId}, #{total}, #{status})
+    </insert>
+    
+    <update id="updateOrderStatus">
+        UPDATE orders
+        <set>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="updatedAt != null">
+                updated_at = #{updatedAt}
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <delete id="deleteOrder">
+        DELETE FROM orders WHERE id = #{id}
+    </delete>
+    
+    <select id="findOrdersByIds" resultType="Order">
+        SELECT * FROM orders
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+</mapper>
+
+
+
+

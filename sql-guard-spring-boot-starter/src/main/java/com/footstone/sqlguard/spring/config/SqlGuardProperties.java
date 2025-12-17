@@ -1,0 +1,818 @@
+package com.footstone.sqlguard.spring.config;
+
+import com.footstone.sqlguard.core.model.RiskLevel;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
+import org.springframework.validation.annotation.Validated;
+
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Configuration properties for SQL Guard.
+ *
+ * <p>This class binds all sql-guard.* properties from application.yml to type-safe Java objects
+ * with JSR-303 validation and IDE autocomplete support via spring-configuration-metadata.json.</p>
+ *
+ * <p><strong>Example YAML Configuration:</strong></p>
+ * <pre>{@code
+ * sql-guard:
+ *   enabled: true
+ *   active-strategy: BLOCK
+ *   interceptors:
+ *     mybatis:
+ *       enabled: true
+ *   deduplication:
+ *     enabled: true
+ *     cache-size: 1000
+ *     ttl-ms: 100
+ *   rules:
+ *     no-where-clause:
+ *       enabled: true
+ *       risk-level: CRITICAL
+ * }</pre>
+ *
+ * @see org.springframework.boot.context.properties.ConfigurationProperties
+ * @see org.springframework.validation.annotation.Validated
+ */
+@ConfigurationProperties(prefix = "sql-guard")
+@Validated
+public class SqlGuardProperties {
+
+    /**
+     * Enable SQL Safety Guard.
+     */
+    private boolean enabled = true;
+
+    /**
+     * Active violation strategy: LOG, WARN, or BLOCK.
+     */
+    @NotNull
+    private String activeStrategy = "LOG";
+
+    /**
+     * Interceptor configuration.
+     */
+    @NestedConfigurationProperty
+    private InterceptorsConfig interceptors = new InterceptorsConfig();
+
+    /**
+     * Deduplication configuration.
+     */
+    @NestedConfigurationProperty
+    private DeduplicationConfig deduplication = new DeduplicationConfig();
+
+    /**
+     * Rule configuration.
+     */
+    @NestedConfigurationProperty
+    private RulesConfig rules = new RulesConfig();
+
+    /**
+     * Parser configuration.
+     */
+    @NestedConfigurationProperty
+    private ParserConfig parser = new ParserConfig();
+
+    // Getters and setters
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public String getActiveStrategy() {
+        return activeStrategy;
+    }
+
+    public void setActiveStrategy(String activeStrategy) {
+        this.activeStrategy = activeStrategy;
+    }
+
+    public InterceptorsConfig getInterceptors() {
+        return interceptors;
+    }
+
+    public void setInterceptors(InterceptorsConfig interceptors) {
+        this.interceptors = interceptors;
+    }
+
+    public DeduplicationConfig getDeduplication() {
+        return deduplication;
+    }
+
+    public void setDeduplication(DeduplicationConfig deduplication) {
+        this.deduplication = deduplication;
+    }
+
+    public RulesConfig getRules() {
+        return rules;
+    }
+
+    public void setRules(RulesConfig rules) {
+        this.rules = rules;
+    }
+
+    public ParserConfig getParser() {
+        return parser;
+    }
+
+    public void setParser(ParserConfig parser) {
+        this.parser = parser;
+    }
+
+    @Override
+    public String toString() {
+        return "SqlGuardProperties{" +
+                "enabled=" + enabled +
+                ", activeStrategy='" + activeStrategy + '\'' +
+                ", interceptors=" + interceptors +
+                ", deduplication=" + deduplication +
+                ", rules=" + rules +
+                ", parser=" + parser +
+                '}';
+    }
+
+    /**
+     * Interceptor configuration.
+     */
+    public static class InterceptorsConfig {
+        /**
+         * MyBatis interceptor configuration.
+         */
+        @NestedConfigurationProperty
+        private MyBatisConfig mybatis = new MyBatisConfig();
+
+        /**
+         * MyBatis-Plus interceptor configuration.
+         */
+        @NestedConfigurationProperty
+        private MyBatisPlusConfig mybatisPlus = new MyBatisPlusConfig();
+
+        /**
+         * JDBC interceptor configuration.
+         */
+        @NestedConfigurationProperty
+        private JdbcConfig jdbc = new JdbcConfig();
+
+        public MyBatisConfig getMybatis() {
+            return mybatis;
+        }
+
+        public void setMybatis(MyBatisConfig mybatis) {
+            this.mybatis = mybatis;
+        }
+
+        public MyBatisPlusConfig getMybatisPlus() {
+            return mybatisPlus;
+        }
+
+        public void setMybatisPlus(MyBatisPlusConfig mybatisPlus) {
+            this.mybatisPlus = mybatisPlus;
+        }
+
+        public JdbcConfig getJdbc() {
+            return jdbc;
+        }
+
+        public void setJdbc(JdbcConfig jdbc) {
+            this.jdbc = jdbc;
+        }
+
+        @Override
+        public String toString() {
+            return "InterceptorsConfig{" +
+                    "mybatis=" + mybatis +
+                    ", mybatisPlus=" + mybatisPlus +
+                    ", jdbc=" + jdbc +
+                    '}';
+        }
+    }
+
+    /**
+     * MyBatis interceptor configuration.
+     */
+    public static class MyBatisConfig {
+        private boolean enabled = true;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        @Override
+        public String toString() {
+            return "MyBatisConfig{enabled=" + enabled + '}';
+        }
+    }
+
+    /**
+     * MyBatis-Plus interceptor configuration.
+     */
+    public static class MyBatisPlusConfig {
+        private boolean enabled = true;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        @Override
+        public String toString() {
+            return "MyBatisPlusConfig{enabled=" + enabled + '}';
+        }
+    }
+
+    /**
+     * JDBC interceptor configuration.
+     */
+    public static class JdbcConfig {
+        private boolean enabled = true;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        @Override
+        public String toString() {
+            return "JdbcConfig{enabled=" + enabled + '}';
+        }
+    }
+
+    /**
+     * Deduplication configuration.
+     */
+    public static class DeduplicationConfig {
+        /**
+         * Enable SQL deduplication.
+         */
+        private boolean enabled = true;
+
+        /**
+         * Cache size for deduplication (number of SQL statements).
+         */
+        @Min(1)
+        @Max(100000)
+        private int cacheSize = 1000;
+
+        /**
+         * Cache TTL in milliseconds.
+         */
+        @Min(1)
+        @Max(60000)
+        private long ttlMs = 100;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public int getCacheSize() {
+            return cacheSize;
+        }
+
+        public void setCacheSize(int cacheSize) {
+            this.cacheSize = cacheSize;
+        }
+
+        public long getTtlMs() {
+            return ttlMs;
+        }
+
+        public void setTtlMs(long ttlMs) {
+            this.ttlMs = ttlMs;
+        }
+
+        @Override
+        public String toString() {
+            return "DeduplicationConfig{" +
+                    "enabled=" + enabled +
+                    ", cacheSize=" + cacheSize +
+                    ", ttlMs=" + ttlMs +
+                    '}';
+        }
+    }
+
+    /**
+     * Rule configuration.
+     */
+    public static class RulesConfig {
+        @NestedConfigurationProperty
+        private NoWhereClauseProperties noWhereClause = new NoWhereClauseProperties();
+
+        @NestedConfigurationProperty
+        private DummyConditionProperties dummyCondition = new DummyConditionProperties();
+
+        @NestedConfigurationProperty
+        private BlacklistFieldProperties blacklistFields = new BlacklistFieldProperties();
+
+        @NestedConfigurationProperty
+        private WhitelistFieldProperties whitelistFields = new WhitelistFieldProperties();
+
+        @NestedConfigurationProperty
+        private LogicalPaginationProperties logicalPagination = new LogicalPaginationProperties();
+
+        @NestedConfigurationProperty
+        private NoConditionPaginationProperties noConditionPagination = new NoConditionPaginationProperties();
+
+        @NestedConfigurationProperty
+        private DeepPaginationProperties deepPagination = new DeepPaginationProperties();
+
+        @NestedConfigurationProperty
+        private LargePageSizeProperties largePageSize = new LargePageSizeProperties();
+
+        @NestedConfigurationProperty
+        private MissingOrderByProperties missingOrderBy = new MissingOrderByProperties();
+
+        @NestedConfigurationProperty
+        private NoPaginationProperties noPagination = new NoPaginationProperties();
+
+        public NoWhereClauseProperties getNoWhereClause() {
+            return noWhereClause;
+        }
+
+        public void setNoWhereClause(NoWhereClauseProperties noWhereClause) {
+            this.noWhereClause = noWhereClause;
+        }
+
+        public DummyConditionProperties getDummyCondition() {
+            return dummyCondition;
+        }
+
+        public void setDummyCondition(DummyConditionProperties dummyCondition) {
+            this.dummyCondition = dummyCondition;
+        }
+
+        public BlacklistFieldProperties getBlacklistFields() {
+            return blacklistFields;
+        }
+
+        public void setBlacklistFields(BlacklistFieldProperties blacklistFields) {
+            this.blacklistFields = blacklistFields;
+        }
+
+        public WhitelistFieldProperties getWhitelistFields() {
+            return whitelistFields;
+        }
+
+        public void setWhitelistFields(WhitelistFieldProperties whitelistFields) {
+            this.whitelistFields = whitelistFields;
+        }
+
+        public LogicalPaginationProperties getLogicalPagination() {
+            return logicalPagination;
+        }
+
+        public void setLogicalPagination(LogicalPaginationProperties logicalPagination) {
+            this.logicalPagination = logicalPagination;
+        }
+
+        public NoConditionPaginationProperties getNoConditionPagination() {
+            return noConditionPagination;
+        }
+
+        public void setNoConditionPagination(NoConditionPaginationProperties noConditionPagination) {
+            this.noConditionPagination = noConditionPagination;
+        }
+
+        public DeepPaginationProperties getDeepPagination() {
+            return deepPagination;
+        }
+
+        public void setDeepPagination(DeepPaginationProperties deepPagination) {
+            this.deepPagination = deepPagination;
+        }
+
+        public LargePageSizeProperties getLargePageSize() {
+            return largePageSize;
+        }
+
+        public void setLargePageSize(LargePageSizeProperties largePageSize) {
+            this.largePageSize = largePageSize;
+        }
+
+        public MissingOrderByProperties getMissingOrderBy() {
+            return missingOrderBy;
+        }
+
+        public void setMissingOrderBy(MissingOrderByProperties missingOrderBy) {
+            this.missingOrderBy = missingOrderBy;
+        }
+
+        public NoPaginationProperties getNoPagination() {
+            return noPagination;
+        }
+
+        public void setNoPagination(NoPaginationProperties noPagination) {
+            this.noPagination = noPagination;
+        }
+
+        @Override
+        public String toString() {
+            return "RulesConfig{" +
+                    "noWhereClause=" + noWhereClause +
+                    ", dummyCondition=" + dummyCondition +
+                    ", blacklistFields=" + blacklistFields +
+                    ", whitelistFields=" + whitelistFields +
+                    ", logicalPagination=" + logicalPagination +
+                    ", noConditionPagination=" + noConditionPagination +
+                    ", deepPagination=" + deepPagination +
+                    ", largePageSize=" + largePageSize +
+                    ", missingOrderBy=" + missingOrderBy +
+                    ", noPagination=" + noPagination +
+                    '}';
+        }
+    }
+
+    /**
+     * No WHERE clause rule properties.
+     */
+    public static class NoWhereClauseProperties {
+        private boolean enabled = true;
+        private RiskLevel riskLevel = RiskLevel.CRITICAL;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        @Override
+        public String toString() {
+            return "NoWhereClauseProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + '}';
+        }
+    }
+
+    /**
+     * Dummy condition rule properties.
+     */
+    public static class DummyConditionProperties {
+        private boolean enabled = true;
+        private RiskLevel riskLevel = RiskLevel.HIGH;
+        private List<String> patterns = Arrays.asList("1=1", "true", "'a'='a'");
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        public List<String> getPatterns() {
+            return patterns;
+        }
+
+        public void setPatterns(List<String> patterns) {
+            this.patterns = patterns;
+        }
+
+        @Override
+        public String toString() {
+            return "DummyConditionProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + ", patterns=" + patterns + '}';
+        }
+    }
+
+    /**
+     * Blacklist field rule properties.
+     */
+    public static class BlacklistFieldProperties {
+        private boolean enabled = true;
+        private RiskLevel riskLevel = RiskLevel.HIGH;
+        private List<String> blacklistFields = Arrays.asList("deleted", "status", "enabled");
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        public List<String> getBlacklistFields() {
+            return blacklistFields;
+        }
+
+        public void setBlacklistFields(List<String> blacklistFields) {
+            this.blacklistFields = blacklistFields;
+        }
+
+        @Override
+        public String toString() {
+            return "BlacklistFieldProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + ", blacklistFields=" + blacklistFields + '}';
+        }
+    }
+
+    /**
+     * Whitelist field rule properties.
+     */
+    public static class WhitelistFieldProperties {
+        private boolean enabled = true;
+        private RiskLevel riskLevel = RiskLevel.HIGH;
+        private Map<String, List<String>> whitelistFields = new HashMap<>();
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        public Map<String, List<String>> getWhitelistFields() {
+            return whitelistFields;
+        }
+
+        public void setWhitelistFields(Map<String, List<String>> whitelistFields) {
+            this.whitelistFields = whitelistFields;
+        }
+
+        @Override
+        public String toString() {
+            return "WhitelistFieldProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + ", whitelistFields=" + whitelistFields + '}';
+        }
+    }
+
+    /**
+     * Logical pagination rule properties.
+     */
+    public static class LogicalPaginationProperties {
+        private boolean enabled = true;
+        private RiskLevel riskLevel = RiskLevel.CRITICAL;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        @Override
+        public String toString() {
+            return "LogicalPaginationProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + '}';
+        }
+    }
+
+    /**
+     * No condition pagination rule properties.
+     */
+    public static class NoConditionPaginationProperties {
+        private boolean enabled = true;
+        private RiskLevel riskLevel = RiskLevel.CRITICAL;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        @Override
+        public String toString() {
+            return "NoConditionPaginationProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + '}';
+        }
+    }
+
+    /**
+     * Deep pagination rule properties.
+     */
+    public static class DeepPaginationProperties {
+        private boolean enabled = true;
+        private RiskLevel riskLevel = RiskLevel.MEDIUM;
+        @Min(1)
+        private int maxOffset = 10000;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        public int getMaxOffset() {
+            return maxOffset;
+        }
+
+        public void setMaxOffset(int maxOffset) {
+            this.maxOffset = maxOffset;
+        }
+
+        @Override
+        public String toString() {
+            return "DeepPaginationProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + ", maxOffset=" + maxOffset + '}';
+        }
+    }
+
+    /**
+     * Large page size rule properties.
+     */
+    public static class LargePageSizeProperties {
+        private boolean enabled = true;
+        private RiskLevel riskLevel = RiskLevel.MEDIUM;
+        @Min(1)
+        private int maxPageSize = 1000;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        public int getMaxPageSize() {
+            return maxPageSize;
+        }
+
+        public void setMaxPageSize(int maxPageSize) {
+            this.maxPageSize = maxPageSize;
+        }
+
+        @Override
+        public String toString() {
+            return "LargePageSizeProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + ", maxPageSize=" + maxPageSize + '}';
+        }
+    }
+
+    /**
+     * Missing ORDER BY rule properties.
+     */
+    public static class MissingOrderByProperties {
+        private boolean enabled = true;
+        private RiskLevel riskLevel = RiskLevel.LOW;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        @Override
+        public String toString() {
+            return "MissingOrderByProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + '}';
+        }
+    }
+
+    /**
+     * No pagination rule properties.
+     */
+    public static class NoPaginationProperties {
+        private boolean enabled = true;
+        private RiskLevel riskLevel = RiskLevel.MEDIUM;
+        @Min(1)
+        private long estimatedRowsThreshold = 10000;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        public long getEstimatedRowsThreshold() {
+            return estimatedRowsThreshold;
+        }
+
+        public void setEstimatedRowsThreshold(long estimatedRowsThreshold) {
+            this.estimatedRowsThreshold = estimatedRowsThreshold;
+        }
+
+        @Override
+        public String toString() {
+            return "NoPaginationProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + ", estimatedRowsThreshold=" + estimatedRowsThreshold + '}';
+        }
+    }
+
+    /**
+     * Parser configuration.
+     */
+    public static class ParserConfig {
+        /**
+         * Enable lenient parsing mode for SQL with syntax extensions.
+         */
+        private boolean lenientMode = false;
+
+        public boolean isLenientMode() {
+            return lenientMode;
+        }
+
+        public void setLenientMode(boolean lenientMode) {
+            this.lenientMode = lenientMode;
+        }
+
+        @Override
+        public String toString() {
+            return "ParserConfig{lenientMode=" + lenientMode + '}';
+        }
+    }
+}

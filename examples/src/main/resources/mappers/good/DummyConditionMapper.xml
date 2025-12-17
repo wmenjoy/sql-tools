@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CORRECTED VERSION: DummyCondition Fixed
+  FIX APPLIED: Removed dummy conditions, used MyBatis dynamic SQL <where> tag
+  
+  KEY IMPROVEMENTS:
+  - Replaced "WHERE 1=1" with proper <where> tag
+  - Removed constant equality conditions
+  - Used dynamic SQL for conditional filtering
+  
+  SAFETY GUARANTEE: All queries now have meaningful WHERE conditions
+-->
+<mapper namespace="com.footstone.sqlguard.examples.good.DummyConditionMapper">
+
+    <!-- GOOD: Proper WHERE condition (no dummy) -->
+    <select id="selectUsersByName" resultType="map">
+        SELECT * FROM users 
+        WHERE name = #{name}
+    </select>
+
+    <!-- GOOD: Dynamic SQL with <where> tag (no 1=1 needed) -->
+    <select id="selectUsersWithDynamicWhere" resultType="map">
+        SELECT * FROM users
+        <where>
+            <if test="name != null">
+                AND name = #{name}
+            </if>
+            <if test="email != null">
+                AND email = #{email}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!-- GOOD: Multiple meaningful conditions -->
+    <select id="selectActiveUsersByEmail" resultType="map">
+        SELECT * FROM users 
+        WHERE email = #{email} AND status = 'active'
+    </select>
+
+    <!-- GOOD: UPDATE with proper WHERE -->
+    <update id="updateUserStatus">
+        UPDATE users 
+        SET status = #{status} 
+        WHERE id = #{id}
+    </update>
+
+    <!-- GOOD: DELETE with meaningful WHERE -->
+    <delete id="deleteInactiveUser">
+        DELETE FROM users 
+        WHERE id = #{id} AND status = 'inactive'
+    </delete>
+
+    <!-- GOOD: Complex dynamic WHERE without dummy conditions -->
+    <select id="searchUsers" resultType="map">
+        SELECT * FROM users
+        <where>
+            <if test="userId != null">
+                AND id = #{userId}
+            </if>
+            <if test="minAge != null">
+                AND age >= #{minAge}
+            </if>
+            <if test="maxAge != null">
+                AND age &lt;= #{maxAge}
+            </if>
+            <if test="statusList != null">
+                AND status IN
+                <foreach item="status" collection="statusList" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+</mapper>

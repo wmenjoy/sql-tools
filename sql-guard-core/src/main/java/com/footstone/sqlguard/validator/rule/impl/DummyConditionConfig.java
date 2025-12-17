@@ -101,3 +101,8 @@ public class DummyConditionConfig extends CheckerConfig {
     this.customPatterns = customPatterns != null ? customPatterns : new ArrayList<>();
   }
 }
+
+
+
+
+

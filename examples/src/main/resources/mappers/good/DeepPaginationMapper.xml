@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CORRECTED VERSION: DeepPagination Fixed
+  FIX APPLIED: Replaced OFFSET-based pagination with cursor-based pagination
+  
+  KEY IMPROVEMENTS:
+  - Cursor-based: WHERE id > #{lastId} LIMIT 20 (constant performance)
+  - No OFFSET scanning (page 1000 same speed as page 1)
+  - Efficient for infinite scroll and "Load More" patterns
+  
+  ALTERNATIVE FIX: Limit maximum OFFSET value (e.g., OFFSET < 10000)
+  
+  SAFETY GUARANTEE: Pagination performance independent of page depth
+-->
+<mapper namespace="com.footstone.sqlguard.examples.good.DeepPaginationMapper">
+
+    <!-- GOOD: Cursor-based pagination (no OFFSET) -->
+    <select id="selectUsersAfterCursor" resultType="map">
+        SELECT * FROM users 
+        WHERE status = 'active' AND id > #{lastId} 
+        ORDER BY id 
+        LIMIT 20
+    </select>
+
+    <!-- GOOD: Cursor-based with timestamp -->
+    <select id="selectOrdersAfterTimestamp" resultType="map">
+        SELECT * FROM orders 
+        WHERE user_id = #{userId} 
+          AND created_at > #{lastCreatedAt} 
+        ORDER BY created_at, id 
+        LIMIT 10
+    </select>
+
+    <!-- GOOD: Limited OFFSET (shallow pagination) -->
+    <select id="selectUsersShallowOffset" resultType="map">
+        SELECT * FROM users 
+        WHERE status = 'active' 
+        ORDER BY created_at DESC 
+        LIMIT 20 OFFSET #{offset}
+        <!-- Application enforces: offset < 1000 (max 50 pages) -->
+    </select>
+
+    <!-- GOOD: Composite cursor (timestamp + id) -->
+    <select id="selectProductsAfterCursor" resultType="map">
+        SELECT * FROM products 
+        WHERE category_id = #{categoryId} 
+          AND (created_at > #{lastCreatedAt} 
+               OR (created_at = #{lastCreatedAt} AND id > #{lastId})) 
+        ORDER BY created_at, id 
+        LIMIT 50
+    </select>
+
+    <!-- GOOD: Cursor-based for comments -->
+    <select id="selectCommentsAfterCursor" resultType="map">
+        SELECT * FROM comments 
+        WHERE post_id = #{postId} AND id > #{lastCommentId} 
+        ORDER BY id 
+        LIMIT 10
+    </select>
+
+</mapper>

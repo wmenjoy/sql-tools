@@ -44,3 +44,8 @@ public class BlacklistFieldsConfigTest {
         assertTrue(config.getFields().isEmpty(), "Fields should be empty");
     }
 }
+
+
+
+
+

@@ -1,0 +1,10 @@
+# WARN Strategy Profile - Non-blocking alert mode
+# Use this profile for gradual rollout with error logging
+# Start with: mvn spring-boot:run -Dspring-boot.run.profiles=warn
+
+sql-guard:
+  active-strategy: WARN
+
+logging:
+  level:
+    com.footstone.sqlguard: WARN

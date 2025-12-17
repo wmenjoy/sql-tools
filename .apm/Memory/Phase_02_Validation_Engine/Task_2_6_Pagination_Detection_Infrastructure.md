@@ -178,3 +178,8 @@ Infrastructure is ready for implementation of pagination abuse checkers:
 - Tasks 2.9-2.12: Additional rule checkers
 
 All pagination checkers will use this infrastructure to detect pagination types and plugin configurations.
+
+
+
+
+

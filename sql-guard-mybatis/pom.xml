@@ -27,6 +27,7 @@
         <dependency>
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis</artifactId>
+            <version>${mybatis.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -51,9 +52,56 @@
 
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
+            <artifactId>mockito-inline</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- H2 Database for integration tests -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.2.220</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Logback for test logging -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <!-- MyBatis 3.4.x Profile -->
+        <profile>
+            <id>mybatis-3.4</id>
+            <properties>
+                <mybatis.version>${mybatis.legacy.version}</mybatis.version>
+            </properties>
+        </profile>
+
+        <!-- MyBatis 3.5.x Profile (default) -->
+        <profile>
+            <id>mybatis-3.5</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <mybatis.version>${mybatis.modern.version}</mybatis.version>
+            </properties>
+        </profile>
+    </profiles>
 </project>
+
+
+
+
 

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: DeepPagination (HIGH)
+  PATTERN: LIMIT with very large OFFSET (deep pagination)
+  
+  WHY DANGEROUS:
+  - OFFSET 50000 requires database to scan and discard first 50,000 rows
+  - Performance degrades linearly with OFFSET size
+  - Page 1000 is 1000x slower than Page 1
+  
+  REAL-WORLD IMPACT:
+  - Timeout errors on later pages
+  - Database CPU exhaustion
+  - Poor user experience (users rarely visit deep pages)
+  
+  EXPECTED VIOLATION MESSAGE: "检测到深度分页,OFFSET过大"
+  EXPECTED RISK LEVEL: HIGH
+  
+  FIX RECOMMENDATION: Use cursor-based pagination (WHERE id > #{lastId} LIMIT 20)
+  
+  DESIGN REFERENCE: Phase 2, Task 2.9 - DeepPaginationChecker Implementation
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.DeepPaginationMapper">
+
+    <!-- BAD: OFFSET 50000 (extremely deep pagination) -->
+    <select id="selectUsersDeepOffset" resultType="map">
+        SELECT * FROM users 
+        WHERE status = 'active' 
+        ORDER BY created_at DESC 
+        LIMIT 20 OFFSET 50000
+    </select>
+
+    <!-- BAD: OFFSET 100000 (even deeper) -->
+    <select id="selectOrdersVeryDeepOffset" resultType="map">
+        SELECT * FROM orders 
+        WHERE user_id = #{userId} 
+        ORDER BY created_at DESC 
+        LIMIT 10 OFFSET 100000
+    </select>
+
+    <!-- BAD: Page number calculation resulting in deep offset -->
+    <select id="selectUsersPage1000" resultType="map">
+        SELECT * FROM users 
+        WHERE deleted = 0 
+        ORDER BY id 
+        LIMIT 20 OFFSET #{offset}
+        <!-- If offset = (pageNum - 1) * pageSize = 999 * 20 = 19980 -->
+    </select>
+
+    <!-- BAD: OFFSET 25000 -->
+    <select id="selectProductsDeepOffset" resultType="map">
+        SELECT * FROM products 
+        WHERE category_id = #{categoryId} 
+        ORDER BY price DESC 
+        LIMIT 50 OFFSET 25000
+    </select>
+
+    <!-- BAD: High page number pagination -->
+    <select id="selectCommentsDeepOffset" resultType="map">
+        SELECT * FROM comments 
+        WHERE post_id = #{postId} 
+        ORDER BY created_at 
+        LIMIT 10 OFFSET 80000
+    </select>
+
+</mapper>

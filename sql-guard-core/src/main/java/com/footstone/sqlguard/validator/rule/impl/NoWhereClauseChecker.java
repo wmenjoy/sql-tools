@@ -117,3 +117,8 @@ public class NoWhereClauseChecker extends AbstractRuleChecker {
     return config.isEnabled();
   }
 }
+
+
+
+
+

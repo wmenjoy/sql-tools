@@ -23,6 +23,39 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Druid Connection Pool -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid</artifactId>
+            <version>1.2.20</version>
+            <scope>provided</scope>
+        </dependency>
+
+    <!-- HikariCP Connection Pool -->
+    <dependency>
+        <groupId>com.zaxxer</groupId>
+        <artifactId>HikariCP</artifactId>
+        <version>5.0.1</version>
+        <scope>provided</scope>
+    </dependency>
+
+    <!-- P6Spy JDBC Proxy Driver -->
+    <dependency>
+        <groupId>p6spy</groupId>
+        <artifactId>p6spy</artifactId>
+        <version>3.9.1</version>
+        <scope>provided</scope>
+    </dependency>
+
+    <!-- Spring Framework (optional, for BeanPostProcessor support) -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <version>5.3.30</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+
         <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -47,6 +80,26 @@
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- H2 Database for Integration Testing -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.2.224</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Logback for Testing -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>
+
+
+
+
+
 

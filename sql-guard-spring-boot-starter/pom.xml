@@ -16,6 +16,13 @@
     <description>Spring Boot auto-configuration for SQL Guard</description>
 
     <dependencies>
+        <!-- Spring Boot Auto-Configuration -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+            <version>2.7.18</version>
+        </dependency>
+
         <!-- Inter-module dependencies -->
         <dependency>
             <groupId>com.footstone</groupId>
@@ -44,6 +51,45 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- MyBatis (optional - for pagination plugin detection) -->
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis</artifactId>
+            <version>${mybatis.modern.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- MyBatis-Plus (optional - for pagination plugin detection) -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-core</artifactId>
+            <version>${mybatis-plus.modern.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Apollo Client (optional - for config center integration) -->
+        <dependency>
+            <groupId>com.ctrip.framework.apollo</groupId>
+            <artifactId>apollo-client</artifactId>
+            <version>2.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Configuration Processor -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <version>2.7.18</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Validation -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+            <version>2.7.18</version>
+        </dependency>
+
         <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -51,6 +97,13 @@
         </dependency>
 
         <!-- Testing -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <version>2.7.18</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -64,4 +117,8 @@
         </dependency>
     </dependencies>
 </project>
+
+
+
+
 

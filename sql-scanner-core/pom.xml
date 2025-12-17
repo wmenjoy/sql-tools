@@ -16,6 +16,13 @@
     <description>Core SQL scanning engine for static analysis</description>
 
     <dependencies>
+        <!-- Internal Dependencies -->
+        <dependency>
+            <groupId>com.footstone</groupId>
+            <artifactId>sql-guard-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- SQL Parsing -->
         <dependency>
             <groupId>com.github.jsqlparser</groupId>
@@ -34,10 +41,30 @@
             <artifactId>dom4j</artifactId>
         </dependency>
 
+        <!-- XPath support for DOM4J -->
+        <dependency>
+            <groupId>jaxen</groupId>
+            <artifactId>jaxen</artifactId>
+            <version>1.2.0</version>
+        </dependency>
+
+        <!-- MyBatis for native SQL parsing -->
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis</artifactId>
+        </dependency>
+
         <!-- Configuration -->
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
+        </dependency>
+
+        <!-- HTML Utilities -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>1.10.0</version>
         </dependency>
 
         <!-- Logging -->
@@ -75,6 +102,15 @@
             <artifactId>mockito-junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- HTML Parsing for Tests -->
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.17.2</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>
+
 

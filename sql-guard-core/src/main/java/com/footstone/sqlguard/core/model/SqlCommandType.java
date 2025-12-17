@@ -43,7 +43,12 @@ public enum SqlCommandType {
   /**
    * INSERT statement - adds new data to database.
    */
-  INSERT;
+  INSERT,
+
+  /**
+   * UNKNOWN statement - unrecognized SQL command type.
+   */
+  UNKNOWN;
 
   /**
    * Converts a string to SqlCommandType enum (case-insensitive).

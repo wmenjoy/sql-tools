@@ -1,0 +1,151 @@
+# SQL Safety Guard 配置示例
+# 此文件展示了 SQL 安全验证的配置选项
+
+# 全局启用/禁用开关
+enabled: true
+
+# 活动策略: dev, test, prod
+# 注意: 当前版本尚未实现策略特定覆盖
+activeStrategy: prod
+
+# 运行时验证的拦截器配置
+interceptors:
+  mybatis:
+    enabled: true
+  
+  mybatisPlus:
+    enabled: false
+  
+  jdbc:
+    enabled: true
+    type: auto  # auto, hikari, druid, c3p0
+
+# 去重配置，避免重复验证
+deduplication:
+  enabled: true
+  cacheSize: 1000
+  ttlMs: 100
+
+# 验证规则配置
+rules:
+  # 规则: 缺少 WHERE 子句检测
+  # 检测没有 WHERE 子句的 DELETE/UPDATE 语句
+  noWhereClause:
+    enabled: true
+    riskLevel: CRITICAL  # CRITICAL, HIGH, MEDIUM, LOW
+
+  # 规则: 虚假条件检测
+  # 检测类似 "1=1", "1<>1" 等条件
+  dummyCondition:
+    enabled: true
+    riskLevel: HIGH
+    # 默认模式（可以覆盖）
+    patterns:
+      - "1=1"
+      - "1 = 1"
+      - "'1'='1'"
+      - "true"
+      - "'a'='a'"
+    # 添加自定义模式
+    customPatterns:
+      - "true = true"
+      - "false = false"
+
+  # 规则: 黑名单字段检测
+  # 检测对敏感字段或软删除字段的查询
+  blacklistFields:
+    enabled: true
+    riskLevel: HIGH
+    # 要检查的字段（将与默认值合并）
+    fields:
+      - deleted
+      - del_flag
+      - is_deleted
+      - status
+      - is_active
+      - enabled
+
+  # 规则: 白名单字段强制
+  # 强制只能查询白名单中的字段
+  whitelistFields:
+    enabled: false  # 默认禁用（过于严格）
+    riskLevel: MEDIUM
+    # 全局白名单（适用于所有表）
+    fields:
+      - id
+      - name
+      - code
+    # 按表白名单（更具体）
+    byTable:
+      users:
+        - id
+        - username
+        - email
+      orders:
+        - id
+        - order_no
+        - status
+
+  # 规则: 分页滥用检测
+  # 检测各种与分页相关的问题
+  paginationAbuse:
+    enabled: true
+    riskLevel: HIGH
+    
+    # 逻辑分页但没有物理分页
+    logicalPagination:
+      enabled: true
+    
+    # 物理分页但没有 WHERE 条件
+    physicalNoCondition:
+      enabled: true
+    
+    # 深度分页（大偏移量）
+    physicalDeepPagination:
+      enabled: true
+      maxOffset: 10000
+      maxPageNum: 1000
+    
+    # 大页面大小
+    largePageSize:
+      enabled: true
+      maxPageSize: 1000
+    
+    # 分页但没有 ORDER BY
+    noOrderBy:
+      enabled: true
+
+  # 规则: 缺少分页检测
+  # 检测应该有分页但没有的查询
+  noPagination:
+    enabled: true
+    riskLevel: MEDIUM
+    enforceForAllQueries: false
+    # 白名单特定的 mapper ID，这些不需要分页
+    whitelistMapperIds:
+      - countTotal
+      - checkExists
+      - getConfig
+
+  # 规则: 预估行数检查
+  # 验证查询不会返回过多行
+  estimatedRows:
+    enabled: true
+    riskLevel: HIGH
+    maxEstimatedRows: 10000
+    # 按命令类型的阈值
+    thresholds:
+      SELECT: 10000
+      UPDATE: 5000
+      DELETE: 1000
+
+# 注意事项:
+# 1. 所有规则都是可选的 - 如果未指定，将使用默认值
+# 2. 风险级别: CRITICAL > HIGH > MEDIUM > LOW
+# 3. 在 CI/CD 中使用 --fail-on-critical 标志在发现 CRITICAL 违规时使构建失败
+# 4. 模式支持正则表达式（根据需要转义特殊字符）
+# 5. 字段名不区分大小写
+# 6. 要为不同环境自定义配置，请创建单独的配置文件:
+#    - config-dev.yml (较宽松的规则)
+#    - config-test.yml (中等规则)
+#    - config-prod.yml (严格规则)

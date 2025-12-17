@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: NoPagination (CRITICAL/HIGH/MEDIUM based on WHERE clause)
+  PATTERN: SELECT query completely lacking pagination (no LIMIT, no RowBounds, no IPage)
+  
+  WHY DANGEROUS:
+  - Returns unbounded result sets (potentially millions of rows)
+  - Memory exhaustion from loading all rows
+  - Network bandwidth waste
+  - Risk level varies by WHERE clause quality
+  
+  REAL-WORLD IMPACT:
+  - OutOfMemoryError in production
+  - Database connection timeouts
+  - Slow API response times
+  - Application server crashes
+  
+  EXPECTED VIOLATION MESSAGES:
+  - CRITICAL: "SELECT查询无条件且无分页限制,可能返回全表数据导致内存溢出" (no WHERE)
+  - HIGH: "SELECT查询条件只有黑名单字段且无分页,可能返回大量数据" (blacklist-only WHERE)
+  - MEDIUM: "SELECT查询缺少分页限制,建议添加LIMIT或使用分页" (normal WHERE, if enforceForAllQueries=true)
+  
+  FIX RECOMMENDATION: Add LIMIT clause or use PageHelper/IPage for pagination
+  
+  DESIGN REFERENCE: Phase 2, Task 2.12 - NoPaginationChecker Implementation
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.NoPaginationMapper">
+
+    <!-- BAD: SELECT without WHERE and without pagination (CRITICAL) -->
+    <select id="selectAllUsersNoPagination" resultType="map">
+        SELECT * FROM users
+    </select>
+
+    <!-- BAD: SELECT with dummy WHERE and no pagination (CRITICAL) -->
+    <select id="selectUsersWithDummyNoPagination" resultType="map">
+        SELECT * FROM users WHERE 1=1
+    </select>
+
+    <!-- BAD: SELECT with blacklist-only WHERE and no pagination (HIGH) -->
+    <select id="selectActiveUsersNoPagination" resultType="map">
+        SELECT * FROM users WHERE deleted = 0
+    </select>
+
+    <!-- BAD: SELECT with blacklist fields and no pagination (HIGH) -->
+    <select id="selectEnabledUsersNoPagination" resultType="map">
+        SELECT * FROM users 
+        WHERE deleted = 0 AND status = 'active'
+    </select>
+
+    <!-- BAD: SELECT with normal WHERE but no pagination (MEDIUM if enforceForAllQueries=true) -->
+    <select id="selectUsersByEmailNoPagination" resultType="map">
+        SELECT * FROM users WHERE email LIKE #{pattern}
+    </select>
+
+    <!-- BAD: Complex JOIN without pagination -->
+    <select id="selectOrderDetailsNoPagination" resultType="map">
+        SELECT o.*, od.*, p.product_name 
+        FROM orders o 
+        JOIN order_details od ON o.order_id = od.order_id 
+        JOIN products p ON od.product_id = p.id 
+        WHERE o.status = 'pending'
+    </select>
+
+    <!-- BAD: Aggregate query without pagination (still dangerous for large result sets) -->
+    <select id="selectUserStatsNoPagination" resultType="map">
+        SELECT user_id, COUNT(*) as order_count, SUM(total_amount) as total_spent 
+        FROM orders 
+        GROUP BY user_id
+    </select>
+
+    <!-- BAD: SELECT with date range but no pagination -->
+    <select id="selectOrdersByDateNoPagination" resultType="map">
+        SELECT * FROM orders 
+        WHERE created_at BETWEEN #{startDate} AND #{endDate}
+    </select>
+
+</mapper>

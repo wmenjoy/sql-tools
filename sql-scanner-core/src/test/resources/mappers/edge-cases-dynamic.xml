@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.EdgeCasesMapper">
+    <!-- Empty where tag -->
+    <select id="emptyWhere" resultType="User">
+        SELECT * FROM user
+        <where>
+            <if test="false">AND impossible = true</if>
+        </where>
+    </select>
+
+    <!-- Foreach with no items -->
+    <select id="emptyForeach" resultType="User">
+        SELECT * FROM user WHERE id IN
+        <foreach collection="emptyList" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- Choose with only otherwise -->
+    <select id="onlyOtherwise" resultType="User">
+        SELECT * FROM user
+        <where>
+            <choose>
+                <otherwise>AND 1=1</otherwise>
+            </choose>
+        </where>
+    </select>
+
+    <!-- Nested choose -->
+    <select id="nestedChoose" resultType="User">
+        SELECT * FROM user
+        <where>
+            <choose>
+                <when test="type == 1">
+                    <choose>
+                        <when test="subType == 1">AND status = 'a'</when>
+                        <otherwise>AND status = 'b'</otherwise>
+                    </choose>
+                </when>
+                <otherwise>AND status = 'c'</otherwise>
+            </choose>
+        </where>
+    </select>
+</mapper>
+
+
+
+

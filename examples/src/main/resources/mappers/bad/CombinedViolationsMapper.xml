@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: Multiple Violations (CRITICAL/HIGH)
+  PATTERN: SQL statements with multiple concurrent violations
+  
+  WHY DANGEROUS:
+  - Demonstrates real-world anti-patterns combining multiple issues
+  - Shows how violations compound to create severe problems
+  - Tests scanner's ability to detect all violations in single SQL
+  
+  REAL-WORLD IMPACT:
+  - Production incidents often involve multiple violations
+  - Compound violations have multiplicative impact
+  - Critical for comprehensive code review
+  
+  EXPECTED VIOLATIONS: Multiple violations per statement
+  
+  FIX RECOMMENDATION: Address all violations systematically
+  
+  DESIGN REFERENCE: Integration testing for all Phase 2 checkers
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.CombinedViolationsMapper">
+
+    <!-- BAD: NoWhereClause + NoPagination (CRITICAL + CRITICAL) -->
+    <select id="selectAllWithoutPagination" resultType="map">
+        SELECT * FROM users
+    </select>
+
+    <!-- BAD: DummyCondition + NoPagination (HIGH + HIGH) -->
+    <select id="selectWithDummyNoPagination" resultType="map">
+        SELECT * FROM users WHERE 1=1
+    </select>
+
+    <!-- BAD: BlacklistOnly + NoPagination (HIGH + HIGH) -->
+    <select id="selectBlacklistNoPagination" resultType="map">
+        SELECT * FROM users WHERE deleted = 0
+    </select>
+
+    <!-- BAD: NoConditionPagination + MissingOrderBy (HIGH + MEDIUM) -->
+    <select id="selectWithLimitNoWhereNoOrderBy" resultType="map">
+        SELECT * FROM users LIMIT 20
+    </select>
+
+    <!-- BAD: DeepPagination + MissingOrderBy (HIGH + MEDIUM) -->
+    <select id="selectDeepOffsetNoOrderBy" resultType="map">
+        SELECT * FROM users 
+        WHERE status = 'active' 
+        LIMIT 10 OFFSET 50000
+    </select>
+
+    <!-- BAD: LargePageSize + MissingOrderBy (MEDIUM + MEDIUM) -->
+    <select id="selectLargeLimitNoOrderBy" resultType="map">
+        SELECT * FROM users 
+        WHERE deleted = 0 
+        LIMIT 5000
+    </select>
+
+    <!-- BAD: DummyCondition + BlacklistOnly + NoPagination (HIGH + HIGH + HIGH) -->
+    <select id="selectTripleViolation" resultType="map">
+        SELECT * FROM users 
+        WHERE 1=1 AND deleted = 0
+    </select>
+
+    <!-- BAD: NoConditionPagination + LargePageSize + MissingOrderBy (HIGH + MEDIUM + MEDIUM) -->
+    <select id="selectMultiplePaginationIssues" resultType="map">
+        SELECT * FROM users LIMIT 3000
+    </select>
+
+    <!-- BAD: UPDATE with NoWhereClause (CRITICAL) -->
+    <update id="updateAllUsersNoWhere">
+        UPDATE users SET last_login = NOW()
+    </update>
+
+    <!-- BAD: DELETE with DummyCondition (HIGH) -->
+    <delete id="deleteWithDummy">
+        DELETE FROM users WHERE 1=1
+    </delete>
+
+    <!-- BAD: Complex query with multiple violations -->
+    <select id="selectComplexMultipleViolations" resultType="map">
+        SELECT o.*, u.username 
+        FROM orders o 
+        JOIN users u ON o.user_id = u.id 
+        WHERE o.deleted = 0 
+        LIMIT 2000
+    </select>
+
+</mapper>

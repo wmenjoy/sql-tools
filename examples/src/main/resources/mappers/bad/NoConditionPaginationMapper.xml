@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: NoConditionPagination (HIGH)
+  PATTERN: LIMIT clause without WHERE condition (paginating entire table)
+  
+  WHY DANGEROUS:
+  - LIMIT without WHERE still scans entire table to find first N rows
+  - Subsequent pages (OFFSET) require scanning all previous rows
+  - No index optimization possible without WHERE
+  
+  REAL-WORLD IMPACT:
+  - Slow pagination performance (seconds per page)
+  - Database CPU spikes during pagination
+  - Poor user experience (timeout errors)
+  
+  EXPECTED VIOLATION MESSAGE: "分页查询缺少WHERE条件"
+  EXPECTED RISK LEVEL: HIGH
+  
+  FIX RECOMMENDATION: Add WHERE clause to enable index usage and reduce scan range
+  
+  DESIGN REFERENCE: Phase 2, Task 2.8 - NoConditionPaginationChecker Implementation
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.NoConditionPaginationMapper">
+
+    <!-- BAD: LIMIT without WHERE (paginating entire table) -->
+    <select id="selectUsersWithLimitNoWhere" resultType="map">
+        SELECT * FROM users LIMIT 10
+    </select>
+
+    <!-- BAD: LIMIT with OFFSET but no WHERE -->
+    <select id="selectUsersPageNoWhere" resultType="map">
+        SELECT * FROM users LIMIT 10 OFFSET 100
+    </select>
+
+    <!-- BAD: LIMIT with ORDER BY but no WHERE -->
+    <select id="selectUsersOrderedNoWhere" resultType="map">
+        SELECT * FROM users 
+        ORDER BY created_at DESC 
+        LIMIT 20
+    </select>
+
+    <!-- BAD: Complex SELECT with LIMIT but no WHERE -->
+    <select id="selectOrdersWithLimitNoWhere" resultType="map">
+        SELECT o.*, u.username 
+        FROM orders o 
+        JOIN users u ON o.user_id = u.id 
+        ORDER BY o.created_at DESC 
+        LIMIT 50
+    </select>
+
+    <!-- BAD: LIMIT with dummy WHERE condition -->
+    <select id="selectUsersWithLimitDummyWhere" resultType="map">
+        SELECT * FROM users 
+        WHERE 1=1 
+        LIMIT 10
+    </select>
+
+    <!-- BAD: LIMIT with blacklist-only WHERE -->
+    <select id="selectUsersWithLimitBlacklistWhere" resultType="map">
+        SELECT * FROM users 
+        WHERE deleted = 0 
+        LIMIT 10
+    </select>
+
+</mapper>

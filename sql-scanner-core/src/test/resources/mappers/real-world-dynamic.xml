@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.RealWorldMapper">
+    <select id="searchUsers" resultType="User">
+        SELECT * FROM user
+        <where>
+            <if test="name != null and name != ''">
+                AND name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="email != null">
+                AND email = #{email}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="createTimeStart != null">
+                AND create_time >= #{createTimeStart}
+            </if>
+            <if test="createTimeEnd != null">
+                AND create_time &lt;= #{createTimeEnd}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+    
+    <update id="batchUpdateStatus">
+        UPDATE user
+        SET status = #{newStatus}, update_time = NOW()
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+    
+    <select id="findByConditions" resultType="User">
+        SELECT * FROM user
+        <where>
+            <choose>
+                <when test="queryType == 'active'">
+                    AND status = 'active' AND deleted = 0
+                </when>
+                <when test="queryType == 'inactive'">
+                    AND status = 'inactive'
+                </when>
+                <otherwise>
+                    AND deleted = 0
+                </otherwise>
+            </choose>
+            <if test="departmentIds != null and departmentIds.size() > 0">
+                AND department_id IN
+                <foreach collection="departmentIds" item="deptId" open="(" close=")" separator=",">
+                    #{deptId}
+                </foreach>
+            </if>
+        </where>
+    </select>
+</mapper>
+
+
+
+

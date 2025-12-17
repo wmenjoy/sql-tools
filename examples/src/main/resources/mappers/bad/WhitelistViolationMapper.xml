@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: WhitelistFields (HIGH)
+  PATTERN: Queries missing required whitelist fields (tenant_id, org_id for multi-tenant systems)
+  
+  WHY DANGEROUS:
+  - Multi-tenant systems MUST filter by tenant_id to prevent data leakage
+  - Missing tenant_id allows users to access other tenants' data
+  - Regulatory compliance violations (GDPR, HIPAA)
+  
+  REAL-WORLD IMPACT:
+  - Data breach incidents (customer A sees customer B's data)
+  - Compliance fines and legal liability
+  - Loss of customer trust
+  
+  EXPECTED VIOLATION MESSAGE: "WHERE条件缺少必需的白名单字段[tenant_id]"
+  EXPECTED RISK LEVEL: HIGH
+  
+  FIX RECOMMENDATION: Always include tenant_id in WHERE clause for multi-tenant queries
+  
+  DESIGN REFERENCE: Phase 2, Task 2.5 - WhitelistFieldChecker Implementation
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.WhitelistViolationMapper">
+
+    <!-- 
+      NOTE: These examples assume whitelist configuration requires tenant_id field.
+      Whitelist checker is typically disabled by default and enabled for multi-tenant systems.
+      
+      Configuration example:
+      rules:
+        whitelistFields:
+          enabled: true
+          requiredFields:
+            - tenant_id
+    -->
+
+    <!-- BAD: SELECT without tenant_id (data leakage risk) -->
+    <select id="selectOrdersWithoutTenant" resultType="map">
+        SELECT * FROM orders WHERE user_id = #{userId}
+    </select>
+
+    <!-- BAD: UPDATE without tenant_id (cross-tenant modification) -->
+    <update id="updateOrderWithoutTenant">
+        UPDATE orders 
+        SET status = 'completed' 
+        WHERE order_id = #{orderId}
+    </update>
+
+    <!-- BAD: DELETE without tenant_id (cross-tenant deletion) -->
+    <delete id="deleteOrderWithoutTenant">
+        DELETE FROM orders WHERE order_id = #{orderId}
+    </delete>
+
+    <!-- BAD: Complex WHERE without tenant_id -->
+    <select id="selectUserOrdersWithoutTenant" resultType="map">
+        SELECT * FROM orders 
+        WHERE user_id = #{userId} 
+          AND status = 'pending' 
+          AND created_at > #{startDate}
+    </select>
+
+    <!-- BAD: JOIN query without tenant_id on both tables -->
+    <select id="selectOrderDetailsWithoutTenant" resultType="map">
+        SELECT o.*, od.* 
+        FROM orders o 
+        JOIN order_details od ON o.order_id = od.order_id 
+        WHERE o.user_id = #{userId}
+    </select>
+
+</mapper>

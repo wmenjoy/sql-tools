@@ -1,0 +1,127 @@
+spring:
+  application:
+    name: sql-guard-demo
+  
+  datasource:
+    url: jdbc:mysql://localhost:3306/sqlguard_demo?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: root123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  # MyBatis Configuration
+  mybatis:
+    mapper-locations: classpath:mapper/*.xml
+    type-aliases-package: com.footstone.sqlguard.demo.entity
+    configuration:
+      map-underscore-to-camel-case: true
+      log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+
+# SQL Guard Configuration
+sql-guard:
+  # Enable SQL Safety Guard
+  enabled: true
+  
+  # Active violation strategy: LOG (observation mode for safe demo)
+  # Options: LOG (log only), WARN (log error + continue), BLOCK (throw exception)
+  active-strategy: LOG
+  
+  # Interceptor Configuration
+  interceptors:
+    mybatis:
+      enabled: true
+    mybatis-plus:
+      enabled: true
+    jdbc:
+      enabled: false
+  
+  # Deduplication Configuration
+  deduplication:
+    enabled: true
+    cache-size: 1000
+    ttl-ms: 100
+  
+  # Parser Configuration
+  parser:
+    lenient-mode: false
+  
+  # Rule Configuration
+  rules:
+    # NoWhereClauseChecker - CRITICAL
+    no-where-clause:
+      enabled: true
+      risk-level: CRITICAL
+    
+    # DummyConditionChecker - HIGH
+    dummy-condition:
+      enabled: true
+      risk-level: HIGH
+      patterns:
+        - "1=1"
+        - "true"
+        - "'a'='a'"
+    
+    # BlacklistFieldChecker - HIGH
+    blacklist-fields:
+      enabled: true
+      risk-level: HIGH
+      blacklist-fields:
+        - deleted
+        - status
+        - enabled
+    
+    # WhitelistFieldChecker - HIGH
+    whitelist-fields:
+      enabled: true
+      risk-level: HIGH
+      whitelist-fields:
+        user:
+          - id
+          - email
+        order:
+          - id
+          - user_id
+    
+    # LogicalPaginationChecker - CRITICAL
+    logical-pagination:
+      enabled: true
+      risk-level: CRITICAL
+    
+    # NoConditionPaginationChecker - CRITICAL
+    no-condition-pagination:
+      enabled: true
+      risk-level: CRITICAL
+    
+    # DeepPaginationChecker - MEDIUM
+    deep-pagination:
+      enabled: true
+      risk-level: MEDIUM
+      max-offset: 10000
+    
+    # LargePageSizeChecker - MEDIUM
+    large-page-size:
+      enabled: true
+      risk-level: MEDIUM
+      max-page-size: 1000
+    
+    # MissingOrderByChecker - LOW
+    missing-orderby:
+      enabled: true
+      risk-level: LOW
+    
+    # NoPaginationChecker - Variable
+    no-pagination:
+      enabled: true
+      risk-level: MEDIUM
+      estimated-rows-threshold: 10000
+
+# Logging Configuration
+logging:
+  level:
+    com.footstone.sqlguard: DEBUG
+    com.footstone.sqlguard.demo: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Server Configuration
+server:
+  port: 8080

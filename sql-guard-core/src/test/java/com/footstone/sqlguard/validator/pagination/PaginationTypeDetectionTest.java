@@ -298,3 +298,8 @@ public class PaginationTypeDetectionTest {
     // Class name doesn't contain "PaginationInnerInterceptor"
   }
 }
+
+
+
+
+

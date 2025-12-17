@@ -1,0 +1,10 @@
+# BLOCK Strategy Profile - Strict enforcement mode
+# Use this profile to prevent dangerous SQL execution
+# Start with: mvn spring-boot:run -Dspring-boot.run.profiles=block
+
+sql-guard:
+  active-strategy: BLOCK
+
+logging:
+  level:
+    com.footstone.sqlguard: INFO

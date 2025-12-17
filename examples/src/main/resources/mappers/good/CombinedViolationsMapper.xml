@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CORRECTED VERSION: Combined Violations Fixed
+  FIX APPLIED: Addressed all violations systematically
+  
+  KEY IMPROVEMENTS:
+  - Added WHERE clauses to all queries
+  - Removed dummy conditions
+  - Added pagination with LIMIT
+  - Added ORDER BY for deterministic results
+  - Combined blacklist fields with business keys
+  
+  SAFETY GUARANTEE: All queries now follow best practices
+-->
+<mapper namespace="com.footstone.sqlguard.examples.good.CombinedViolationsMapper">
+
+    <!-- GOOD: Fixed NoWhereClause + NoPagination -->
+    <select id="selectAllWithPagination" resultType="map">
+        SELECT * FROM users 
+        WHERE status = 'active' 
+        ORDER BY id 
+        LIMIT 50
+    </select>
+
+    <!-- GOOD: Fixed DummyCondition + NoPagination -->
+    <select id="selectWithProperConditionAndPagination" resultType="map">
+        SELECT * FROM users 
+        WHERE email LIKE #{pattern} 
+        ORDER BY id 
+        LIMIT 20
+    </select>
+
+    <!-- GOOD: Fixed BlacklistOnly + NoPagination -->
+    <select id="selectByIdWithPagination" resultType="map">
+        SELECT * FROM users 
+        WHERE id = #{id} AND deleted = 0 
+        LIMIT 1
+    </select>
+
+    <!-- GOOD: Fixed NoConditionPagination + MissingOrderBy -->
+    <select id="selectWithWhereAndOrderBy" resultType="map">
+        SELECT * FROM users 
+        WHERE status = 'active' 
+        ORDER BY created_at DESC 
+        LIMIT 20
+    </select>
+
+    <!-- GOOD: Fixed DeepPagination + MissingOrderBy (cursor-based) -->
+    <select id="selectCursorBasedWithOrderBy" resultType="map">
+        SELECT * FROM users 
+        WHERE status = 'active' AND id > #{lastId} 
+        ORDER BY id 
+        LIMIT 10
+    </select>
+
+    <!-- GOOD: Fixed LargePageSize + MissingOrderBy -->
+    <select id="selectReasonableLimitWithOrderBy" resultType="map">
+        SELECT * FROM users 
+        WHERE deleted = 0 
+        ORDER BY id 
+        LIMIT 50
+    </select>
+
+    <!-- GOOD: Fixed multiple violations -->
+    <select id="selectProperQuery" resultType="map">
+        SELECT * FROM users 
+        WHERE id = #{id} AND status = 'active' 
+        ORDER BY created_at DESC 
+        LIMIT 1
+    </select>
+
+    <!-- GOOD: Fixed pagination issues -->
+    <select id="selectWithAllFixesApplied" resultType="map">
+        SELECT * FROM users 
+        WHERE email = #{email} AND deleted = 0 
+        ORDER BY id 
+        LIMIT 20
+    </select>
+
+    <!-- GOOD: UPDATE with proper WHERE -->
+    <update id="updateUserLastLogin">
+        UPDATE users 
+        SET last_login = NOW() 
+        WHERE id = #{id}
+    </update>
+
+    <!-- GOOD: DELETE with proper WHERE -->
+    <delete id="deleteUserById">
+        DELETE FROM users WHERE id = #{id}
+    </delete>
+
+    <!-- GOOD: Complex query with all fixes -->
+    <select id="selectComplexQueryFixed" resultType="map">
+        SELECT o.*, u.username 
+        FROM orders o 
+        JOIN users u ON o.user_id = u.id 
+        WHERE o.user_id = #{userId} AND o.deleted = 0 
+        ORDER BY o.created_at DESC 
+        LIMIT 30
+    </select>
+
+</mapper>

@@ -1,0 +1,7 @@
+sql-guard:
+  enabled: true
+  active-strategy: INVALID_STRATEGY  # Invalid value
+  deduplication:
+    cache-size: -1  # Invalid: negative value
+    ttl-ms: 100000  # Invalid: exceeds max
+

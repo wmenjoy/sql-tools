@@ -130,3 +130,8 @@ These issues were worked around with stub implementations and commented code to 
 - SqlGuardConfigDefaults should be refactored to match immutable config class design
 - Consider adding WhitelistFieldChecker to SqlGuardConfig.RulesConfig and SqlGuardConfigDefaults
 
+
+
+
+
+

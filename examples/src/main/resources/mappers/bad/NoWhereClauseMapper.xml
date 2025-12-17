@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: NoWhereClause (CRITICAL)
+  PATTERN: DELETE/UPDATE/SELECT without WHERE clause
+  
+  WHY DANGEROUS:
+  - DELETE without WHERE: Irreversibly deletes ALL table data
+  - UPDATE without WHERE: Irreversibly modifies ALL table rows
+  - SELECT without WHERE: Memory exhaustion from loading entire table
+  
+  REAL-WORLD IMPACT:
+  - Production data loss incidents
+  - Database outages from memory overflow
+  - Unintended mass updates affecting all customers
+  
+  EXPECTED VIOLATION MESSAGE: "SQL语句缺少WHERE条件,可能导致全表操作"
+  EXPECTED RISK LEVEL: CRITICAL
+  
+  FIX RECOMMENDATION: Always add WHERE clause to restrict operation scope
+  
+  DESIGN REFERENCE: Phase 2, Task 2.2 - NoWhereClauseChecker Implementation
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.NoWhereClauseMapper">
+
+    <!-- BAD: DELETE without WHERE - deletes ALL users -->
+    <delete id="deleteAllUsers">
+        DELETE FROM users
+    </delete>
+
+    <!-- BAD: UPDATE without WHERE - sets ALL users to inactive -->
+    <update id="deactivateAllUsers">
+        UPDATE users SET status = 'inactive'
+    </update>
+
+    <!-- BAD: SELECT without WHERE - loads entire users table into memory -->
+    <select id="selectAllUsers" resultType="map">
+        SELECT * FROM users
+    </select>
+
+    <!-- BAD: Multi-table DELETE without WHERE -->
+    <delete id="deleteAllOrders">
+        DELETE FROM orders
+    </delete>
+
+    <!-- BAD: UPDATE with SET but no WHERE -->
+    <update id="resetAllPasswords">
+        UPDATE users 
+        SET password = 'reset123', 
+            updated_at = NOW()
+    </update>
+
+</mapper>

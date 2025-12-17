@@ -84,3 +84,8 @@ class SqlParseExceptionTest {
         assertTrue(exceptionThrown, "Fail-fast mode should throw SqlParseException");
     }
 }
+
+
+
+
+

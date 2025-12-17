@@ -1,0 +1,21 @@
+# Development Profile - Strict enforcement to catch issues early
+# Start with: mvn spring-boot:run -Dspring-boot.run.profiles=dev
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/sqlguard_demo_dev?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+
+sql-guard:
+  active-strategy: BLOCK
+  
+  # More aggressive settings for development
+  rules:
+    deep-pagination:
+      max-offset: 5000
+    large-page-size:
+      max-page-size: 500
+
+logging:
+  level:
+    com.footstone.sqlguard: DEBUG
+    com.footstone.sqlguard.demo: DEBUG

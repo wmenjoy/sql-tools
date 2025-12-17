@@ -65,13 +65,14 @@ class EnumsTest {
   @DisplayName("SqlCommandType has expected values")
   void testSqlCommandTypeValues() {
     SqlCommandType[] types = SqlCommandType.values();
-    assertEquals(4, types.length);
+    assertEquals(5, types.length);
 
     // Verify all expected types exist
     boolean hasSelect = false;
     boolean hasUpdate = false;
     boolean hasDelete = false;
     boolean hasInsert = false;
+    boolean hasUnknown = false;
 
     for (SqlCommandType type : types) {
       if (type == SqlCommandType.SELECT) {
@@ -86,12 +87,16 @@ class EnumsTest {
       if (type == SqlCommandType.INSERT) {
         hasInsert = true;
       }
+      if (type == SqlCommandType.UNKNOWN) {
+        hasUnknown = true;
+      }
     }
 
     assertTrue(hasSelect);
     assertTrue(hasUpdate);
     assertTrue(hasDelete);
     assertTrue(hasInsert);
+    assertTrue(hasUnknown);
   }
 
   @Test
@@ -124,7 +129,7 @@ class EnumsTest {
   @Test
   @DisplayName("SqlCommandType.fromString returns null for unknown type")
   void testSqlCommandTypeFromStringUnknown() {
-    assertEquals(null, SqlCommandType.fromString("UNKNOWN"));
+    assertEquals(SqlCommandType.UNKNOWN, SqlCommandType.fromString("UNKNOWN"));
     assertEquals(null, SqlCommandType.fromString("DROP"));
     assertEquals(null, SqlCommandType.fromString(""));
     assertEquals(null, SqlCommandType.fromString(null));
@@ -146,3 +151,8 @@ class EnumsTest {
     }
   }
 }
+
+
+
+
+

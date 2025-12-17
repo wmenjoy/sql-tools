@@ -1,0 +1,53 @@
+sql-guard:
+  enabled: true
+  active-strategy: BLOCK
+  interceptors:
+    mybatis:
+      enabled: true
+    mybatis-plus:
+      enabled: true
+    jdbc:
+      enabled: true
+  deduplication:
+    enabled: true
+    cache-size: 5000
+    ttl-ms: 500
+  parser:
+    lenient-mode: true
+  rules:
+    no-where-clause:
+      enabled: true
+      risk-level: CRITICAL
+    dummy-condition:
+      enabled: true
+      risk-level: HIGH
+      patterns:
+        - "1=1"
+        - "true"
+        - "'a'='a'"
+    blacklist-fields:
+      enabled: true
+      risk-level: HIGH
+      blacklist-fields:
+        - deleted
+        - status
+        - enabled
+    whitelist-fields:
+      enabled: true
+      risk-level: HIGH
+      whitelist-fields:
+        user:
+          - id
+          - user_id
+        order:
+          - id
+          - order_id
+    deep-pagination:
+      enabled: true
+      risk-level: MEDIUM
+      max-offset: 50000
+    large-page-size:
+      enabled: true
+      risk-level: MEDIUM
+      max-page-size: 2000
+

@@ -1,8 +1,11 @@
 # SQL Safety Guard System – Implementation Plan
 
 **Memory Strategy:** Dynamic-MD (directory structure with Markdown logs)
-**Last Modification:** Complete Implementation Plan enhancement finished. All 39 tasks across 7 phases transformed into detailed APM format with comprehensive Objective/Output/Guidance specifications and detailed execution instructions. Ready for Manager Agent coordination.
+**Last Modification:** 2025-12-17 - Phase 6 COMPLETED (All 3 tasks: 95 tests passing, 100% pass rate). Complete Spring Boot integration with zero-configuration starter experience. Task 6.1 (Auto-Configuration, 30 tests): SqlGuardAutoConfiguration with @ConditionalOnClass automatic bean creation (JSqlParserFacade + 10 RuleCheckers + orchestrator + filter + validator), META-INF/spring.factories auto-discovery, @AutoConfigureAfter ordering, interceptor registration deferred. Task 6.2 (Properties Binding, 47 tests): SqlGuardProperties (850+ lines) with @ConfigurationProperties, nested configs (Interceptors/Deduplication/Rules/Parser), JSR-303 validation, spring-configuration-metadata.json for IDE autocomplete, profile-specific configs (dev/prod), kebab/snake/camelCase mapping. Task 6.3 (Config Center Extension, 18 tests): ConfigCenterAdapter SPI, ConfigChangeEvent immutable design, ApolloConfigCenterAdapter with reflection-based event handling, thread-safe synchronized reload, extension documentation (200+ lines), Nacos support removed (Spring dependency conflicts). Key findings: config.* vs validator.rule.impl.*Config architecture, ViolationStrategy enum duplication across modules, @ConditionalOnClass + @ConditionalOnProperty robust activation, extension pattern zero core changes. Total Phase 6: 95 tests, 14 implementation classes, complete Javadoc, production-ready. Ready for Phase 7 (Examples & Documentation).
 **Project Overview:** Build production-ready SQL Safety Guard System for MyBatis applications preventing catastrophic database incidents through dual-layer protection: static code scanning detecting dangerous patterns during development and runtime interception enforcing safety constraints during execution, supporting Java 8 baseline with multi-version compatibility (11/17/21), MyBatis 3.4.x/3.5.x and MyBatis-Plus 3.4.x/3.5.x integration, comprehensive Spring Boot auto-configuration with zero-config starter experience, Apollo/Nacos config center integration for hot-reload, phased deployment strategy (LOG→WARN→BLOCK) enabling risk-mitigated production rollout, target <5% performance overhead through parse-once optimization and deduplication filter, TDD methodology throughout ensuring zero regressions, Google Java Style enforcement via Checkstyle maintaining code quality consistency.
+
+**Architecture Notes:**
+- **Dual-Config Pattern:** System uses two separate config class hierarchies: (1) `com.footstone.sqlguard.config.*Config` for YAML deserialization (simple POJOs), (2) `com.footstone.sqlguard.validator.rule.impl.*Config` for runtime checker behavior (extends CheckerConfig). See `sql-guard-core/docs/Dual-Config-Pattern.md` for details. This pattern ensures YAML compatibility while providing rich domain objects for validation logic.
 
 ## Phase 1: Foundation & Core Models - Agent_Core_Engine_Foundation
 
@@ -92,6 +95,10 @@
 - **Logging Verification Test:** Create test class `LoggingInfrastructureTest` in sql-guard-core/src/test/java/com/footstone/sqlguard/core with JUnit 5 @Test method `testLoggingWorks()`. Get SLF4J Logger via LoggerFactory.getLogger(LoggingInfrastructureTest.class). Log messages at different levels: logger.trace("Trace message"), logger.debug("Debug message"), logger.info("Info message"), logger.warn("Warn message"), logger.error("Error message"). Run test with `mvn test` and verify console output shows debug/info/warn/error messages (trace not shown since root level WARN in logback-test.xml, but com.footstone.sqlguard at DEBUG shows debug), verify logback-test.xml is applied (shorter timestamp format visible), verify no duplicate log entries (single appender). Check log output format matches expected pattern with timestamp, level, logger name, message.
 
 ## Phase 2: Validation Engine - Agent_Core_Engine_Validation (13 tasks - Task 2.8 split into 4 focused checkers)
+
+**Status:** 12/13 tasks completed (Tasks 2.1-2.12 ✅). Task 2.13 ready for execution.
+
+**Config Architecture Note:** Tasks 2.1-2.12 created config classes in `validator/rule/impl` package extending CheckerConfig. Corresponding YAML-binding config classes exist in `config` package (Dual-Config Pattern). Task 2.13 assembly must use validator package configs for checker construction.
 
 ### Task 2.1 – Rule Checker Framework & Interfaces │ Agent_Core_Engine_Validation
 
@@ -258,7 +265,7 @@
   - SqlDeduplicationFilter with ThreadLocal LRU cache and configurable TTL
   - Comprehensive integration tests with multi-rule violations and parse failure scenarios
   - JMH performance benchmark demonstrating <5% overhead target achievement
-- **Guidance:** This is final assembly task integrating all validation components into production-ready engine. SqlSafetyValidator interface defines public contract used by interceptors (Phase 4). Deduplication filter prevents same SQL being validated multiple times when multiple interception layers enabled (MyBatis + JDBC). Parse-once optimization parses SQL once via JSqlParserFacade, stores in SqlContext.parsedSql, all checkers reuse parsed AST. RuleCheckerOrchestrator from Task 2.1 manages checker execution. Performance critical: validation must add <5% overhead to SQL execution (measured via JMH). Depends on: Task 2.1 (orchestrator), Tasks 2.2-2.12 (all checkers), Phase 1 Task 1.4 (JSqlParser facade).
+- **Guidance:** This is final assembly task integrating all validation components into production-ready engine. SqlSafetyValidator interface defines public contract used by interceptors (Phase 4). Deduplication filter prevents same SQL being validated multiple times when multiple interception layers enabled (MyBatis + JDBC). Parse-once optimization parses SQL once via JSqlParserFacade, stores in SqlContext.parsedSql, all checkers reuse parsed AST. RuleCheckerOrchestrator from Task 2.1 manages checker execution. Performance critical: validation must add <5% overhead to SQL execution (measured via JMH). **Config Usage Note:** Checker constructors require config classes from `com.footstone.sqlguard.validator.rule.impl` package (runtime configs extending CheckerConfig), NOT from `com.footstone.sqlguard.config` package (YAML POJOs). See Dual-Config Pattern doc for details. Depends on: Task 2.1 (orchestrator), Tasks 2.2-2.12 (all checkers), Phase 1 Task 1.4 (JSqlParser facade).
 
 1. **Interface Implementation TDD:** Write test class `DefaultSqlSafetyValidatorTest` with test method `testValidateInterface()` verifying SqlSafetyValidator contract: validate(SqlContext) returns ValidationResult, result contains violations from enabled checkers, result.passed = false when violations present. Implement `SqlSafetyValidator` interface in com.footstone.sqlguard.validator package with single method `ValidationResult validate(SqlContext context)`. Implement `DefaultSqlSafetyValidator` class in same package with constructor accepting JSqlParserFacade facade and List<RuleChecker> checkers. Store as final fields. In validate(): call deduplicationFilter.shouldCheck(), if false return ValidationResult.pass(), proceed with validation.
 2. **Deduplication Filter TDD:** Write test class `SqlDeduplicationFilterTest` with test methods: `testFirstCheck_shouldAllow()`, `testSameS SQLWithinTTL_shouldSkip()` (same SQL checked twice within 100ms TTL, second returns false), `testSameSQLAfterTTL_shouldAllow()` (same SQL after TTL expires, returns true), `testDifferentSQL_shouldAllow()`, `testClearThreadCache_shouldClearCache()`. Implement `SqlDeduplicationFilter` class with ThreadLocal<LRUCache<String, Long>> field initialized with LRU cache of configurable size (default 1000). Implement `boolean shouldCheck(String sql)`: compute MD5 hash of sql as key (or use sql directly if short), get cache from ThreadLocal, check cache.get(key), if value exists and (System.currentTimeMillis() - value) < config.getTtlMs(), return false (skip, recently checked), else put(key, currentTimeMillis) and return true. Implement static `clearThreadCache()` calling ThreadLocal.remove() for cleanup.
@@ -290,7 +297,9 @@
 
 4. **Integration Testing:** Write integration test `SqlScannerIntegrationTest` with mock parser implementations: create MockXmlMapperParser returning predefined SqlEntry list, create MockAnnotationParser returning predefined SqlEntry list, create MockWrapperScanner returning predefined WrapperUsage list, create MockSqlRiskEvaluator assigning risk levels. Test orchestration: create SqlScanner with all mock parsers, create ScanContext with test project path, call scan(), verify ScanReport contains entries from all parsers, verify statistics accurate (counts match mock data), verify orchestrator handled all parser results correctly. Test error handling: mock parser throwing IOException, verify SqlScanner handles gracefully without crashing, verify error logged. Run `mvn test` ensuring all framework tests pass.
 
-### Task 3.2 – XML Mapper Parser Implementation │ Agent_Static_Scanner
+### Task 3.2 – XML Mapper Parser Implementation │ Agent_Static_Scanner │ ✅ COMPLETED
+
+**Completion:** 2025-12-15 | **Tests:** 32 passing (100%) | **Memory Log:** `.apm/Memory/Phase_03_Static_Scanner/Task_3_2_XML_Mapper_Parser_Implementation.md`
 
 - **Objective:** Implement comprehensive MyBatis XML Mapper parser extracting SQL statements from mapper XML files, detecting dynamic tags (if/where/foreach/choose), generating SQL variants for dynamic scenarios, and producing SqlEntry instances with accurate line numbers and mapperId references for static analysis.
 - **Output:**
@@ -309,7 +318,9 @@
 
 4. **Comprehensive Testing:** Write integration test `XmlMapperParserIntegrationTest` with sample XML files in src/test/resources/mappers: simple-static.xml (plain SQL without dynamic tags), if-condition.xml (SQL with <if test="...">), foreach-loop.xml (SQL with <foreach collection="list">), where-tag.xml (SQL with <where> wrapper), nested-dynamic.xml (nested if inside where inside foreach), complex-real-world.xml (realistic MyBatis mapper with multiple statements and dynamic tags). For each test file: parse with XmlMapperParser, verify correct number of SqlEntry instances created, verify line numbers accurate (match actual XML positions), verify mapperId generation correct (namespace.id format), verify dynamic flag set correctly, verify sqlVariants populated for dynamic SQL. Test edge cases: CDATA sections (SQL wrapped in <![CDATA[...]]>), XML comments (should be ignored), multi-line SQL (preserve line breaks), special characters in SQL (quotes, <, >, &). Run `mvn test` ensuring all XML parsing tests pass.
 
-### Task 3.3 – Java Annotation Parser Implementation │ Agent_Static_Scanner
+### Task 3.3 – Java Annotation Parser Implementation │ Agent_Static_Scanner │ ✅ COMPLETED
+
+**Completion:** 2025-12-15 | **Tests:** 18 passing (100%) | **Memory Log:** `.apm/Memory/Phase_03_Static_Scanner/Task_3_3_Annotation_Parser_Implementation.md`
 
 - **Objective:** Implement MyBatis annotation-based SQL parser extracting SQL from @Select, @Update, @Delete, @Insert annotations in Java mapper interfaces, handling multiple annotation syntaxes (value="" vs array {"sql"}), generating SqlEntry instances with accurate source locations for static analysis of annotation-defined SQL statements.
 - **Output:**
@@ -328,7 +339,9 @@
 
 - **Edge Case Testing:** Write comprehensive tests: `testMultiLineSqlString_shouldConcatenate()` (@Select(value={"SELECT * FROM user", "WHERE id=?"}) concatenates to single SQL), `testEscapedQuotes_shouldHandle()` (@Select(\"SELECT * FROM user WHERE name='O\\'Brien'\") preserves quotes), `testAnnotationWithOtherParams_shouldExtractValue()` (@Select(value="...", timeout=30, fetchSize=100) extracts only value), `testNonSqlAnnotation_shouldSkip()` (@Param(\"id\"), @ResultMap(\"userMap\") do not create SqlEntry), `testLineNumberAccuracy_shouldMatch()` (verify annotation.getBegin().line matches actual Java file line), `testStringConcatenation_shouldHandle()` (@Select(\"SELECT * \" + \"FROM user\") extracts concatenated SQL if possible, or logs warning if too complex). Test with src/test/resources/mappers sample Java files: SimpleMapper.java (basic @Select/@Update/@Delete/@Insert), ComplexMapper.java (multi-line SQL arrays, escaped quotes, additional parameters), MixedMapper.java (SQL and non-SQL annotations mixed). Run `mvn test` ensuring all annotation parsing tests pass.
 
-### Task 3.4 – QueryWrapper Static Scanner Implementation │ Agent_Static_Scanner
+### Task 3.4 – QueryWrapper Static Scanner Implementation │ Agent_Static_Scanner │ ✅ COMPLETED
+
+**Completion:** 2025-12-15 | **Tests:** 39 passing (100%) | **Memory Log:** `.apm/Memory/Phase_03_Static_Scanner/Task_3_4_QueryWrapper_Scanner_Implementation.md`
 
 - **Objective:** Implement MyBatis-Plus QueryWrapper usage scanner detecting QueryWrapper, LambdaQueryWrapper, UpdateWrapper, and LambdaUpdateWrapper instantiations in Java source code, marking usage locations for runtime interception since static analysis cannot determine dynamic query conditions, producing WrapperUsage entries for scan reports.
 - **Output:**
@@ -347,7 +360,9 @@
 
 - **Performance Testing:** Write performance test `QueryWrapperScannerPerformanceTest` simulating large projects: generate 1000 Java files with varying wrapper usage (some with wrappers, most without), execute scan() and measure execution time (should complete in reasonable time <10 seconds for 1000 files), verify memory usage remains bounded (no memory leaks from JavaParser AST retention), test parallel processing optimization if needed (Stream.parallel() on file list). Write filtering test `ScanFilteringTest`: create directory structure with src/main/java (include), src/test/java (exclude), target/generated-sources (exclude), verify scanner only processes src/main/java files, verify no false positives from test files or generated code. Test false positive prevention: create Java files with non-wrapper object creations (new ArrayList<>(), new HashMap<>(), custom domain objects), verify scanner does not create WrapperUsage for these, verify wrapper type matching is precise (QueryWrapper detected, QueryWrapperTest not detected). Run `mvn test` ensuring wrapper scanner performance and accuracy.
 
-### Task 3.5 – Dynamic SQL Scenario Generator │ Agent_Static_Scanner
+### Task 3.5 – Dynamic SQL Scenario Generator │ Agent_Static_Scanner │ ✅ COMPLETED
+
+**Completion:** 2025-12-15 | **Tests:** 37 passing (100%) | **Memory Log:** `.apm/Memory/Phase_03_Static_Scanner/Task_3_5_Dynamic_SQL_Variant_Generator.md`
 
 - **Objective:** Implement comprehensive MyBatis dynamic SQL variant generator producing representative SQL execution scenarios for if/foreach/where/choose/when/otherwise tags, enabling static validation of dynamic SQL by generating concrete SQL strings covering different runtime execution paths without combinatorial explosion.
 - **Output:**
@@ -371,7 +386,9 @@
 
 5. **Comprehensive Integration Testing:** Write integration test `DynamicSqlVariantGeneratorIntegrationTest` with complex XML test fixtures: complex-nested.xml (if inside where inside foreach with multiple nesting levels), real-world-mapper.xml (realistic MyBatis mapper with dynamic where, multiple if conditions, foreach in IN clause, choose-when for different query modes), edge-cases.xml (empty where tag, foreach with no items, choose with only otherwise, nested choose). For each test file: parse with enhanced XmlMapperParser including variant generation, verify SqlEntry.sqlVariants list populated correctly, verify variant count reasonable (not exponential explosion), verify all generated variants are syntactically valid SQL (can be parsed by JSqlParser without errors), verify variant descriptions meaningful for debugging, test variant SQL against validation engine to ensure dangerous patterns detected across execution paths. Write performance test: complex dynamic SQL with 5+ nested dynamic tags generates variants in reasonable time (<1 second) without memory explosion. Run `mvn test` ensuring all variant generation tests pass.
 
-### Task 3.6 – Scan Report Generator (Console + HTML) │ Agent_Static_Scanner
+### Task 3.6 – Scan Report Generator (Console + HTML) │ Agent_Static_Scanner │ ✅ COMPLETED
+
+**Completion:** 2025-12-15 | **Tests:** 57 passing (100%) | **Memory Log:** `.apm/Memory/Phase_03_Static_Scanner/Task_3_6_Report_Generator_Implementation.md`
 
 - **Objective:** Implement dual-format report generation system producing actionable scan reports in console (ANSI-colored text for terminal display) and HTML (styled web page with sortable tables) formats, processing ScanReport data structures from Task 3.1 to group violations by severity, format output with file:line references, SQL snippets, violation messages, and suggestions.
 - **Output:**

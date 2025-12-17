@@ -42,3 +42,8 @@ public class DummyConditionConfigTest {
         assertTrue(config.getCustomPatterns().contains("custom1"), "Should contain 'custom1' pattern");
     }
 }
+
+
+
+
+

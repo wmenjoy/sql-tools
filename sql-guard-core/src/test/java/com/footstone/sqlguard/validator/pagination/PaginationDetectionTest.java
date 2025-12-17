@@ -27,3 +27,8 @@ public class PaginationDetectionTest {
     assertEquals(PaginationType.NONE, PaginationType.valueOf("NONE"));
   }
 }
+
+
+
+
+

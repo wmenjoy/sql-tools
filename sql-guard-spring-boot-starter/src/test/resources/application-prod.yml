@@ -1,0 +1,6 @@
+sql-guard:
+  active-strategy: BLOCK
+  deduplication:
+    cache-size: 10000
+    ttl-ms: 200
+

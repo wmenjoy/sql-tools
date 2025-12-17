@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CORRECTED VERSION: MissingOrderBy Fixed
+  FIX APPLIED: Added ORDER BY clause to all paginated queries
+  
+  KEY IMPROVEMENTS:
+  - All LIMIT queries now have ORDER BY for deterministic results
+  - Prevents duplicate/missing items in pagination
+  - Consistent user experience across page loads
+  - Reliable batch processing
+  
+  SAFETY GUARANTEE: Pagination results are now deterministic and consistent
+-->
+<mapper namespace="com.footstone.sqlguard.examples.good.MissingOrderByMapper">
+
+    <!-- GOOD: LIMIT with ORDER BY (deterministic results) -->
+    <select id="selectUsersWithOrderBy" resultType="map">
+        SELECT * FROM users 
+        WHERE status = 'active' 
+        ORDER BY id 
+        LIMIT 20
+    </select>
+
+    <!-- GOOD: LIMIT with OFFSET and ORDER BY -->
+    <select id="selectOrdersPageWithOrderBy" resultType="map">
+        SELECT * FROM orders 
+        WHERE user_id = #{userId} 
+        ORDER BY created_at DESC, id 
+        LIMIT 10 OFFSET #{offset}
+    </select>
+
+    <!-- GOOD: Complex query with ORDER BY -->
+    <select id="selectProductsWithOrderBy" resultType="map">
+        SELECT p.*, c.category_name 
+        FROM products p 
+        JOIN categories c ON p.category_id = c.id 
+        WHERE p.price > #{minPrice} 
+        ORDER BY p.price DESC, p.id 
+        LIMIT 50
+    </select>
+
+    <!-- GOOD: Pagination with composite ORDER BY -->
+    <select id="selectCommentsWithOrderBy" resultType="map">
+        SELECT * FROM comments 
+        WHERE post_id = #{postId} 
+        ORDER BY created_at DESC, id DESC 
+        LIMIT 15
+    </select>
+
+    <!-- GOOD: LIMIT with multiple ORDER BY columns -->
+    <select id="selectActiveUsersWithOrderBy" resultType="map">
+        SELECT * FROM users 
+        WHERE deleted = 0 AND enabled = 1 
+        ORDER BY last_login DESC, id 
+        LIMIT 100
+    </select>
+
+</mapper>

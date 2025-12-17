@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CORRECTED VERSION: LargePageSize Fixed
+  FIX APPLIED: Reduced page size to reasonable values (10-100 rows)
+  
+  KEY IMPROVEMENTS:
+  - Page size limited to 20-50 rows (typical best practice)
+  - Reduced memory consumption per request
+  - Better mobile user experience
+  - Faster API response times
+  
+  ALTERNATIVE FIX: Implement "Load More" for incremental loading
+  
+  SAFETY GUARANTEE: Reasonable page sizes prevent memory issues
+-->
+<mapper namespace="com.footstone.sqlguard.examples.good.LargePageSizeMapper">
+
+    <!-- GOOD: Reasonable page size (20 rows) -->
+    <select id="selectUsersReasonableLimit" resultType="map">
+        SELECT * FROM users 
+        WHERE status = 'active' 
+        ORDER BY id 
+        LIMIT 20
+    </select>
+
+    <!-- GOOD: Small page size for mobile (10 rows) -->
+    <select id="selectOrdersMobileLimit" resultType="map">
+        SELECT * FROM orders 
+        WHERE created_at > #{startDate} 
+        ORDER BY created_at DESC 
+        LIMIT 10
+    </select>
+
+    <!-- GOOD: Medium page size for desktop (50 rows) -->
+    <select id="selectComplexDataDesktopLimit" resultType="map">
+        SELECT o.*, od.*, p.*, u.* 
+        FROM orders o 
+        JOIN order_details od ON o.order_id = od.order_id 
+        JOIN products p ON od.product_id = p.id 
+        JOIN users u ON o.user_id = u.id 
+        WHERE o.status = 'completed' 
+        ORDER BY o.created_at DESC 
+        LIMIT 50
+    </select>
+
+    <!-- GOOD: Standard page size (30 rows) -->
+    <select id="selectProductsStandardLimit" resultType="map">
+        SELECT * FROM products 
+        WHERE category_id = #{categoryId} 
+        ORDER BY price 
+        LIMIT 30
+    </select>
+
+    <!-- GOOD: Incremental loading (15 rows per load) -->
+    <select id="selectCommentsIncrementalLimit" resultType="map">
+        SELECT * FROM comments 
+        WHERE post_id = #{postId} AND id > #{lastId} 
+        ORDER BY created_at DESC 
+        LIMIT 15
+    </select>
+
+</mapper>

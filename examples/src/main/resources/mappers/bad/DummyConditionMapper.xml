@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: DummyCondition (HIGH)
+  PATTERN: WHERE 1=1, WHERE true, WHERE 'a'='a' (meaningless conditions)
+  
+  WHY DANGEROUS:
+  - Appears to have WHERE clause but provides NO actual filtering
+  - Causes full table scan identical to missing WHERE
+  - Often copy-pasted from dynamic SQL without understanding
+  
+  REAL-WORLD IMPACT:
+  - Database performance degradation
+  - Memory exhaustion from loading all rows
+  - Misleading code review (looks safe but isn't)
+  
+  EXPECTED VIOLATION MESSAGE: "检测到无意义的WHERE条件"
+  EXPECTED RISK LEVEL: HIGH
+  
+  FIX RECOMMENDATION: Remove dummy condition, use dynamic SQL <where> tag instead
+  
+  DESIGN REFERENCE: Phase 2, Task 2.3 - DummyConditionChecker Implementation
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.DummyConditionMapper">
+
+    <!-- BAD: WHERE 1=1 (classic dummy condition) -->
+    <select id="selectUsersWithDummy1" resultType="map">
+        SELECT * FROM users WHERE 1=1
+    </select>
+
+    <!-- BAD: WHERE 1 = 1 (with spaces) -->
+    <select id="selectUsersWithDummy2" resultType="map">
+        SELECT * FROM users WHERE 1 = 1
+    </select>
+
+    <!-- BAD: WHERE true (boolean literal) -->
+    <select id="selectUsersWithTrue" resultType="map">
+        SELECT * FROM users WHERE true
+    </select>
+
+    <!-- BAD: WHERE 'a'='a' (string constant equality) -->
+    <select id="selectUsersWithStringDummy" resultType="map">
+        SELECT * FROM users WHERE 'a'='a'
+    </select>
+
+    <!-- BAD: WHERE 1=1 AND name = #{name} (embedded dummy) -->
+    <select id="selectUsersByNameWithDummy" resultType="map">
+        SELECT * FROM users 
+        WHERE 1=1 AND name = #{name}
+    </select>
+
+    <!-- BAD: WHERE 2=2 (numeric constant equality) -->
+    <select id="selectUsersWithNumericDummy" resultType="map">
+        SELECT * FROM users WHERE 2=2
+    </select>
+
+    <!-- BAD: UPDATE with dummy condition -->
+    <update id="updateUsersWithDummy">
+        UPDATE users 
+        SET status = 'active' 
+        WHERE 1=1
+    </update>
+
+    <!-- BAD: DELETE with dummy condition -->
+    <delete id="deleteUsersWithDummy">
+        DELETE FROM users WHERE 1=1
+    </delete>
+
+    <!-- BAD: WHERE '1'='1' (quoted numeric string) -->
+    <select id="selectUsersWithQuotedDummy" resultType="map">
+        SELECT * FROM users WHERE '1'='1'
+    </select>
+
+</mapper>

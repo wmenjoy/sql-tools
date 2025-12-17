@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CORRECTED VERSION: BlacklistFields Fixed
+  FIX APPLIED: Added primary key or business unique key to WHERE clause
+  
+  KEY IMPROVEMENTS:
+  - Combined blacklist fields (deleted, status) with high-cardinality fields (id, user_id)
+  - Added primary key conditions for selectivity
+  - Mixed blacklist with business keys for proper filtering
+  
+  SAFETY GUARANTEE: All queries now have sufficient selectivity
+-->
+<mapper namespace="com.footstone.sqlguard.examples.good.BlacklistOnlyMapper">
+
+    <!-- GOOD: Blacklist field + primary key -->
+    <select id="selectActiveUserById" resultType="map">
+        SELECT * FROM users 
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <!-- GOOD: Blacklist field + business key -->
+    <select id="selectUserByEmail" resultType="map">
+        SELECT * FROM users 
+        WHERE email = #{email} AND status = 'active'
+    </select>
+
+    <!-- GOOD: Multiple business keys + blacklist fields -->
+    <select id="selectUserOrders" resultType="map">
+        SELECT * FROM orders 
+        WHERE user_id = #{userId} 
+          AND order_id = #{orderId} 
+          AND deleted = 0
+    </select>
+
+    <!-- GOOD: Primary key only (no blacklist needed) -->
+    <select id="selectUserById" resultType="map">
+        SELECT * FROM users WHERE id = #{id}
+    </select>
+
+    <!-- GOOD: Business unique key + blacklist -->
+    <select id="selectOrderByNumber" resultType="map">
+        SELECT * FROM orders 
+        WHERE order_number = #{orderNumber} AND status = 'active'
+    </select>
+
+    <!-- GOOD: UPDATE with primary key + blacklist -->
+    <update id="updateUserLastLogin">
+        UPDATE users 
+        SET last_login = NOW() 
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <!-- GOOD: DELETE with primary key (blacklist not needed for deletion) -->
+    <delete id="deleteUser">
+        DELETE FROM users WHERE id = #{id}
+    </delete>
+
+    <!-- GOOD: Composite key + blacklist -->
+    <select id="selectProductBySku" resultType="map">
+        SELECT * FROM products 
+        WHERE sku = #{sku} 
+          AND category_id = #{categoryId} 
+          AND enabled = 1
+    </select>
+
+</mapper>

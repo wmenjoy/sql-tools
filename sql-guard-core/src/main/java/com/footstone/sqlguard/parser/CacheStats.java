@@ -67,3 +67,8 @@ public class CacheStats {
                 hitCount, missCount, size, getHitRate() * 100);
     }
 }
+
+
+
+
+

@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: sqlguard-demo-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: sqlguard_demo
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./src/main/resources/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sqlguard-network
+
+  # SQL Guard Demo Application
+  demo-app:
+    build:
+      context: ../..
+      dockerfile: examples/sql-guard-demo/Dockerfile
+    container_name: sqlguard-demo-app
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/sqlguard_demo?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - sqlguard-network
+
+  # Optional: Apollo Config Center (uncomment to enable)
+  # apollo-configservice:
+  #   image: apolloconfig/apollo-configservice:2.1.0
+  #   container_name: apollo-configservice
+  #   environment:
+  #     SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ApolloConfigDB?characterEncoding=utf8
+  #     SPRING_DATASOURCE_USERNAME: root
+  #     SPRING_DATASOURCE_PASSWORD: root123
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     mysql:
+  #       condition: service_healthy
+  #   networks:
+  #     - sqlguard-network
+
+  # Optional: Nacos Config Center (uncomment to enable)
+  # nacos:
+  #   image: nacos/nacos-server:v2.2.3
+  #   container_name: nacos-server
+  #   environment:
+  #     MODE: standalone
+  #     SPRING_DATASOURCE_PLATFORM: mysql
+  #     MYSQL_SERVICE_HOST: mysql
+  #     MYSQL_SERVICE_PORT: 3306
+  #     MYSQL_SERVICE_DB_NAME: nacos
+  #     MYSQL_SERVICE_USER: root
+  #     MYSQL_SERVICE_PASSWORD: root123
+  #   ports:
+  #     - "8848:8848"
+  #   depends_on:
+  #     mysql:
+  #       condition: service_healthy
+  #   networks:
+  #     - sqlguard-network
+
+volumes:
+  mysql-data:
+
+networks:
+  sqlguard-network:
+    driver: bridge

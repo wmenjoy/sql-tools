@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CORRECTED VERSION: LogicalPagination Fixed
+  FIX APPLIED: Replaced RowBounds with physical LIMIT clause
+  
+  KEY IMPROVEMENTS:
+  - Added LIMIT #{pageSize} OFFSET #{offset} to SQL
+  - Database performs pagination (not in-memory)
+  - Efficient query execution with minimal memory usage
+  
+  ALTERNATIVE FIX: Install PageHelper plugin to convert RowBounds to physical LIMIT
+  
+  SAFETY GUARANTEE: Pagination now happens at database level
+-->
+<mapper namespace="com.footstone.sqlguard.examples.good.LogicalPaginationMapper">
+
+    <!-- GOOD: Physical pagination with LIMIT -->
+    <select id="selectUsersWithLimit" resultType="map">
+        SELECT * FROM users 
+        WHERE status = 'active' 
+        ORDER BY id 
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <!-- GOOD: Complex query with physical LIMIT -->
+    <select id="selectOrdersWithLimit" resultType="map">
+        SELECT o.*, u.username 
+        FROM orders o 
+        JOIN users u ON o.user_id = u.id 
+        WHERE o.status = 'pending' 
+        ORDER BY o.created_at DESC 
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <!-- GOOD: Aggregate query with LIMIT -->
+    <select id="selectUserStatsWithLimit" resultType="map">
+        SELECT user_id, COUNT(*) as order_count 
+        FROM orders 
+        GROUP BY user_id 
+        ORDER BY order_count DESC 
+        LIMIT #{pageSize}
+    </select>
+
+    <!-- GOOD: Multi-table JOIN with LIMIT -->
+    <select id="selectComplexDataWithLimit" resultType="map">
+        SELECT o.*, od.*, p.product_name 
+        FROM orders o 
+        JOIN order_details od ON o.order_id = od.order_id 
+        JOIN products p ON od.product_id = p.id 
+        WHERE o.created_at > #{startDate} 
+        ORDER BY o.created_at DESC 
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <!-- GOOD: Cursor-based pagination (alternative to OFFSET) -->
+    <select id="selectUsersAfterCursor" resultType="map">
+        SELECT * FROM users 
+        WHERE status = 'active' AND id > #{lastId} 
+        ORDER BY id 
+        LIMIT #{pageSize}
+    </select>
+
+</mapper>

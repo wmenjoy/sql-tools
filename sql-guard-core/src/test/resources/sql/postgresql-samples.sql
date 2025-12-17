@@ -21,3 +21,8 @@ LIMIT 20 OFFSET 10;
 
 -- Subquery with EXISTS
 SELECT * FROM products p WHERE EXISTS (SELECT 1 FROM categories c WHERE c.id = p.category_id AND c.active = true);
+
+
+
+
+

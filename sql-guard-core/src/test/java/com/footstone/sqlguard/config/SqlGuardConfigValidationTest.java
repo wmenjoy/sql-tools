@@ -117,3 +117,8 @@ public class SqlGuardConfigValidationTest {
         assertDoesNotThrow(() -> config.validate(), "Default config should be valid");
     }
 }
+
+
+
+
+

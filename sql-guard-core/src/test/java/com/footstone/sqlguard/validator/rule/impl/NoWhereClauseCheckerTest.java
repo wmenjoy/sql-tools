@@ -184,3 +184,8 @@ class NoWhereClauseCheckerTest {
     assertEquals(0, result.getViolations().size());
   }
 }
+
+
+
+
+

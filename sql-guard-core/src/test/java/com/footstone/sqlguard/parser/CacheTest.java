@@ -178,3 +178,8 @@ class CacheTest {
         assertEquals(hitsBefore + 1, hitsAfter, "table1 should still be cached");
     }
 }
+
+
+
+
+

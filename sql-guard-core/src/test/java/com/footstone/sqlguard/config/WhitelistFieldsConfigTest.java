@@ -56,3 +56,8 @@ public class WhitelistFieldsConfigTest {
         assertFalse(config.isEnforceForUnknownTables(), "EnforceForUnknownTables should be false");
     }
 }
+
+
+
+
+

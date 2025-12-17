@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: BlacklistFields (HIGH)
+  PATTERN: WHERE clause using ONLY low-cardinality state flags (deleted, status, enabled)
+  
+  WHY DANGEROUS:
+  - Blacklist fields have very few distinct values (e.g., deleted: 0/1)
+  - WHERE deleted=0 matches 99%+ of rows (near-full-table scan)
+  - Appears to filter but provides minimal selectivity
+  
+  REAL-WORLD IMPACT:
+  - Slow queries from scanning millions of rows
+  - Index inefficiency (low cardinality fields)
+  - Database CPU spikes during peak hours
+  
+  EXPECTED VIOLATION MESSAGE: "WHERE条件只包含黑名单字段[deleted, status],条件过于宽泛"
+  EXPECTED RISK LEVEL: HIGH
+  
+  FIX RECOMMENDATION: Add primary key or business unique key (id, user_id, order_id)
+  
+  DESIGN REFERENCE: Phase 2, Task 2.4 - BlacklistFieldChecker Implementation
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.BlacklistOnlyMapper">
+
+    <!-- BAD: WHERE deleted=0 only (matches 99% of rows) -->
+    <select id="selectActiveUsers" resultType="map">
+        SELECT * FROM users WHERE deleted = 0
+    </select>
+
+    <!-- BAD: WHERE status='active' only -->
+    <select id="selectUsersByStatus" resultType="map">
+        SELECT * FROM users WHERE status = 'active'
+    </select>
+
+    <!-- BAD: WHERE deleted=0 AND status='active' (both blacklisted) -->
+    <select id="selectActiveEnabledUsers" resultType="map">
+        SELECT * FROM users 
+        WHERE deleted = 0 AND status = 'active'
+    </select>
+
+    <!-- BAD: WHERE enabled=1 only -->
+    <select id="selectEnabledUsers" resultType="map">
+        SELECT * FROM users WHERE enabled = 1
+    </select>
+
+    <!-- BAD: WHERE del_flag=0 (alternative deleted field) -->
+    <select id="selectNonDeletedUsers" resultType="map">
+        SELECT * FROM users WHERE del_flag = 0
+    </select>
+
+    <!-- BAD: WHERE is_deleted=0 -->
+    <select id="selectUsersNotDeleted" resultType="map">
+        SELECT * FROM users WHERE is_deleted = 0
+    </select>
+
+    <!-- BAD: WHERE type='normal' (low cardinality type field) -->
+    <select id="selectNormalUsers" resultType="map">
+        SELECT * FROM users WHERE type = 'normal'
+    </select>
+
+    <!-- BAD: UPDATE with blacklist-only WHERE -->
+    <update id="updateActiveUsers">
+        UPDATE users 
+        SET last_login = NOW() 
+        WHERE status = 'active'
+    </update>
+
+    <!-- BAD: DELETE with blacklist-only WHERE -->
+    <delete id="deleteInactiveUsers">
+        DELETE FROM users WHERE status = 'inactive'
+    </delete>
+
+    <!-- BAD: Multiple blacklist fields (deleted AND enabled AND status) -->
+    <select id="selectComplexBlacklistOnly" resultType="map">
+        SELECT * FROM users 
+        WHERE deleted = 0 
+          AND enabled = 1 
+          AND status = 'active'
+    </select>
+
+</mapper>

@@ -203,10 +203,29 @@
                                 <goal>jar</goal>
                             </goals>
                         </execution>
+                        <execution>
+                            <id>aggregate-javadoc</id>
+                            <phase>site</phase>
+                            <goals>
+                                <goal>aggregate</goal>
+                            </goals>
+                        </execution>
                     </executions>
                     <configuration>
                         <source>8</source>
                         <doclint>none</doclint>
+                        <show>public</show>
+                        <excludePackageNames>*.internal:*.test</excludePackageNames>
+                        <doctitle>SQL Safety Guard ${project.version} API</doctitle>
+                        <windowtitle>SQL Safety Guard ${project.version} API</windowtitle>
+                        <bottom><![CDATA[Copyright &#169; 2024 Footstone. All Rights Reserved.]]></bottom>
+                        <links>
+                            <link>https://docs.oracle.com/javase/8/docs/api/</link>
+                            <link>https://www.slf4j.org/apidocs/</link>
+                        </links>
+                        <additionalOptions>
+                            <additionalOption>-Xdoclint:none</additionalOption>
+                        </additionalOptions>
                     </configuration>
                 </plugin>
 
@@ -245,6 +264,7 @@
         <module>sql-guard-mp</module>
         <module>sql-guard-jdbc</module>
         <module>sql-guard-spring-boot-starter</module>
+        <module>examples</module>
     </modules>
 
     <profiles>

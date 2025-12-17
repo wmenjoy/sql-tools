@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.IfThreeMapper">
+    <select id="searchUsers" resultType="User">
+        SELECT * FROM user
+        <where>
+            <if test="name != null">AND name = #{name}</if>
+            <if test="status != null">AND status = #{status}</if>
+            <if test="age != null">AND age = #{age}</if>
+        </where>
+    </select>
+</mapper>
+

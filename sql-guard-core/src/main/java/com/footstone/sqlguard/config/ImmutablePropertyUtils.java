@@ -1,6 +1,5 @@
 package com.footstone.sqlguard.config;
 
-import com.footstone.sqlguard.validator.rule.impl.BlacklistFieldsConfig;
 import org.yaml.snakeyaml.introspector.BeanAccess;
 import org.yaml.snakeyaml.introspector.Property;
 import org.yaml.snakeyaml.introspector.PropertyUtils;

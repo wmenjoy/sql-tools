@@ -1,0 +1,199 @@
+# SQL Safety Guard Configuration Example
+# This file demonstrates the configuration options for SQL safety validation
+
+# Global enable/disable switch
+enabled: true
+
+# Active strategy: dev, test, prod
+# Note: Strategy-specific overrides are not yet implemented in this version
+activeStrategy: prod
+
+# Interceptor configuration for runtime validation
+interceptors:
+  mybatis:
+    enabled: true
+  
+  mybatisPlus:
+    enabled: false
+  
+  jdbc:
+    enabled: true
+    type: auto  # auto, hikari, druid, c3p0
+
+# Deduplication configuration to avoid repeated validation
+deduplication:
+  enabled: true
+  cacheSize: 1000
+  ttlMs: 100
+
+# Validation rules configuration
+rules:
+  # Rule: No WHERE clause detection
+  # Detects DELETE/UPDATE statements without WHERE clause
+  noWhereClause:
+    enabled: true
+    riskLevel: CRITICAL  # CRITICAL, HIGH, MEDIUM, LOW
+
+  # Rule: Dummy condition detection
+  # Detects conditions like "1=1", "1<>1", etc.
+  dummyCondition:
+    enabled: true
+    riskLevel: HIGH
+    # Default patterns (can be overridden)
+    patterns:
+      - "1=1"
+      - "1 = 1"
+      - "'1'='1'"
+      - "true"
+      - "'a'='a'"
+    # Add custom patterns
+    customPatterns:
+      - "true = true"
+      - "false = false"
+
+  # Rule: Blacklist fields detection
+  # Detects queries on sensitive or soft-delete fields
+  blacklistFields:
+    enabled: true
+    riskLevel: HIGH
+    # Fields to check (will be merged with defaults)
+    fields:
+      - deleted
+      - del_flag
+      - is_deleted
+      - status
+      - is_active
+      - enabled
+
+  # Rule: Whitelist fields enforcement
+  # Enforces that only whitelisted fields can be queried
+  whitelistFields:
+    enabled: false  # Disabled by default (too restrictive)
+    riskLevel: MEDIUM
+    # Global whitelist (applies to all tables)
+    fields:
+      - id
+      - name
+      - code
+      - developer_id
+    # Per-table whitelist (more specific)
+    byTable:
+      users:
+        - id
+        - username
+        - email
+      orders:
+        - id
+        - order_no
+        - status
+      admin:
+        - user_id
+
+  # Rule: Pagination abuse detection
+  # Detects various pagination-related issues
+  paginationAbuse:
+    enabled: true
+    riskLevel: HIGH
+    
+    # 限制性字段模式配置
+    # 当 WHERE 条件中包含这些字段时，认为结果集已被限制，不需要物理分页
+    # 支持正则表达式模式
+    limitingFieldPatterns:
+      - id                # 单独的 id 字段
+      - "[a-z_]+_id"      # 以 _id 结尾的字段（如 user_id, developer_id）
+      - "[a-z]+Id"        # 驼峰命名的 Id 字段（如 userId, developerId）
+      - uuid              # UUID 字段
+      - primary_key       # 主键字段
+      - pk                # 主键缩写
+      # 可以添加更多自定义模式，例如：
+      # - code             # 唯一编码字段
+      # - "[a-z]+_code"    # 以 _code 结尾的字段
+    
+    # 表白名单：这些表不需要检查物理分页
+    # 适用于：配置表、字典表、小数据量表
+    tableWhitelist:
+      - sys_config           # 系统配置表
+      - dict_type            # 字典类型表
+      - dict_data            # 字典数据表
+      - api_version_plugins  # API 版本插件配置表
+      # 添加更多小表：
+      # - sys_menu
+      # - sys_role
+      # - sys_dept
+    
+    # 表黑名单：这些表必须检查物理分页（优先级高于白名单）
+    # 适用于：大数据量表、核心业务表
+    tableBlacklist:
+      # - user              # 用户表（如果数据量大）
+      # - order             # 订单表
+      # - log               # 日志表
+    
+    # Logical pagination without physical pagination
+    logicalPagination:
+      enabled: true
+    
+    # Physical pagination without WHERE condition
+    physicalNoCondition:
+      enabled: true
+    
+    # Deep pagination (large offset)
+    physicalDeepPagination:
+      enabled: true
+      maxOffset: 10000
+      maxPageNum: 1000
+    
+    # Large page size
+    largePageSize:
+      enabled: true
+      maxPageSize: 1000
+    
+    # Pagination without ORDER BY
+    noOrderBy:
+      enabled: true
+
+  # Rule: No pagination detection
+  # Detects queries that should have pagination but don't
+  noPagination:
+    enabled: true
+    riskLevel: MEDIUM
+    enforceForAllQueries: false
+    # Whitelist specific mapper IDs that don't need pagination
+    whitelistMapperIds:
+      - countTotal
+      - checkExists
+      - getConfig
+
+  # Rule: Estimated rows check
+  # Validates that queries won't return too many rows
+  estimatedRows:
+    enabled: true
+    riskLevel: HIGH
+    maxEstimatedRows: 10000
+    # Per-command thresholds
+    thresholds:
+      SELECT: 10000
+      UPDATE: 5000
+      DELETE: 1000
+
+# Static Analysis Configuration Notes:
+# 静态分析的检查开关目前通过代码配置，不在此 YAML 文件中
+# 
+# 可用的检查开关（默认状态）：
+# - checkSelectStar: false (SELECT * 检查，默认关闭)
+# - checkSensitiveTables: false (敏感表访问检查，默认关闭)
+# - checkDynamicWhereClause: false (动态 WHERE 条件检查，默认关闭)
+# - checkOrderByInjection: false (ORDER BY 注入检查，默认关闭)
+# - checkLimitOffsetInjection: false (LIMIT/OFFSET 注入检查，默认关闭)
+#
+# 详细配置说明请参见：docs/STATIC_ANALYSIS_CONFIG_CN.md
+
+# Notes:
+# 1. All rules are optional - if not specified, defaults will be used
+# 2. Risk levels: CRITICAL > HIGH > MEDIUM > LOW
+# 3. Use --fail-on-critical flag in CI/CD to fail builds on CRITICAL violations
+# 4. Patterns support regex (escape special characters as needed)
+# 5. Field names are case-insensitive
+# 6. To customize for different environments, create separate config files:
+#    - config-dev.yml (less strict rules)
+#    - config-test.yml (moderate rules)
+#    - config-prod.yml (strict rules)

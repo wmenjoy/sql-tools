@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CORRECTED VERSION: NoPagination Fixed
+  FIX APPLIED: Added LIMIT clause or PageHelper/IPage for pagination
+  
+  KEY IMPROVEMENTS:
+  - All SELECT queries now have pagination limits
+  - Bounded result sets prevent memory exhaustion
+  - Predictable memory usage and response times
+  
+  ALTERNATIVE FIX: Use PageHelper plugin or MyBatis-Plus IPage
+  
+  SAFETY GUARANTEE: All queries return bounded result sets
+-->
+<mapper namespace="com.footstone.sqlguard.examples.good.NoPaginationMapper">
+
+    <!-- GOOD: SELECT with LIMIT (bounded result set) -->
+    <select id="selectUsersWithPagination" resultType="map">
+        SELECT * FROM users 
+        WHERE status = 'active' 
+        ORDER BY id 
+        LIMIT 50
+    </select>
+
+    <!-- GOOD: SELECT with WHERE and LIMIT -->
+    <select id="selectActiveUsersWithPagination" resultType="map">
+        SELECT * FROM users 
+        WHERE deleted = 0 
+        ORDER BY created_at DESC 
+        LIMIT 20
+    </select>
+
+    <!-- GOOD: SELECT by email with LIMIT (defensive programming) -->
+    <select id="selectUsersByEmailWithPagination" resultType="map">
+        SELECT * FROM users 
+        WHERE email LIKE #{pattern} 
+        ORDER BY id 
+        LIMIT 100
+    </select>
+
+    <!-- GOOD: Complex JOIN with LIMIT -->
+    <select id="selectOrderDetailsWithPagination" resultType="map">
+        SELECT o.*, od.*, p.product_name 
+        FROM orders o 
+        JOIN order_details od ON o.order_id = od.order_id 
+        JOIN products p ON od.product_id = p.id 
+        WHERE o.status = 'pending' 
+        ORDER BY o.created_at DESC 
+        LIMIT 50
+    </select>
+
+    <!-- GOOD: Aggregate query with LIMIT -->
+    <select id="selectUserStatsWithPagination" resultType="map">
+        SELECT user_id, COUNT(*) as order_count, SUM(total_amount) as total_spent 
+        FROM orders 
+        GROUP BY user_id 
+        ORDER BY order_count DESC 
+        LIMIT 100
+    </select>
+
+    <!-- GOOD: SELECT with date range and LIMIT -->
+    <select id="selectOrdersByDateWithPagination" resultType="map">
+        SELECT * FROM orders 
+        WHERE created_at BETWEEN #{startDate} AND #{endDate} 
+        ORDER BY created_at DESC 
+        LIMIT 200
+    </select>
+
+    <!-- GOOD: Single-row query (no pagination needed) -->
+    <select id="selectUserById" resultType="map">
+        SELECT * FROM users WHERE id = #{id}
+    </select>
+
+</mapper>

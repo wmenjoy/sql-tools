@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: MissingOrderBy (MEDIUM)
+  PATTERN: Pagination (LIMIT) without ORDER BY clause
+  
+  WHY DANGEROUS:
+  - Without ORDER BY, row order is non-deterministic
+  - Same query returns different results on each execution
+  - Pagination becomes unreliable (rows may appear on multiple pages or skip pages)
+  
+  REAL-WORLD IMPACT:
+  - Duplicate items in paginated lists
+  - Missing items in paginated results
+  - Inconsistent user experience
+  - Data integrity issues in batch processing
+  
+  EXPECTED VIOLATION MESSAGE: "分页查询缺少ORDER BY子句"
+  EXPECTED RISK LEVEL: MEDIUM
+  
+  FIX RECOMMENDATION: Always add ORDER BY when using LIMIT (e.g., ORDER BY id, created_at)
+  
+  DESIGN REFERENCE: Phase 2, Task 2.11 - MissingOrderByChecker Implementation
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.MissingOrderByMapper">
+
+    <!-- BAD: LIMIT without ORDER BY (non-deterministic results) -->
+    <select id="selectUsersNoOrderBy" resultType="map">
+        SELECT * FROM users 
+        WHERE status = 'active' 
+        LIMIT 20
+    </select>
+
+    <!-- BAD: LIMIT with OFFSET but no ORDER BY -->
+    <select id="selectOrdersPageNoOrderBy" resultType="map">
+        SELECT * FROM orders 
+        WHERE user_id = #{userId} 
+        LIMIT 10 OFFSET 20
+    </select>
+
+    <!-- BAD: Complex query with LIMIT but no ORDER BY -->
+    <select id="selectProductsNoOrderBy" resultType="map">
+        SELECT p.*, c.category_name 
+        FROM products p 
+        JOIN categories c ON p.category_id = c.id 
+        WHERE p.price > #{minPrice} 
+        LIMIT 50
+    </select>
+
+    <!-- BAD: Pagination without ORDER BY (unreliable pagination) -->
+    <select id="selectCommentsNoOrderBy" resultType="map">
+        SELECT * FROM comments 
+        WHERE post_id = #{postId} 
+        LIMIT 15
+    </select>
+
+    <!-- BAD: LIMIT with WHERE but no ORDER BY -->
+    <select id="selectActiveUsersNoOrderBy" resultType="map">
+        SELECT * FROM users 
+        WHERE deleted = 0 AND enabled = 1 
+        LIMIT 100
+    </select>
+
+</mapper>

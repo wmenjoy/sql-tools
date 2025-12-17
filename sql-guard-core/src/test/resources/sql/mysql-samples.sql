@@ -21,3 +21,8 @@ LIMIT 20 OFFSET 10;
 
 -- Subquery with IN clause
 SELECT * FROM products WHERE category_id IN (SELECT id FROM categories WHERE active = 1);
+
+
+
+
+

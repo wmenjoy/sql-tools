@@ -1,0 +1,99 @@
+{
+  "properties": [
+    {
+      "name": "sql-guard.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable SQL Safety Guard auto-configuration.",
+      "defaultValue": true
+    },
+    {
+      "name": "sql-guard.active-strategy",
+      "type": "java.lang.String",
+      "description": "Active violation strategy. Valid values: LOG (log only), WARN (log and continue), BLOCK (throw exception).",
+      "defaultValue": "LOG"
+    },
+    {
+      "name": "sql-guard.deduplication.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable SQL deduplication to avoid repeated validation of identical SQL statements.",
+      "defaultValue": true
+    },
+    {
+      "name": "sql-guard.deduplication.cache-size",
+      "type": "java.lang.Integer",
+      "description": "Maximum number of SQL statements to cache for deduplication. Valid range: 1-100000.",
+      "defaultValue": 1000
+    },
+    {
+      "name": "sql-guard.deduplication.ttl-ms",
+      "type": "java.lang.Long",
+      "description": "Time-to-live for cached SQL statements in milliseconds. Valid range: 1-60000.",
+      "defaultValue": 100
+    },
+    {
+      "name": "sql-guard.parser.lenient-mode",
+      "type": "java.lang.Boolean",
+      "description": "Enable lenient parsing mode for SQL with syntax extensions or non-standard features.",
+      "defaultValue": false
+    },
+    {
+      "name": "sql-guard.rules.deep-pagination.max-offset",
+      "type": "java.lang.Integer",
+      "description": "Maximum allowed OFFSET value for pagination queries. Queries exceeding this will be flagged.",
+      "defaultValue": 10000
+    },
+    {
+      "name": "sql-guard.rules.large-page-size.max-page-size",
+      "type": "java.lang.Integer",
+      "description": "Maximum allowed page size (LIMIT value) for pagination queries.",
+      "defaultValue": 1000
+    },
+    {
+      "name": "sql-guard.rules.no-pagination.estimated-rows-threshold",
+      "type": "java.lang.Long",
+      "description": "Estimated row count threshold for requiring pagination on SELECT queries.",
+      "defaultValue": 10000
+    }
+  ],
+  "hints": [
+    {
+      "name": "sql-guard.active-strategy",
+      "values": [
+        {
+          "value": "LOG",
+          "description": "Log violations without blocking execution"
+        },
+        {
+          "value": "WARN",
+          "description": "Log violations with warning level"
+        },
+        {
+          "value": "BLOCK",
+          "description": "Block execution and throw SQLException"
+        }
+      ]
+    },
+    {
+      "name": "sql-guard.rules.no-where-clause.risk-level",
+      "values": [
+        {
+          "value": "LOW",
+          "description": "Low risk - informational only"
+        },
+        {
+          "value": "MEDIUM",
+          "description": "Medium risk - should be addressed"
+        },
+        {
+          "value": "HIGH",
+          "description": "High risk - requires attention"
+        },
+        {
+          "value": "CRITICAL",
+          "description": "Critical risk - severe security or data integrity issues"
+        }
+      ]
+    }
+  ]
+}
+

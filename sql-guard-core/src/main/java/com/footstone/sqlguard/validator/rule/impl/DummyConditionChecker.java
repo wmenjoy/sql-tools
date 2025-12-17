@@ -139,3 +139,8 @@ public class DummyConditionChecker extends AbstractRuleChecker {
     return config.isEnabled();
   }
 }
+
+
+
+
+

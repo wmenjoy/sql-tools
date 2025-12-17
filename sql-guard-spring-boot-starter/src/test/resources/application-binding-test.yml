@@ -1,0 +1,19 @@
+sql-guard:
+  enabled: true
+  active-strategy: BLOCK
+  interceptors:
+    mybatis:
+      enabled: true
+    mybatis-plus:
+      enabled: true
+    jdbc:
+      enabled: true
+  deduplication:
+    enabled: true
+    cache-size: 2000
+    ttl-ms: 200
+  rules:
+    no-where-clause:
+      enabled: true
+      risk-level: CRITICAL
+

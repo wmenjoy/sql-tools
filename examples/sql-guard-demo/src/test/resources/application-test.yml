@@ -1,0 +1,48 @@
+# Test configuration for H2 in-memory database
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  
+  h2:
+    console:
+      enabled: false
+
+sql-guard:
+  enabled: true
+  active-strategy: LOG
+  
+  interceptors:
+    mybatis:
+      enabled: true
+    mybatis-plus:
+      enabled: true
+  
+  rules:
+    no-where-clause:
+      enabled: true
+    dummy-condition:
+      enabled: true
+    blacklist-fields:
+      enabled: true
+    whitelist-fields:
+      enabled: true
+    logical-pagination:
+      enabled: true
+    no-condition-pagination:
+      enabled: true
+    deep-pagination:
+      enabled: true
+    large-page-size:
+      enabled: true
+    missing-orderby:
+      enabled: true
+    no-pagination:
+      enabled: true
+
+logging:
+  level:
+    com.footstone.sqlguard: WARN

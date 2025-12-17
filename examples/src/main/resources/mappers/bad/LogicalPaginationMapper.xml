@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: LogicalPagination (HIGH)
+  PATTERN: RowBounds pagination without PageHelper plugin (in-memory pagination)
+  
+  WHY DANGEROUS:
+  - RowBounds without plugin loads ALL rows into memory THEN paginates
+  - Database returns 1 million rows, MyBatis discards 999,900 rows
+  - Causes memory overflow and database CPU waste
+  
+  REAL-WORLD IMPACT:
+  - OutOfMemoryError in production
+  - Database connection pool exhaustion
+  - Slow response times (loading unnecessary data)
+  
+  EXPECTED VIOLATION MESSAGE: "检测到逻辑分页(RowBounds)但未启用PageHelper插件"
+  EXPECTED RISK LEVEL: HIGH
+  
+  FIX RECOMMENDATION: Install PageHelper plugin or use physical LIMIT clause
+  
+  DESIGN REFERENCE: Phase 2, Task 2.7 - LogicalPaginationChecker Implementation
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.LogicalPaginationMapper">
+
+    <!--
+      NOTE: These examples demonstrate dangerous RowBounds usage.
+      The violation is detected at RUNTIME when method is called with RowBounds parameter.
+      
+      Example dangerous code:
+      RowBounds rowBounds = new RowBounds(0, 10);
+      mapper.selectUsers(rowBounds); // Loads ALL users into memory!
+      
+      Without PageHelper plugin, MyBatis:
+      1. Executes: SELECT * FROM users (no LIMIT)
+      2. Loads 1,000,000 rows into memory
+      3. Discards rows 11-1,000,000
+      4. Returns only rows 1-10
+    -->
+
+    <!-- BAD: SELECT with RowBounds (logical pagination) -->
+    <select id="selectUsersWithRowBounds" resultType="map">
+        SELECT * FROM users WHERE status = 'active'
+    </select>
+
+    <!-- BAD: Complex query with RowBounds -->
+    <select id="selectOrdersWithRowBounds" resultType="map">
+        SELECT o.*, u.username 
+        FROM orders o 
+        JOIN users u ON o.user_id = u.id 
+        WHERE o.status = 'pending'
+    </select>
+
+    <!-- BAD: Aggregate query with RowBounds (still dangerous) -->
+    <select id="selectUserStatsWithRowBounds" resultType="map">
+        SELECT user_id, COUNT(*) as order_count 
+        FROM orders 
+        GROUP BY user_id
+    </select>
+
+    <!-- BAD: Multi-table JOIN with RowBounds -->
+    <select id="selectComplexDataWithRowBounds" resultType="map">
+        SELECT o.*, od.*, p.product_name 
+        FROM orders o 
+        JOIN order_details od ON o.order_id = od.order_id 
+        JOIN products p ON od.product_id = p.id 
+        WHERE o.created_at > #{startDate}
+    </select>
+
+</mapper>

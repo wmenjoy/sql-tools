@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CORRECTED VERSION: NoWhereClause Fixed
+  FIX APPLIED: Added WHERE clause to all DELETE/UPDATE/SELECT statements
+  
+  KEY IMPROVEMENTS:
+  - DELETE with WHERE id = #{id} (single row deletion)
+  - UPDATE with WHERE user_id = #{userId} (targeted update)
+  - SELECT with WHERE status = #{status} (filtered query)
+  
+  SAFETY GUARANTEE: All operations now restricted to specific rows
+-->
+<mapper namespace="com.footstone.sqlguard.examples.good.NoWhereClauseMapper">
+
+    <!-- GOOD: DELETE with WHERE clause (single row) -->
+    <delete id="deleteUserById">
+        DELETE FROM users WHERE id = #{id}
+    </delete>
+
+    <!-- GOOD: UPDATE with WHERE clause (targeted update) -->
+    <update id="deactivateUser">
+        UPDATE users 
+        SET status = 'inactive' 
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- GOOD: SELECT with WHERE clause (filtered query) -->
+    <select id="selectUsersByStatus" resultType="map">
+        SELECT * FROM users 
+        WHERE status = #{status}
+    </select>
+
+    <!-- GOOD: DELETE with composite WHERE -->
+    <delete id="deleteOrderById">
+        DELETE FROM orders 
+        WHERE order_id = #{orderId} AND user_id = #{userId}
+    </delete>
+
+    <!-- GOOD: UPDATE with multiple WHERE conditions -->
+    <update id="resetUserPassword">
+        UPDATE users 
+        SET password = #{newPassword}, 
+            updated_at = NOW() 
+        WHERE id = #{id} AND email = #{email}
+    </update>
+
+</mapper>

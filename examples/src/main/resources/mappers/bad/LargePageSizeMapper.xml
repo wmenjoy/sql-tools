@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: LargePageSize (MEDIUM)
+  PATTERN: LIMIT clause with very large page size (LIMIT 5000)
+  
+  WHY DANGEROUS:
+  - Large page sizes defeat the purpose of pagination
+  - Memory consumption increases linearly with page size
+  - Network bandwidth waste transferring large result sets
+  
+  REAL-WORLD IMPACT:
+  - Slow API response times
+  - Memory pressure on application servers
+  - Poor mobile user experience (large data transfer)
+  
+  EXPECTED VIOLATION MESSAGE: "分页大小过大"
+  EXPECTED RISK LEVEL: MEDIUM
+  
+  FIX RECOMMENDATION: Use reasonable page size (10-100 rows), implement "Load More" for larger datasets
+  
+  DESIGN REFERENCE: Phase 2, Task 2.10 - LargePageSizeChecker Implementation
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.LargePageSizeMapper">
+
+    <!-- BAD: LIMIT 5000 (excessive page size) -->
+    <select id="selectUsersLargeLimit" resultType="map">
+        SELECT * FROM users 
+        WHERE status = 'active' 
+        LIMIT 5000
+    </select>
+
+    <!-- BAD: LIMIT 10000 (even larger) -->
+    <select id="selectOrdersVeryLargeLimit" resultType="map">
+        SELECT * FROM orders 
+        WHERE created_at > #{startDate} 
+        LIMIT 10000
+    </select>
+
+    <!-- BAD: LIMIT 1000 with complex JOIN (memory intensive) -->
+    <select id="selectComplexDataLargeLimit" resultType="map">
+        SELECT o.*, od.*, p.*, u.* 
+        FROM orders o 
+        JOIN order_details od ON o.order_id = od.order_id 
+        JOIN products p ON od.product_id = p.id 
+        JOIN users u ON o.user_id = u.id 
+        WHERE o.status = 'completed' 
+        LIMIT 1000
+    </select>
+
+    <!-- BAD: LIMIT 2000 -->
+    <select id="selectProductsLargeLimit" resultType="map">
+        SELECT * FROM products 
+        WHERE category_id = #{categoryId} 
+        ORDER BY price 
+        LIMIT 2000
+    </select>
+
+    <!-- BAD: LIMIT 3000 with OFFSET -->
+    <select id="selectCommentsLargeLimit" resultType="map">
+        SELECT * FROM comments 
+        WHERE post_id = #{postId} 
+        ORDER BY created_at DESC 
+        LIMIT 3000 OFFSET 100
+    </select>
+
+</mapper>

@@ -21,3 +21,8 @@ ORDER BY u.id;
 
 -- Subquery with IN clause
 SELECT * FROM products WHERE category_id IN (SELECT id FROM categories WHERE active = 1);
+
+
+
+
+

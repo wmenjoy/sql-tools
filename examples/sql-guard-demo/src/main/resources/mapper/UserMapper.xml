@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.footstone.sqlguard.demo.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="com.footstone.sqlguard.demo.entity.User">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="email" property="email"/>
+        <result column="status" property="status"/>
+        <result column="deleted" property="deleted"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <!-- SAFE: Query with WHERE clause using high-selectivity field -->
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT * FROM user WHERE id = #{id}
+    </select>
+
+    <!-- SAFE: Query with WHERE clause -->
+    <select id="findByUsername" resultMap="BaseResultMap">
+        SELECT * FROM user WHERE username = #{username}
+    </select>
+
+    <!-- UNSAFE: SELECT without WHERE - triggers NoPaginationChecker violation -->
+    <select id="findAllUnsafe" resultMap="BaseResultMap">
+        SELECT * FROM user
+    </select>
+
+    <!-- UNSAFE: DELETE without WHERE - triggers NoWhereClauseChecker CRITICAL violation -->
+    <delete id="deleteAllUnsafe">
+        DELETE FROM user
+    </delete>
+
+    <!-- UNSAFE: UPDATE without WHERE - triggers NoWhereClauseChecker CRITICAL violation -->
+    <update id="updateAllStatusUnsafe">
+        UPDATE user SET status = #{status}
+    </update>
+
+    <!-- UNSAFE: WHERE with dummy condition - triggers DummyConditionChecker violation -->
+    <select id="findWithDummyCondition" resultMap="BaseResultMap">
+        SELECT * FROM user WHERE 1=1
+    </select>
+
+    <!-- UNSAFE: WHERE with only blacklist fields - triggers BlacklistFieldChecker violation -->
+    <select id="findByStatusOnly" resultMap="BaseResultMap">
+        SELECT * FROM user WHERE status = #{status}
+    </select>
+
+    <!-- UNSAFE: WHERE with only deleted field - triggers BlacklistFieldChecker violation -->
+    <select id="findByDeletedOnly" resultMap="BaseResultMap">
+        SELECT * FROM user WHERE deleted = #{deleted}
+    </select>
+
+    <!-- UNSAFE: LIMIT without WHERE - triggers NoConditionPaginationChecker violation -->
+    <select id="findWithLimitNoWhere" resultMap="BaseResultMap">
+        SELECT * FROM user LIMIT #{limit}
+    </select>
+
+    <!-- UNSAFE: Deep pagination - triggers DeepPaginationChecker violation -->
+    <select id="findWithDeepOffset" resultMap="BaseResultMap">
+        SELECT * FROM user WHERE username LIKE #{pattern} LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- UNSAFE: Large page size - triggers LargePageSizeChecker violation -->
+    <select id="findWithLargePageSize" resultMap="BaseResultMap">
+        SELECT * FROM user WHERE username LIKE #{pattern} LIMIT #{limit}
+    </select>
+
+    <!-- UNSAFE: Pagination without ORDER BY - triggers MissingOrderByChecker violation -->
+    <select id="findWithoutOrderBy" resultMap="BaseResultMap">
+        SELECT * FROM user WHERE username LIKE #{pattern} LIMIT #{limit}
+    </select>
+
+    <!-- SAFE: Proper pagination with WHERE and ORDER BY -->
+    <select id="findWithProperPagination" resultMap="BaseResultMap">
+        SELECT * FROM user 
+        WHERE username LIKE #{pattern} 
+        ORDER BY id 
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+</mapper>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.ChooseNoOtherwiseMapper">
+    <select id="findByType" resultType="User">
+        SELECT * FROM user
+        <where>
+            <choose>
+                <when test="type == 1">AND status = 'active'</when>
+                <when test="type == 2">AND status = 'inactive'</when>
+            </choose>
+        </where>
+    </select>
+</mapper>
+
+
+
+

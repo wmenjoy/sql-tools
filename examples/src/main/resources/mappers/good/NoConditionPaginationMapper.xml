@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CORRECTED VERSION: NoConditionPagination Fixed
+  FIX APPLIED: Added WHERE clause to enable index usage
+  
+  KEY IMPROVEMENTS:
+  - All LIMIT queries now have meaningful WHERE conditions
+  - Database can use indexes for efficient filtering
+  - Reduced scan range improves pagination performance
+  
+  SAFETY GUARANTEE: Pagination now uses indexes for fast execution
+-->
+<mapper namespace="com.footstone.sqlguard.examples.good.NoConditionPaginationMapper">
+
+    <!-- GOOD: LIMIT with WHERE condition -->
+    <select id="selectActiveUsersWithLimit" resultType="map">
+        SELECT * FROM users 
+        WHERE status = 'active' 
+        ORDER BY created_at DESC 
+        LIMIT 10
+    </select>
+
+    <!-- GOOD: LIMIT with OFFSET and WHERE -->
+    <select id="selectUsersPageWithWhere" resultType="map">
+        SELECT * FROM users 
+        WHERE deleted = 0 AND created_at > #{startDate} 
+        ORDER BY id 
+        LIMIT 10 OFFSET #{offset}
+    </select>
+
+    <!-- GOOD: LIMIT with business key WHERE -->
+    <select id="selectUserOrdersWithLimit" resultType="map">
+        SELECT * FROM orders 
+        WHERE user_id = #{userId} 
+        ORDER BY created_at DESC 
+        LIMIT 20
+    </select>
+
+    <!-- GOOD: Complex SELECT with WHERE and LIMIT -->
+    <select id="selectOrdersWithWhereAndLimit" resultType="map">
+        SELECT o.*, u.username 
+        FROM orders o 
+        JOIN users u ON o.user_id = u.id 
+        WHERE o.status = 'pending' AND o.created_at > #{startDate} 
+        ORDER BY o.created_at DESC 
+        LIMIT 50
+    </select>
+
+    <!-- GOOD: LIMIT with multiple WHERE conditions -->
+    <select id="selectFilteredUsersWithLimit" resultType="map">
+        SELECT * FROM users 
+        WHERE email LIKE #{pattern} 
+          AND status = 'active' 
+          AND created_at > #{startDate} 
+        ORDER BY id 
+        LIMIT 10
+    </select>
+
+</mapper>
