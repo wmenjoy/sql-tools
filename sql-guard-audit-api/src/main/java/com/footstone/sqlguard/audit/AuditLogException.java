@@ -47,3 +47,4 @@ public class AuditLogException extends Exception {
         super(cause);
     }
 }
+

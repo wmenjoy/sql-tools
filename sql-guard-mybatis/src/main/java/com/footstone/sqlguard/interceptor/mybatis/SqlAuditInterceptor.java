@@ -293,3 +293,4 @@ public class SqlAuditInterceptor implements Interceptor {
         // No configuration properties needed
     }
 }
+

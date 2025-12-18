@@ -492,3 +492,4 @@ curl http://filebeat:5066/stats | jq '.filebeat.events.done'
 - [Kafka Output Configuration](https://www.elastic.co/guide/en/beats/filebeat/current/kafka-output.html)
 - [Filebeat Performance Tuning](https://www.elastic.co/guide/en/beats/filebeat/current/performance-tuning.html)
 - SQL Guard Logback Configuration: `sql-guard-audit-api/src/main/resources/logback-audit.xml`
+

@@ -227,3 +227,4 @@ public class P6SpySqlAuditListener extends JdbcEventListener {
         return SqlCommandType.SELECT; // Default
     }
 }
+

@@ -318,3 +318,4 @@ class LogbackAuditWriterTest {
                 "Average write time should be <5ms per event, got: " + avgTimePerEvent + "ms");
     }
 }
+

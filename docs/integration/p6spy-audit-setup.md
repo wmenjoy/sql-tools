@@ -428,3 +428,4 @@ For issues or questions:
 - Review P6Spy logs for errors
 - Verify configuration against examples
 - Consult SQL Guard documentation
+

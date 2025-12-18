@@ -452,3 +452,4 @@ java -jar sql-scanner-cli.jar -p . -c config-prod.yml --fail-on-critical
 
 
 
+

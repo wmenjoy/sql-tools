@@ -46,3 +46,4 @@ public class SqlInterceptorContext {
         // Utility class - prevent instantiation
     }
 }
+

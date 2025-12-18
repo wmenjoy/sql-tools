@@ -260,3 +260,4 @@ This enables schema-based validation in downstream consumers and ensures consist
 - Use configured ObjectMapper for JSON serialization
 - Validate required fields before writing
 - Handle AuditLogException appropriately
+

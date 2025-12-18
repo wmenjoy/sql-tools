@@ -439,3 +439,4 @@ class HikariSqlAuditProxyFactoryTest {
         verify(mockAuditLogWriter, never()).writeAuditLog(any());
     }
 }
+

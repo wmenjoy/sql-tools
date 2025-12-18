@@ -265,6 +265,8 @@
         <module>sql-guard-mp</module>
         <module>sql-guard-jdbc</module>
         <module>sql-guard-spring-boot-starter</module>
+        <module>sql-guard-audit-checker</module>
+        <module>sql-audit-service</module>
         <module>examples</module>
     </modules>
 
@@ -297,4 +299,3 @@
         </profile>
     </profiles>
 </project>
-

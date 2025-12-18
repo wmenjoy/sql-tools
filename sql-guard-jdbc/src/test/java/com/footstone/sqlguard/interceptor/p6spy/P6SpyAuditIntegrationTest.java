@@ -446,3 +446,4 @@ class P6SpyAuditIntegrationTest {
         assertEquals(SqlCommandType.SELECT, event.getSqlType());
     }
 }
+

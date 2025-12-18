@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: sql-audit-service
+  threads:
+    virtual:
+      enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+
+environment:
+  name: default
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+environment:
+  name: dev
+
+---
+spring:
+  config:
+    activate:
+      on-profile: staging
+environment:
+  name: staging
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+environment:
+  name: prod

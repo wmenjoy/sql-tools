@@ -124,3 +124,4 @@ public class NoWhereClauseChecker extends AbstractRuleChecker {
 
 
 
+

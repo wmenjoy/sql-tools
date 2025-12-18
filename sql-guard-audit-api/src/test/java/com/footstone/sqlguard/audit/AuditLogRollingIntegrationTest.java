@@ -207,7 +207,7 @@ class AuditLogRollingIntegrationTest {
         // Then: Verify log file contains JSON content
         File logFile = new File("target/test-logs/audit/current/audit.log");
         if (logFile.exists() && logFile.length() > 0) {
-            String content = Files.readString(logFile.toPath());
+            String content = new String(Files.readAllBytes(logFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
             
             // Check for JSON structure
             assertTrue(content.contains("\"sql\"") || content.contains("sqlId"),

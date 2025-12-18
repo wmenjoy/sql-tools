@@ -319,3 +319,4 @@ sh 'java -jar sql-scanner-cli.jar -p . --fail-on-critical -q'
 
 
 
+

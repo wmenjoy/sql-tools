@@ -165,3 +165,4 @@ This ensures:
 4. **Mock vs Real Implementation**: Switched from Mockito mocks to real CapturingAuditLogWriter for better debugging and actual behavior verification
 5. **JDK Compatibility**: All tests run with `JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_201.jdk/Contents/Home` to ensure JDK 8 compatibility
 
+

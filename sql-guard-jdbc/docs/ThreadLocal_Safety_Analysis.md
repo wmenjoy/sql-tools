@@ -149,3 +149,4 @@ This test creates two filters and verifies:
 - ThreadLocal.remove() is idempotent
 
 **Recommendation**: Keep current implementation. ThreadLocal provides valuable violation correlation without safety risks.
+

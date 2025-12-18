@@ -177,3 +177,4 @@ This is the initial 1.0.0 release. No migration needed.
 [1.0.0]: https://github.com/footstone/sql-safety-guard/releases/tag/v1.0.0
 
 
+

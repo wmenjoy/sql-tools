@@ -1,2 +1,3 @@
 com.footstone.sqlguard.interceptor.p6spy.P6SpySqlSafetyModule
 com.footstone.sqlguard.interceptor.p6spy.P6SpySqlAuditModule
+
