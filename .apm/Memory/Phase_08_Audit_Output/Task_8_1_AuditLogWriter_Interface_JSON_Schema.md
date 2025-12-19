@@ -261,3 +261,7 @@ This enables schema-based validation in downstream consumers and ensures consist
 - Validate required fields before writing
 - Handle AuditLogException appropriately
 
+
+
+
+

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.footstone</groupId>
+        <artifactId>sql-safety-guard-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>sql-guard-jdbc-common</artifactId>
+    <name>SQL Guard JDBC Common</name>
+    <description>Common JDBC abstractions shared across all connection pool modules (Druid, HikariCP, P6Spy)</description>
+
+    <properties>
+        <java.version>1.8</java.version>
+        <!-- AssertJ version for fluent assertions -->
+        <assertj.version>3.24.2</assertj.version>
+    </properties>
+
+    <dependencies>
+        <!-- ========== CORE DEPENDENCIES (ONLY 2 ALLOWED) ========== -->
+        
+        <!-- SQL Guard Core - for SqlContext, ValidationResult -->
+        <dependency>
+            <groupId>com.footstone</groupId>
+            <artifactId>sql-guard-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- SQL Guard Audit API - for AuditEvent, AuditLogWriter -->
+        <dependency>
+            <groupId>com.footstone</groupId>
+            <artifactId>sql-guard-audit-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Logging (transitive from core) -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <!-- ========== NO CONNECTION POOL DEPENDENCIES ALLOWED ========== -->
+        <!-- Maven Enforcer plugin below validates this constraint -->
+
+        <!-- ========== TEST DEPENDENCIES ========== -->
+        
+        <!-- JUnit 5 -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Mockito -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- AssertJ for fluent assertions -->
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- H2 Database for integration tests -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.2.224</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Logback for testing -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Maven Enforcer Plugin - CRITICAL: No connection pool dependencies allowed -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.4.1</version>
+                <executions>
+                    <execution>
+                        <id>enforce-no-pool-dependencies</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <excludes>
+                                        <!-- No Druid -->
+                                        <exclude>com.alibaba:druid</exclude>
+                                        <exclude>com.alibaba:druid-spring-boot-starter</exclude>
+                                        <!-- No HikariCP -->
+                                        <exclude>com.zaxxer:HikariCP</exclude>
+                                        <!-- No P6Spy -->
+                                        <exclude>p6spy:p6spy</exclude>
+                                    </excludes>
+                                    <message>
+========================================================================
+DEPENDENCY VIOLATION: sql-guard-jdbc-common must NOT depend on any 
+connection pool implementations (Druid, HikariCP, P6Spy).
+
+This module provides common abstractions ONLY. Connection pool specific
+code belongs in sql-guard-jdbc-druid, sql-guard-jdbc-hikari, or 
+sql-guard-jdbc-p6spy modules.
+========================================================================
+                                    </message>
+                                </bannedDependencies>
+                            </rules>
+                            <fail>true</fail>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Compiler Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+
+            <!-- Surefire Plugin for JUnit 5 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+
+            <!-- Source Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+
+            <!-- Javadoc Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

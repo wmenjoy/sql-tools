@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- SQL Guard P6Spy module logs -->
+    <logger name="com.footstone.sqlguard.interceptor.jdbc.p6spy" level="DEBUG"/>
+    
+    <!-- SQL Guard common module logs -->
+    <logger name="com.footstone.sqlguard.interceptor.jdbc.common" level="DEBUG"/>
+    
+    <!-- P6Spy framework logs -->
+    <logger name="com.p6spy" level="INFO"/>
+    
+    <!-- H2 Database logs -->
+    <logger name="org.h2" level="WARN"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

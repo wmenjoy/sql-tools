@@ -143,3 +143,7 @@ java -jar sql-scanner-cli.jar -p /path/to/project --quiet
 
 
 
+
+
+
+

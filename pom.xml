@@ -263,9 +263,12 @@
         <module>sql-guard-audit-api</module>
         <module>sql-guard-mybatis</module>
         <module>sql-guard-mp</module>
+        <module>sql-guard-jdbc-common</module>
+        <module>sql-guard-jdbc-druid</module>
+        <module>sql-guard-jdbc-hikari</module>
+        <module>sql-guard-jdbc-p6spy</module>
         <module>sql-guard-jdbc</module>
         <module>sql-guard-spring-boot-starter</module>
-        <module>sql-guard-audit-checker</module>
         <module>sql-audit-service</module>
         <module>examples</module>
     </modules>

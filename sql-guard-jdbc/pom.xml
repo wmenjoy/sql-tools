@@ -16,6 +16,13 @@
     <description>JDBC layer interceptors for runtime SQL validation</description>
 
     <dependencies>
+        <!-- Common JDBC abstractions -->
+        <dependency>
+            <groupId>com.footstone</groupId>
+            <artifactId>sql-guard-jdbc-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Inter-module dependency -->
         <dependency>
             <groupId>com.footstone</groupId>
@@ -104,6 +111,10 @@
         </dependency>
     </dependencies>
 </project>
+
+
+
+
 
 
 

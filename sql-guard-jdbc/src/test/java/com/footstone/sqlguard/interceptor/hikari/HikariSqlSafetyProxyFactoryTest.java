@@ -241,3 +241,7 @@ class HikariSqlSafetyProxyFactoryTest {
 
 
 
+
+
+
+

@@ -1,0 +1,89 @@
+# P6Spy Configuration Template for SQL Guard
+# Copy this file to spy.properties and customize for your environment
+
+# ========================================================================
+# P6Spy Module Configuration
+# ========================================================================
+
+# Module list - append SQL Guard module to P6Spy's default modules
+modulelist=com.p6spy.engine.spy.P6SpyFactory,com.footstone.sqlguard.interceptor.jdbc.p6spy.P6SpySqlSafetyModule
+
+# ========================================================================
+# SQL Guard P6Spy Configuration
+# ========================================================================
+
+# Enable/disable SQL Guard interception (default: true)
+sqlguard.p6spy.enabled=true
+
+# Violation handling strategy (default: LOG)
+# BLOCK - Block SQL execution by throwing SQLException
+# WARN  - Log error level message, continue execution
+# LOG   - Log warning level message, continue execution
+sqlguard.p6spy.strategy=WARN
+
+# Enable/disable audit logging (default: false)
+sqlguard.p6spy.audit.enabled=false
+
+# Log SQL with parameter values substituted (default: true)
+# When true, uses P6Spy's getSqlWithValues() for more accurate validation
+# When false, uses getSql() with ? placeholders
+sqlguard.p6spy.logParameterizedSql=true
+
+# ========================================================================
+# P6Spy Standard Configuration
+# ========================================================================
+
+# JDBC drivers to load (comma-separated)
+driverlist=org.h2.Driver
+
+# Log output destination
+# Options: com.p6spy.engine.spy.appender.Slf4JLogger
+#          com.p6spy.engine.spy.appender.StdoutLogger
+#          com.p6spy.engine.spy.appender.FileLogger
+appender=com.p6spy.engine.spy.appender.Slf4JLogger
+
+# Log message format
+# Options: com.p6spy.engine.spy.appender.SingleLineFormat
+#          com.p6spy.engine.spy.appender.MultiLineFormat
+#          com.p6spy.engine.spy.appender.CustomLineFormat
+logMessageFormat=com.p6spy.engine.spy.appender.SingleLineFormat
+
+# Custom log format (when using CustomLineFormat)
+# customLogMessageFormat=%(executionTime)|%(category)|%(connectionId)|%(sqlSingleLine)
+
+# ========================================================================
+# Advanced P6Spy Configuration
+# ========================================================================
+
+# Enable stack trace logging (useful for debugging)
+# stacktrace=false
+
+# Exclude SQL patterns from logging (regex)
+# excludecategories=info,debug,result,resultset,batch
+
+# Filter by SQL type
+# filter=true
+# include=select,insert,update,delete
+# exclude=
+
+# Date format for logging
+# dateformat=yyyy-MM-dd HH:mm:ss.SSS
+
+# ========================================================================
+# Usage Instructions
+# ========================================================================
+# 
+# 1. Copy this file to your classpath as spy.properties
+# 2. Update driverlist with your actual JDBC drivers
+# 3. Configure your datasource URL with p6spy prefix:
+#    - Before: jdbc:mysql://localhost:3306/mydb
+#    - After:  jdbc:p6spy:mysql://localhost:3306/mydb
+# 4. Use P6SpyDriver as your JDBC driver:
+#    - spring.datasource.driver-class-name=com.p6spy.engine.spy.P6SpyDriver
+#
+# System Property Configuration:
+#   -Dsqlguard.p6spy.enabled=true
+#   -Dsqlguard.p6spy.strategy=BLOCK
+#   -Dsqlguard.p6spy.audit.enabled=false
+#   -Dsqlguard.p6spy.logParameterizedSql=true
+#
