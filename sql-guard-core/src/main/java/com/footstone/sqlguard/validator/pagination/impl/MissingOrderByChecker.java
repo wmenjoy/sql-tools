@@ -2,7 +2,6 @@ package com.footstone.sqlguard.validator.pagination.impl;
 
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlContext;
-import com.footstone.sqlguard.core.model.ValidationResult;
 import com.footstone.sqlguard.validator.pagination.PaginationPluginDetector;
 import com.footstone.sqlguard.validator.pagination.PaginationType;
 import com.footstone.sqlguard.validator.rule.AbstractRuleChecker;
@@ -103,12 +102,13 @@ public class MissingOrderByChecker extends AbstractRuleChecker {
    * @param config configuration controlling checker enabled state
    */
   public MissingOrderByChecker(PaginationPluginDetector detector, MissingOrderByConfig config) {
+    super(config);  // NEW: Pass config to AbstractRuleChecker
     this.detector = detector;
     this.config = config;
   }
 
   /**
-   * Validates ORDER BY presence in physical pagination queries.
+   * Visit SELECT statement to check for missing ORDER BY in physical pagination.
    *
    * <p>Detection flow:
    *
@@ -120,11 +120,11 @@ public class MissingOrderByChecker extends AbstractRuleChecker {
    *   <li>Add LOW violation if ORDER BY missing or empty
    * </ol>
    *
+   * @param select the SELECT statement
    * @param context SQL context containing parsed statement and pagination metadata
-   * @param result validation result to accumulate violations
    */
   @Override
-  public void check(SqlContext context, ValidationResult result) {
+  public void visitSelect(Select select, SqlContext context) {
     // Step 1: Skip if checker disabled
     if (!isEnabled()) {
       return;
@@ -138,14 +138,16 @@ public class MissingOrderByChecker extends AbstractRuleChecker {
       return;
     }
 
-    // Step 4: Cast statement to SELECT and extract ORDER BY
-    Select select = (Select) context.getParsedSql();
+    // Step 4: Extract ORDER BY elements from PlainSelect
+    if (!(select.getSelectBody() instanceof PlainSelect)) {
+      return;
+    }
     PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
     List<OrderByElement> orderByElements = plainSelect.getOrderByElements();
 
     // Step 5: Check if ORDER BY missing or empty
     if (orderByElements == null || orderByElements.isEmpty()) {
-      result.addViolation(
+      addViolation(
           RiskLevel.LOW,
           "分页查询缺少ORDER BY,结果顺序不稳定",
           "添加ORDER BY子句确保分页结果顺序稳定");
@@ -162,4 +164,3 @@ public class MissingOrderByChecker extends AbstractRuleChecker {
     return config.isEnabled();
   }
 }
-

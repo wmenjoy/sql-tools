@@ -53,20 +53,20 @@ class AdditionalValidationTest {
     Statement parsedSql = new Select();
     SqlContext context = SqlContext.builder()
         .sql("SELECT * FROM users")
-        .parsedSql(parsedSql)
+        .statement(parsedSql)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectAll")
         .build();
 
     // Assert - Fields should be final (verified by getter consistency)
     assertEquals("SELECT * FROM users", context.getSql());
-    assertEquals(parsedSql, context.getParsedSql());
+    assertEquals(parsedSql, context.getStatement());
     assertEquals(SqlCommandType.SELECT, context.getType());
     assertEquals("com.example.UserMapper.selectAll", context.getMapperId());
 
     // Multiple calls to getters should return same values
     assertEquals("SELECT * FROM users", context.getSql());
-    assertEquals(parsedSql, context.getParsedSql());
+    assertEquals(parsedSql, context.getStatement());
   }
 
   @Test
@@ -287,6 +287,8 @@ class AdditionalValidationTest {
     }
   }
 }
+
+
 
 
 

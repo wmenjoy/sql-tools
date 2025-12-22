@@ -54,7 +54,7 @@ class WhitelistFieldCheckerTest {
     Statement stmt = parser.parse(sql);
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("test.Mapper.testMethod")
         .build();
@@ -72,7 +72,7 @@ class WhitelistFieldCheckerTest {
     Statement stmt = parser.parse(sql);
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("test.Mapper.testMethod")
         .build();
@@ -94,7 +94,7 @@ class WhitelistFieldCheckerTest {
     Statement stmt = parser.parse(sql);
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("test.Mapper.testMethod")
         .build();
@@ -113,7 +113,7 @@ class WhitelistFieldCheckerTest {
     Statement stmt = parser.parse(sql);
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("test.Mapper.testMethod")
         .build();
@@ -134,7 +134,7 @@ class WhitelistFieldCheckerTest {
     Statement stmt = parser.parse(sql);
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("test.Mapper.testMethod")
         .build();
@@ -153,7 +153,7 @@ class WhitelistFieldCheckerTest {
     Statement stmt = parser.parse(sql);
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("test.Mapper.testMethod")
         .build();
@@ -172,7 +172,7 @@ class WhitelistFieldCheckerTest {
     Statement stmt = parser.parse(sql);
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("test.Mapper.testMethod")
         .build();
@@ -191,7 +191,7 @@ class WhitelistFieldCheckerTest {
     Statement stmt = parser.parse(sql);
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("test.Mapper.testMethod")
         .build();
@@ -221,7 +221,7 @@ class WhitelistFieldCheckerTest {
     Statement stmt = parser.parse(sql);
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("test.Mapper.testMethod")
         .build();
@@ -248,7 +248,7 @@ class WhitelistFieldCheckerTest {
     Statement stmt = parser.parse(sql);
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("test.Mapper.testMethod")
         .build();
@@ -269,7 +269,7 @@ class WhitelistFieldCheckerTest {
     Statement stmt = parser.parse(sql);
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("test.Mapper.testMethod")
         .build();
@@ -287,7 +287,7 @@ class WhitelistFieldCheckerTest {
     Statement stmt = parser.parse(sql);
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("test.Mapper.testMethod")
         .build();
@@ -307,7 +307,7 @@ class WhitelistFieldCheckerTest {
     Statement stmt = parser.parse(sql);
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.UPDATE)
         .mapperId("test.Mapper.testMethod")
         .build();
@@ -325,7 +325,7 @@ class WhitelistFieldCheckerTest {
     Statement stmt = parser.parse(sql);
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.UPDATE)
         .mapperId("test.Mapper.testMethod")
         .build();
@@ -343,7 +343,7 @@ class WhitelistFieldCheckerTest {
     Statement stmt = parser.parse(sql);
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.DELETE)
         .mapperId("test.Mapper.testMethod")
         .build();
@@ -361,7 +361,7 @@ class WhitelistFieldCheckerTest {
     Statement stmt = parser.parse(sql);
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.DELETE)
         .mapperId("test.Mapper.testMethod")
         .build();
@@ -380,7 +380,7 @@ class WhitelistFieldCheckerTest {
     Statement stmt = parser.parse(sql);
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("test.Mapper.testMethod")
         .build();
@@ -398,7 +398,7 @@ class WhitelistFieldCheckerTest {
     Statement stmt = parser.parse(sql);
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("test.Mapper.testMethod")
         .build();
@@ -416,7 +416,7 @@ class WhitelistFieldCheckerTest {
     Statement stmt = parser.parse(sql);
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("test.Mapper.testMethod")
         .build();
@@ -428,6 +428,7 @@ class WhitelistFieldCheckerTest {
     assertEquals(1, result.getViolations().size());
   }
 }
+
 
 
 

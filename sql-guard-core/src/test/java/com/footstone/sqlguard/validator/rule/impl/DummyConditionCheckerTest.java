@@ -37,7 +37,7 @@ class DummyConditionCheckerTest {
   private SqlContext createContext(String sql, Statement stmt, SqlCommandType type) {
     return SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(type)
         .mapperId("test.Mapper.testMethod")
         .build();

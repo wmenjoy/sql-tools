@@ -147,7 +147,7 @@ public class DefaultSqlSafetyValidator implements SqlSafetyValidator {
 
     // Step 3: Parse-once logic
     SqlContext contextWithParsedSql = context;
-    if (context.getParsedSql() == null) {
+    if (context.getStatement() == null) {
       try {
         Statement stmt = facade.parse(context.getSql());
         // If parse returns null (lenient mode), return pass without validation
@@ -159,7 +159,7 @@ public class DefaultSqlSafetyValidator implements SqlSafetyValidator {
         // Create new context with parsed SQL (SqlContext is immutable)
         contextWithParsedSql = SqlContext.builder()
             .sql(context.getSql())
-            .parsedSql(stmt)
+            .statement(stmt)
             .type(context.getType())
             .mapperId(context.getMapperId())
             .params(context.getParams())
@@ -222,6 +222,7 @@ public class DefaultSqlSafetyValidator implements SqlSafetyValidator {
     return sql.substring(0, 100) + "...";
   }
 }
+
 
 
 

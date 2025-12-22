@@ -120,7 +120,8 @@ class DependencyIsolationTest {
             // Verify no transitive pool dependencies are pulled in
             // by checking for common pool-specific classes
             
-            Set<String> poolClasses = Set.of(
+            // Use Arrays.asList for JDK 8 compatibility (Set.of requires Java 9+)
+            Set<String> poolClasses = new HashSet<>(java.util.Arrays.asList(
                 // Druid classes
                 "com.alibaba.druid.filter.Filter",
                 "com.alibaba.druid.filter.FilterAdapter",
@@ -130,7 +131,7 @@ class DependencyIsolationTest {
                 // P6Spy classes
                 "com.p6spy.engine.common.P6Util",
                 "com.p6spy.engine.event.JdbcEventListener"
-            );
+            ));
 
             for (String className : poolClasses) {
                 assertThat(isClassAvailable(className))
@@ -201,11 +202,12 @@ class DependencyIsolationTest {
             // dependencies since this module doesn't depend on any pool implementations
             
             // Verify no pool-specific exception types
-            Set<String> poolExceptions = Set.of(
+            // Use Arrays.asList for JDK 8 compatibility (Set.of requires Java 9+)
+            Set<String> poolExceptions = new HashSet<>(java.util.Arrays.asList(
                 "com.alibaba.druid.pool.DruidPooledConnection",
                 "com.zaxxer.hikari.pool.HikariProxyConnection",
                 "com.p6spy.engine.spy.P6Connection"
-            );
+            ));
 
             for (String className : poolExceptions) {
                 assertThat(isClassAvailable(className))
@@ -284,3 +286,4 @@ class DependencyIsolationTest {
         }
     }
 }
+

@@ -251,3 +251,4 @@ Each pool module is independent. You can use any combination without dependency 
 For migration assistance:
 - Open an issue: [GitHub Issues](https://github.com/footstone/sql-safety-guard/issues)
 - Check documentation: `docs/user-guide/`
+

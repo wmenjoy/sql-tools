@@ -1,12 +1,13 @@
 package com.footstone.sqlguard.validator.pagination.impl;
 
 import com.footstone.sqlguard.core.model.SqlContext;
-import com.footstone.sqlguard.core.model.ValidationResult;
 import com.footstone.sqlguard.validator.pagination.PaginationPluginDetector;
 import com.footstone.sqlguard.validator.pagination.PaginationType;
 import com.footstone.sqlguard.validator.rule.AbstractRuleChecker;
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.expression.LongValue;
+import net.sf.jsqlparser.expression.StringValue;
+import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.statement.select.Limit;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
@@ -81,22 +82,23 @@ public class NoConditionPaginationChecker extends AbstractRuleChecker {
    */
   public NoConditionPaginationChecker(NoConditionPaginationConfig config,
       PaginationPluginDetector detector) {
+    super(config);  // NEW: Pass config to AbstractRuleChecker
     this.config = config;
     this.detector = detector;
   }
 
   /**
-   * Checks for unconditioned physical pagination violations.
+   * Visit SELECT statement to check for unconditioned physical pagination.
    *
    * <p>This method implements the detection logic described in the class documentation.
    * It detects PHYSICAL pagination without WHERE clauses and adds CRITICAL violations
    * with early-return flag to prevent misleading subsequent checker violations.</p>
    *
+   * @param select the SELECT statement
    * @param context the SQL execution context
-   * @param result the validation result to populate
    */
   @Override
-  public void check(SqlContext context, ValidationResult result) {
+  public void visitSelect(Select select, SqlContext context) {
     // Step 1: Skip if checker disabled
     if (!isEnabled()) {
       return;
@@ -110,29 +112,79 @@ public class NoConditionPaginationChecker extends AbstractRuleChecker {
       return;
     }
 
-    // Step 4: Extract WHERE clause
-    Statement stmt = context.getParsedSql();
-    Expression where = extractWhere(stmt);
+    // Step 4: Extract WHERE clause from PlainSelect
+    if (!(select.getSelectBody() instanceof PlainSelect)) {
+      return;
+    }
+    PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+    Expression where = plainSelect.getWhere();
 
     // Step 5: Check for no-condition or dummy condition
-    if (where == null || isDummyCondition(where)) {
+    if (where == null || isDummyConditionExpression(where)) {
       // Step 6: Extract LIMIT details for violation report
-      extractLimitDetails(stmt, result);
+      extractLimitDetails(plainSelect);
 
       // Step 7: Add CRITICAL violation
-      result.addViolation(
+      addViolation(
           config.getRiskLevel(),
           "无条件物理分页,仍会全表扫描,仅限制返回行数",
           "添加业务WHERE条件限制查询范围"
       );
 
       // Step 8: Set early-return flag
-      result.getDetails().put("earlyReturn", true);
+      getCurrentResult().getDetails().put("earlyReturn", true);
     }
   }
 
   /**
-   * Extracts LIMIT details from SELECT statement and adds them to result details.
+   * Checks if expression is a dummy condition using AST analysis.
+   * Replaces the removed AbstractRuleChecker.isDummyCondition() method.
+   *
+   * @param where the WHERE expression to check
+   * @return true if this is a dummy condition
+   */
+  private boolean isDummyConditionExpression(Expression where) {
+    if (where == null) {
+      return false;
+    }
+
+    // String-based patterns
+    String whereStr = where.toString().trim().toUpperCase();
+    if (whereStr.equals("1=1") || whereStr.equals("1 = 1") ||
+        whereStr.equals("TRUE") || whereStr.equals("'1'='1'")) {
+      return true;
+    }
+
+    // AST-based: Check for constant equality (e.g., 1=1, 'a'='a')
+    if (where instanceof EqualsTo) {
+      EqualsTo equals = (EqualsTo) where;
+      Expression left = equals.getLeftExpression();
+      Expression right = equals.getRightExpression();
+
+      // Both sides are constants
+      if (isConstant(left) && isConstant(right)) {
+        // Same constant value (e.g., 1=1, 'a'='a')
+        if (left.toString().equals(right.toString())) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Checks if expression is a constant value.
+   *
+   * @param expr the expression to check
+   * @return true if this is a constant value
+   */
+  private boolean isConstant(Expression expr) {
+    return expr instanceof LongValue || expr instanceof StringValue;
+  }
+
+  /**
+   * Extracts LIMIT details from PlainSelect and adds them to result details.
    *
    * <p>This method extracts the following information:</p>
    * <ul>
@@ -143,20 +195,9 @@ public class NoConditionPaginationChecker extends AbstractRuleChecker {
    * <p>Supports both standard SQL syntax (LIMIT n OFFSET m) and MySQL comma syntax
    * (LIMIT m, n).</p>
    *
-   * @param stmt the parsed SQL statement
-   * @param result the validation result to populate with details
+   * @param plainSelect the parsed plain SELECT statement
    */
-  private void extractLimitDetails(Statement stmt, ValidationResult result) {
-    if (!(stmt instanceof Select)) {
-      return;
-    }
-
-    Select select = (Select) stmt;
-    if (!(select.getSelectBody() instanceof PlainSelect)) {
-      return;
-    }
-
-    PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+  private void extractLimitDetails(PlainSelect plainSelect) {
     Limit limit = plainSelect.getLimit();
 
     if (limit == null) {
@@ -165,14 +206,14 @@ public class NoConditionPaginationChecker extends AbstractRuleChecker {
 
     // Extract row count (LIMIT value)
     if (limit.getRowCount() != null) {
-      result.getDetails().put("limit", limit.getRowCount().toString());
+      getCurrentResult().getDetails().put("limit", limit.getRowCount().toString());
     }
 
     // Extract offset (OFFSET value or 0 if not present)
     if (limit.getOffset() != null) {
-      result.getDetails().put("offset", limit.getOffset().toString());
+      getCurrentResult().getDetails().put("offset", limit.getOffset().toString());
     } else {
-      result.getDetails().put("offset", "0");
+      getCurrentResult().getDetails().put("offset", "0");
     }
   }
 
@@ -186,4 +227,3 @@ public class NoConditionPaginationChecker extends AbstractRuleChecker {
     return config.isEnabled();
   }
 }
-

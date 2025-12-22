@@ -2,12 +2,10 @@ package com.footstone.sqlguard.validator.pagination.impl;
 
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlContext;
-import com.footstone.sqlguard.core.model.ValidationResult;
 import com.footstone.sqlguard.validator.pagination.PaginationPluginDetector;
 import com.footstone.sqlguard.validator.pagination.PaginationType;
 import com.footstone.sqlguard.validator.rule.AbstractRuleChecker;
 import com.footstone.sqlguard.validator.rule.impl.PaginationAbuseConfig;
-import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.Limit;
 import net.sf.jsqlparser.statement.select.Offset;
 import net.sf.jsqlparser.statement.select.PlainSelect;
@@ -69,7 +67,7 @@ import net.sf.jsqlparser.statement.select.Select;
  *
  * SqlContext context = SqlContext.builder()
  *     .sql("SELECT * FROM user WHERE id > 0 LIMIT 20 OFFSET 50000")
- *     .parsedSql(parser.parse(sql))
+ *     .statement(parser.parse(sql))
  *     .build();
  * ValidationResult result = ValidationResult.pass();
  *
@@ -102,12 +100,13 @@ public class DeepPaginationChecker extends AbstractRuleChecker {
    * @param detector pagination type detector
    */
   public DeepPaginationChecker(PaginationAbuseConfig config, PaginationPluginDetector detector) {
+    super(config);  // NEW: Pass config to AbstractRuleChecker
     this.config = config;
     this.detector = detector;
   }
 
   /**
-   * Checks for deep pagination violations in SQL execution context.
+   * Visit SELECT statement to check for deep pagination violations.
    *
    * <p>Detection steps:</p>
    * <ol>
@@ -119,11 +118,11 @@ public class DeepPaginationChecker extends AbstractRuleChecker {
    *   <li>Add MEDIUM violation if offset > maxOffset</li>
    * </ol>
    *
+   * @param select the SELECT statement
    * @param context SQL execution context containing parsed SQL and parameters
-   * @param result validation result to accumulate violations
    */
   @Override
-  public void check(SqlContext context, ValidationResult result) {
+  public void visitSelect(Select select, SqlContext context) {
     // Step 1: Skip if checker disabled
     if (!isEnabled()) {
       return;
@@ -138,20 +137,14 @@ public class DeepPaginationChecker extends AbstractRuleChecker {
     }
 
     // Step 4: Check for early-return flag from Task 2.8 (NoConditionPaginationChecker)
-    if (result.getDetails().containsKey("earlyReturn")
-        && result.getDetails().get("earlyReturn") == Boolean.TRUE) {
+    if (getCurrentResult().getDetails().containsKey("earlyReturn")
+        && getCurrentResult().getDetails().get("earlyReturn") == Boolean.TRUE) {
       // Skip: NoConditionPaginationChecker already violated (no WHERE clause)
       // Deep offset is irrelevant if query performs full table scan anyway
       return;
     }
 
     // Step 5: Extract Limit from SELECT statement
-    Statement stmt = context.getParsedSql();
-    if (!(stmt instanceof Select)) {
-      return; // Only SELECT statements have LIMIT clause
-    }
-
-    Select select = (Select) stmt;
     if (!(select.getSelectBody() instanceof PlainSelect)) {
       return; // Only PlainSelect has LIMIT clause (not UNION, etc.)
     }
@@ -202,7 +195,7 @@ public class DeepPaginationChecker extends AbstractRuleChecker {
       );
       String suggestion = "建议使用游标分页(WHERE id > lastId)避免深度offset";
 
-      result.addViolation(RiskLevel.MEDIUM, message, suggestion);
+      addViolation(RiskLevel.MEDIUM, message, suggestion);
     }
   }
 
@@ -216,4 +209,3 @@ public class DeepPaginationChecker extends AbstractRuleChecker {
     return config.isEnabled();
   }
 }
-

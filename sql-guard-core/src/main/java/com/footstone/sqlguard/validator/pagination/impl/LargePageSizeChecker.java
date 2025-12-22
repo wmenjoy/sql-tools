@@ -2,12 +2,10 @@ package com.footstone.sqlguard.validator.pagination.impl;
 
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlContext;
-import com.footstone.sqlguard.core.model.ValidationResult;
 import com.footstone.sqlguard.validator.pagination.PaginationPluginDetector;
 import com.footstone.sqlguard.validator.pagination.PaginationType;
 import com.footstone.sqlguard.validator.rule.AbstractRuleChecker;
 import com.footstone.sqlguard.validator.rule.impl.PaginationAbuseConfig;
-import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.Limit;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
@@ -104,6 +102,7 @@ public class LargePageSizeChecker extends AbstractRuleChecker {
    * @throws IllegalArgumentException if detector or config is null
    */
   public LargePageSizeChecker(PaginationPluginDetector detector, PaginationAbuseConfig config) {
+    super(config);  // NEW: Pass config to AbstractRuleChecker
     if (detector == null) {
       throw new IllegalArgumentException("PaginationPluginDetector cannot be null");
     }
@@ -115,7 +114,7 @@ public class LargePageSizeChecker extends AbstractRuleChecker {
   }
 
   /**
-   * Checks for large pageSize violations in the SQL execution context.
+   * Visit SELECT statement to check for large pageSize violations.
    *
    * <p><strong>Validation Flow:</strong></p>
    * <ol>
@@ -135,11 +134,11 @@ public class LargePageSizeChecker extends AbstractRuleChecker {
    *   <li>LIMIT n OFFSET m: getRowCount() returns n</li>
    * </ul>
    *
+   * @param select the SELECT statement
    * @param context SQL execution context containing parsed SQL and parameters
-   * @param result validation result to accumulate violations
    */
   @Override
-  public void check(SqlContext context, ValidationResult result) {
+  public void visitSelect(Select select, SqlContext context) {
     // Step 1: Skip if checker disabled
     if (!isEnabled()) {
       return;
@@ -153,13 +152,7 @@ public class LargePageSizeChecker extends AbstractRuleChecker {
       return;
     }
 
-    // Step 4: Extract Limit from SELECT statement
-    Statement stmt = context.getParsedSql();
-    if (!(stmt instanceof Select)) {
-      return;
-    }
-
-    Select select = (Select) stmt;
+    // Step 4: Extract Limit from PlainSelect
     if (!(select.getSelectBody() instanceof PlainSelect)) {
       return;
     }
@@ -192,7 +185,7 @@ public class LargePageSizeChecker extends AbstractRuleChecker {
       // Add MEDIUM violation
       String message = "pageSize=" + pageSize + "过大,单次查询数据量过多";
       String suggestion = "建议降低pageSize到" + config.getMaxPageSize() + "以内,避免单次返回过多数据";
-      result.addViolation(RiskLevel.MEDIUM, message, suggestion);
+      addViolation(RiskLevel.MEDIUM, message, suggestion);
     }
   }
 
@@ -206,4 +199,3 @@ public class LargePageSizeChecker extends AbstractRuleChecker {
     return config.isEnabled();
   }
 }
-

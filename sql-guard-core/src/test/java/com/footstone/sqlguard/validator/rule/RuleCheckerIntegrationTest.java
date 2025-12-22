@@ -11,12 +11,17 @@ import com.footstone.sqlguard.core.model.ValidationResult;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import net.sf.jsqlparser.statement.update.Update;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * Integration tests for the complete rule checker framework.
+ *
+ * <p>Phase 12 Migration: This test class has been updated to use the new
+ * visitor-based architecture. Mock checkers now override visitXxx() methods
+ * instead of check().</p>
  *
  * <p>Tests verify:</p>
  * <ul>
@@ -28,127 +33,103 @@ import org.junit.jupiter.api.Test;
  *   <li>Risk level aggregation to CRITICAL</li>
  * </ul>
  */
-@DisplayName("Rule Checker Framework Integration Tests")
+@DisplayName("Rule Checker Framework Integration Tests (Phase 12)")
 class RuleCheckerIntegrationTest {
 
   private SqlContext testContext;
 
   /**
-   * Mock checker 1 - adds LOW violation when enabled.
+   * Mock checker 1 - adds LOW violation when enabled (via visitUpdate).
    */
   private static class MockChecker1 extends AbstractRuleChecker {
-    private final CheckerConfig config;
 
     MockChecker1(CheckerConfig config) {
-      this.config = config;
+      super(config);
     }
 
     @Override
-    public void check(SqlContext context, ValidationResult result) {
-      result.addViolation(RiskLevel.LOW, "MockChecker1 violation", "Fix suggestion 1");
-    }
-
-    @Override
-    public boolean isEnabled() {
-      return config.isEnabled();
+    public void visitUpdate(Update update, SqlContext context) {
+      addViolation(RiskLevel.LOW, "MockChecker1 violation", "Fix suggestion 1");
     }
   }
 
   /**
-   * Mock checker 2 - adds HIGH violation when enabled.
+   * Mock checker 2 - adds HIGH violation when enabled (via visitUpdate).
    */
   private static class MockChecker2 extends AbstractRuleChecker {
-    private final CheckerConfig config;
 
     MockChecker2(CheckerConfig config) {
-      this.config = config;
+      super(config);
     }
 
     @Override
-    public void check(SqlContext context, ValidationResult result) {
-      result.addViolation(RiskLevel.HIGH, "MockChecker2 violation", "Fix suggestion 2");
-    }
-
-    @Override
-    public boolean isEnabled() {
-      return config.isEnabled();
+    public void visitUpdate(Update update, SqlContext context) {
+      addViolation(RiskLevel.HIGH, "MockChecker2 violation", "Fix suggestion 2");
     }
   }
 
   /**
-   * Mock checker 3 - disabled (isEnabled returns false).
+   * Mock checker 3 - adds CRITICAL violation when enabled (via visitUpdate).
+   * Used to verify disabled checkers are skipped.
    */
   private static class MockChecker3 extends AbstractRuleChecker {
-    private final CheckerConfig config;
 
     MockChecker3(CheckerConfig config) {
-      this.config = config;
+      super(config);
     }
 
     @Override
-    public void check(SqlContext context, ValidationResult result) {
-      result.addViolation(RiskLevel.CRITICAL, "MockChecker3 should not appear",
-          "Should not execute");
-    }
-
-    @Override
-    public boolean isEnabled() {
-      return config.isEnabled();
+    public void visitUpdate(Update update, SqlContext context) {
+      addViolation(RiskLevel.CRITICAL, "MockChecker3 should not appear", "Should not execute");
     }
   }
 
   /**
-   * Mock checker that adds multiple violations.
+   * Mock checker that adds multiple violations (via visitUpdate).
    */
   private static class MultiViolationChecker extends AbstractRuleChecker {
-    private final CheckerConfig config;
 
     MultiViolationChecker(CheckerConfig config) {
-      this.config = config;
+      super(config);
     }
 
     @Override
-    public void check(SqlContext context, ValidationResult result) {
-      result.addViolation(RiskLevel.LOW, "Violation 1", "Suggestion 1");
-      result.addViolation(RiskLevel.MEDIUM, "Violation 2", "Suggestion 2");
-      result.addViolation(RiskLevel.HIGH, "Violation 3", "Suggestion 3");
-    }
-
-    @Override
-    public boolean isEnabled() {
-      return config.isEnabled();
+    public void visitUpdate(Update update, SqlContext context) {
+      addViolation(RiskLevel.LOW, "Violation 1", "Suggestion 1");
+      addViolation(RiskLevel.MEDIUM, "Violation 2", "Suggestion 2");
+      addViolation(RiskLevel.HIGH, "Violation 3", "Suggestion 3");
     }
   }
 
   /**
-   * Mock checker for order testing.
+   * Mock checker for order testing (via visitUpdate).
    */
   private static class OrderedChecker extends AbstractRuleChecker {
-    private final CheckerConfig config;
     private final int order;
 
     OrderedChecker(CheckerConfig config, int order) {
-      this.config = config;
+      super(config);
       this.order = order;
     }
 
     @Override
-    public void check(SqlContext context, ValidationResult result) {
-      result.addViolation(RiskLevel.LOW, "Checker " + order, "Suggestion " + order);
-    }
-
-    @Override
-    public boolean isEnabled() {
-      return config.isEnabled();
+    public void visitUpdate(Update update, SqlContext context) {
+      addViolation(RiskLevel.LOW, "Checker " + order, "Suggestion " + order);
     }
   }
 
   @BeforeEach
-  void setUp() {
+  void setUp() throws Exception {
+    // Use UPDATE statement since mock checkers use visitUpdate
+    String sql = "UPDATE users SET name = 'test' WHERE id = 1";
+    net.sf.jsqlparser.statement.Statement stmt = 
+        net.sf.jsqlparser.parser.CCJSqlParserUtil.parse(sql);
+    
     testContext = SqlContext.builder()
-        .sql("SELECT * FROM users WHERE id = 1")
-        .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.selectById")
+        .sql(sql)
+        .type(SqlCommandType.UPDATE)
+        .mapperId("test.Mapper.updateById")
+        .statement(stmt)
         .build();
   }
 
@@ -274,16 +255,10 @@ class RuleCheckerIntegrationTest {
     CheckerConfig config2 = new CheckerConfig(true);
 
     // Checker that adds CRITICAL violation
-    RuleChecker criticalChecker = new AbstractRuleChecker() {
+    RuleChecker criticalChecker = new AbstractRuleChecker(config2) {
       @Override
-      public void check(SqlContext context, ValidationResult result) {
-        result.addViolation(RiskLevel.CRITICAL, "Critical security issue",
-            "Immediate action required");
-      }
-
-      @Override
-      public boolean isEnabled() {
-        return config2.isEnabled();
+      public void visitUpdate(Update update, SqlContext context) {
+        addViolation(RiskLevel.CRITICAL, "Critical security issue", "Immediate action required");
       }
     };
 
@@ -325,15 +300,4 @@ class RuleCheckerIntegrationTest {
     assertEquals(0, result.getViolations().size(), "No violations should be present");
   }
 }
-
-
-
-
-
-
-
-
-
-
-
 

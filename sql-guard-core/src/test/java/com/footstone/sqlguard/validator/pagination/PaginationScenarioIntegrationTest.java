@@ -37,7 +37,7 @@ public class PaginationScenarioIntegrationTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectAll")
         .rowBounds(new RowBounds(0, 10))
@@ -60,7 +60,7 @@ public class PaginationScenarioIntegrationTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectAll")
         .rowBounds(new RowBounds(0, 10))
@@ -89,7 +89,7 @@ public class PaginationScenarioIntegrationTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectPage")
         .params(params)
@@ -113,7 +113,7 @@ public class PaginationScenarioIntegrationTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectUsers")
         .build();
@@ -135,7 +135,7 @@ public class PaginationScenarioIntegrationTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectUsers")
         .build();
@@ -158,7 +158,7 @@ public class PaginationScenarioIntegrationTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectById")
         .build();
@@ -180,7 +180,7 @@ public class PaginationScenarioIntegrationTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectAll")
         .rowBounds(RowBounds.DEFAULT)

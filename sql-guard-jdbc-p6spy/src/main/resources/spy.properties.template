@@ -87,3 +87,4 @@ logMessageFormat=com.p6spy.engine.spy.appender.SingleLineFormat
 #   -Dsqlguard.p6spy.audit.enabled=false
 #   -Dsqlguard.p6spy.logParameterizedSql=true
 #
+

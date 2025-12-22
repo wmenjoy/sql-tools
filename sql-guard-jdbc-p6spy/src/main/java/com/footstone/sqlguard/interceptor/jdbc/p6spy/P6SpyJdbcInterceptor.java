@@ -324,3 +324,4 @@ public class P6SpyJdbcInterceptor extends JdbcInterceptorBase {
         return config;
     }
 }
+

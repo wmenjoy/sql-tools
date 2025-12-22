@@ -2,10 +2,15 @@ package com.footstone.sqlguard.validator.rule.impl;
 
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlContext;
-import com.footstone.sqlguard.core.model.ValidationResult;
 import com.footstone.sqlguard.validator.rule.AbstractRuleChecker;
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.expression.LongValue;
+import net.sf.jsqlparser.expression.StringValue;
+import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
+import net.sf.jsqlparser.statement.delete.Delete;
+import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.update.Update;
 
 /**
  * Checker that detects invalid/dummy WHERE conditions.
@@ -58,34 +63,75 @@ public class DummyConditionChecker extends AbstractRuleChecker {
    * @param config the configuration containing pattern lists and enabled flag
    */
   public DummyConditionChecker(DummyConditionConfig config) {
+    super(config);  // NEW: Pass config to AbstractRuleChecker
     this.config = config;
   }
 
   /**
-   * Checks for dummy conditions in the WHERE clause using dual detection.
+   * Visit SELECT statement to check for dummy conditions.
    *
-   * <p><strong>Detection Process:</strong></p>
-   * <ol>
-   *   <li>Extract WHERE clause using {@link #extractWhere(Statement)}</li>
-   *   <li>If no WHERE clause, return (nothing to check)</li>
-   *   <li>Pattern-based detection: Normalize WHERE string and check against patterns</li>
-   *   <li>AST-based detection: Use {@link #isDummyCondition(Expression)} for constant equality</li>
-   *   <li>If either method detects dummy condition, add HIGH violation</li>
-   * </ol>
-   *
-   * @param context the SQL context containing parsed statement
-   * @param result the validation result to populate with violations
+   * @param select the SELECT statement
+   * @param context the SQL context
    */
   @Override
-  public void check(SqlContext context, ValidationResult result) {
-    // Skip check if disabled
+  public void visitSelect(Select select, SqlContext context) {
     if (!isEnabled()) {
       return;
     }
 
-    Statement stmt = context.getParsedSql();
-    Expression where = extractWhere(stmt);
+    if (select.getSelectBody() instanceof PlainSelect) {
+      PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+      Expression where = plainSelect.getWhere();
+      validateDummyCondition(where);
+    }
+  }
 
+  /**
+   * Visit UPDATE statement to check for dummy conditions.
+   *
+   * @param update the UPDATE statement
+   * @param context the SQL context
+   */
+  @Override
+  public void visitUpdate(Update update, SqlContext context) {
+    if (!isEnabled()) {
+      return;
+    }
+
+    Expression where = update.getWhere();
+    validateDummyCondition(where);
+  }
+
+  /**
+   * Visit DELETE statement to check for dummy conditions.
+   *
+   * @param delete the DELETE statement
+   * @param context the SQL context
+   */
+  @Override
+  public void visitDelete(Delete delete, SqlContext context) {
+    if (!isEnabled()) {
+      return;
+    }
+
+    Expression where = delete.getWhere();
+    validateDummyCondition(where);
+  }
+
+  /**
+   * Validates WHERE expression for dummy conditions.
+   *
+   * <p><strong>Detection Process:</strong></p>
+   * <ol>
+   *   <li>If no WHERE clause, return (nothing to check)</li>
+   *   <li>Pattern-based detection: Normalize WHERE string and check against patterns</li>
+   *   <li>AST-based detection: Use local isDummyConditionExpression() for constant equality</li>
+   *   <li>If either method detects dummy condition, add HIGH violation</li>
+   * </ol>
+   *
+   * @param where the WHERE expression to validate
+   */
+  private void validateDummyCondition(Expression where) {
     // No WHERE clause means nothing to check
     if (where == null) {
       return;
@@ -115,18 +161,64 @@ public class DummyConditionChecker extends AbstractRuleChecker {
     }
 
     // AST-based detection (catches programmatically generated constant comparisons)
-    if (!isDummy && isDummyCondition(where)) {
+    if (!isDummy && isDummyConditionExpression(where)) {
       isDummy = true;
     }
 
     // Add violation if dummy condition detected
     if (isDummy) {
-      result.addViolation(
+      addViolation(
           RiskLevel.HIGH,
-          "检测到无效条件(如 1=1),请移除",
-          "使用<where>标签或真实业务条件"
+          "检测到无效条件(如 1=1),请移除"
       );
     }
+  }
+
+  /**
+   * Checks if expression is a dummy condition using AST analysis.
+   * Replaces the removed AbstractRuleChecker.isDummyCondition() method.
+   *
+   * @param where the WHERE expression to check
+   * @return true if this is a dummy condition
+   */
+  private boolean isDummyConditionExpression(Expression where) {
+    if (where == null) {
+      return false;
+    }
+
+    // String-based patterns
+    String whereStr = where.toString().trim().toUpperCase();
+    if (whereStr.equals("1=1") || whereStr.equals("1 = 1") ||
+        whereStr.equals("TRUE") || whereStr.equals("'1'='1'")) {
+      return true;
+    }
+
+    // AST-based: Check for constant equality (e.g., 1=1, 'a'='a')
+    if (where instanceof EqualsTo) {
+      EqualsTo equals = (EqualsTo) where;
+      Expression left = equals.getLeftExpression();
+      Expression right = equals.getRightExpression();
+
+      // Both sides are constants
+      if (isConstant(left) && isConstant(right)) {
+        // Same constant value (e.g., 1=1, 'a'='a')
+        if (left.toString().equals(right.toString())) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Checks if expression is a constant value.
+   *
+   * @param expr the expression to check
+   * @return true if this is a constant value
+   */
+  private boolean isConstant(Expression expr) {
+    return expr instanceof LongValue || expr instanceof StringValue;
   }
 
   /**
@@ -139,6 +231,7 @@ public class DummyConditionChecker extends AbstractRuleChecker {
     return config.isEnabled();
   }
 }
+
 
 
 

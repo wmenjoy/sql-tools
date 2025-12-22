@@ -38,7 +38,7 @@ public class PaginationTypeDetectionTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectUsers")
         .rowBounds(new RowBounds(0, 10))  // RowBounds with offset=0, limit=10
@@ -61,7 +61,7 @@ public class PaginationTypeDetectionTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectUsers")
         .rowBounds(new RowBounds(0, 10))
@@ -92,7 +92,7 @@ public class PaginationTypeDetectionTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectPage")
         .params(params)
@@ -118,7 +118,7 @@ public class PaginationTypeDetectionTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectUsers")
         .build();
@@ -140,7 +140,7 @@ public class PaginationTypeDetectionTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectById")
         .build();
@@ -162,7 +162,7 @@ public class PaginationTypeDetectionTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectUsers")
         .rowBounds(RowBounds.DEFAULT)  // DEFAULT = infinite bounds, not pagination
@@ -185,7 +185,7 @@ public class PaginationTypeDetectionTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectUsers")
         .build();
@@ -211,7 +211,7 @@ public class PaginationTypeDetectionTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectPage")
         .params(params)
@@ -298,6 +298,8 @@ public class PaginationTypeDetectionTest {
     // Class name doesn't contain "PaginationInnerInterceptor"
   }
 }
+
+
 
 
 

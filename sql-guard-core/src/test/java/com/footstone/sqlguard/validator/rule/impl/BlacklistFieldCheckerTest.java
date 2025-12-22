@@ -40,7 +40,7 @@ class BlacklistFieldCheckerTest {
   private SqlContext createContext(String sql, Statement stmt, SqlCommandType type) {
     return SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(type)
         .mapperId("test.Mapper.testMethod")
         .build();
@@ -236,9 +236,11 @@ class BlacklistFieldCheckerTest {
   }
 
   // ==================== UPDATE/DELETE Statement Tests ====================
+  // NOTE: After Phase 12 migration, BlacklistFieldChecker only checks SELECT statements.
+  // UPDATE and DELETE statements are skipped (handled by NoWhereClauseChecker for safety).
 
   @Test
-  void testUpdateStatement_shouldViolate() throws Exception {
+  void testUpdateStatement_shouldSkip() throws Exception {
     String sql = "UPDATE users SET name='test' WHERE status='active'";
     Statement stmt = CCJSqlParserUtil.parse(sql);
     SqlContext context = createContext(sql, stmt, SqlCommandType.UPDATE);
@@ -246,13 +248,13 @@ class BlacklistFieldCheckerTest {
 
     checker.check(context, result);
 
-    assertEquals(RiskLevel.HIGH, result.getRiskLevel());
-    assertEquals(1, result.getViolations().size());
-    assertTrue(result.getViolations().get(0).getMessage().contains("黑名单字段"));
+    // UPDATE is skipped - BlacklistFieldChecker only checks SELECT statements
+    assertEquals(RiskLevel.SAFE, result.getRiskLevel());
+    assertEquals(0, result.getViolations().size());
   }
 
   @Test
-  void testDeleteStatement_shouldViolate() throws Exception {
+  void testDeleteStatement_shouldSkip() throws Exception {
     String sql = "DELETE FROM users WHERE del_flag=1";
     Statement stmt = CCJSqlParserUtil.parse(sql);
     SqlContext context = createContext(sql, stmt, SqlCommandType.DELETE);
@@ -260,9 +262,9 @@ class BlacklistFieldCheckerTest {
 
     checker.check(context, result);
 
-    assertEquals(RiskLevel.HIGH, result.getRiskLevel());
-    assertEquals(1, result.getViolations().size());
-    assertTrue(result.getViolations().get(0).getMessage().contains("黑名单字段"));
+    // DELETE is skipped - BlacklistFieldChecker only checks SELECT statements
+    assertEquals(RiskLevel.SAFE, result.getRiskLevel());
+    assertEquals(0, result.getViolations().size());
   }
 
   // ==================== Additional Blacklist Field Tests ====================

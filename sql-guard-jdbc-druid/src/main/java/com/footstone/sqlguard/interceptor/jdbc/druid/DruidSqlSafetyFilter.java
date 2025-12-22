@@ -352,3 +352,4 @@ public class DruidSqlSafetyFilter extends FilterAdapter {
         return interceptor;
     }
 }
+

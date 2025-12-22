@@ -57,7 +57,7 @@ public class LogicalPaginationCheckerTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectUsers")
         .rowBounds(rowBounds)
@@ -99,7 +99,7 @@ public class LogicalPaginationCheckerTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectUsers")
         .rowBounds(rowBounds)
@@ -133,7 +133,7 @@ public class LogicalPaginationCheckerTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectById")
         .build();
@@ -162,7 +162,7 @@ public class LogicalPaginationCheckerTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectAll")
         .rowBounds(RowBounds.DEFAULT)
@@ -193,7 +193,7 @@ public class LogicalPaginationCheckerTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectUsers")
         .rowBounds(rowBounds)
@@ -228,7 +228,7 @@ public class LogicalPaginationCheckerTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectUsers")
         .rowBounds(rowBounds)
@@ -263,7 +263,7 @@ public class LogicalPaginationCheckerTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectUsers")
         .rowBounds(rowBounds)
@@ -300,7 +300,7 @@ public class LogicalPaginationCheckerTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectPage")
         .params(params)
@@ -334,7 +334,7 @@ public class LogicalPaginationCheckerTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectPage")
         .rowBounds(rowBounds)
@@ -369,7 +369,7 @@ public class LogicalPaginationCheckerTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectUsers")
         .rowBounds(rowBounds)
@@ -417,7 +417,7 @@ public class LogicalPaginationCheckerTest {
       RowBounds rowBounds = new RowBounds(offset, limit);
       SqlContext context = SqlContext.builder()
           .sql(sql)
-          .parsedSql(stmt)
+          .statement(stmt)
           .type(SqlCommandType.SELECT)
           .mapperId("com.example.UserMapper.selectUsers")
           .rowBounds(rowBounds)
@@ -449,7 +449,7 @@ public class LogicalPaginationCheckerTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectUsers")
         .rowBounds(rowBounds)
@@ -488,7 +488,7 @@ public class LogicalPaginationCheckerTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectUsers")
         .rowBounds(rowBounds)
@@ -524,7 +524,7 @@ public class LogicalPaginationCheckerTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectUsers")
         .rowBounds(null)
@@ -555,7 +555,7 @@ public class LogicalPaginationCheckerTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectUsers")
         .rowBounds(rowBounds)
@@ -589,7 +589,7 @@ public class LogicalPaginationCheckerTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(stmt)
+        .statement(stmt)
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectUsers")
         .rowBounds(rowBounds)

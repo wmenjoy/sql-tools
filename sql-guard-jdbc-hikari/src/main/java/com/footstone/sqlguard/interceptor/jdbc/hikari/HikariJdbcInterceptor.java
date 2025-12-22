@@ -303,3 +303,4 @@ public class HikariJdbcInterceptor extends JdbcInterceptorBase {
         return sql.substring(0, 200) + "...";
     }
 }
+

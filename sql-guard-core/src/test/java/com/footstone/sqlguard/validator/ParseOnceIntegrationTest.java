@@ -42,7 +42,7 @@ class ParseOnceIntegrationTest {
     RuleChecker mockChecker = new RuleChecker() {
       @Override
       public void check(SqlContext context, ValidationResult result) {
-        assertNotNull(context.getParsedSql(), "Parsed SQL should be available to checker");
+        assertNotNull(context.getStatement(), "Parsed SQL should be available to checker");
       }
 
       @Override
@@ -62,7 +62,7 @@ class ParseOnceIntegrationTest {
         .mapperId("test.Mapper.selectById")
         .build();
 
-    assertNull(context.getParsedSql(), "Initial context should have null parsedSql");
+    assertNull(context.getStatement(), "Initial context should have null parsedSql");
 
     // Execute validation
     ValidationResult result = validator.validate(context);
@@ -86,7 +86,7 @@ class ParseOnceIntegrationTest {
       @Override
       public void check(SqlContext context, ValidationResult result) {
         checkerCallCount.incrementAndGet();
-        Statement currentParsedSql = context.getParsedSql();
+        Statement currentParsedSql = context.getStatement();
         assertNotNull(currentParsedSql, "Parsed SQL should be available");
         
         if (firstParsedSql == null) {
@@ -113,12 +113,12 @@ class ParseOnceIntegrationTest {
     // Create context WITH parsed SQL
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(preParsedStmt)
+        .statement(preParsedStmt)
         .type(SqlCommandType.SELECT)
         .mapperId("test.Mapper.selectById")
         .build();
 
-    assertNotNull(context.getParsedSql(), "Context should have pre-parsed SQL");
+    assertNotNull(context.getStatement(), "Context should have pre-parsed SQL");
 
     // Execute validation
     validator.validate(context);
@@ -137,7 +137,7 @@ class ParseOnceIntegrationTest {
     RuleChecker checker1 = new RuleChecker() {
       @Override
       public void check(SqlContext context, ValidationResult result) {
-        capturedStatements[0] = context.getParsedSql();
+        capturedStatements[0] = context.getStatement();
       }
 
       @Override
@@ -149,7 +149,7 @@ class ParseOnceIntegrationTest {
     RuleChecker checker2 = new RuleChecker() {
       @Override
       public void check(SqlContext context, ValidationResult result) {
-        capturedStatements[1] = context.getParsedSql();
+        capturedStatements[1] = context.getStatement();
       }
 
       @Override
@@ -161,7 +161,7 @@ class ParseOnceIntegrationTest {
     RuleChecker checker3 = new RuleChecker() {
       @Override
       public void check(SqlContext context, ValidationResult result) {
-        capturedStatements[2] = context.getParsedSql();
+        capturedStatements[2] = context.getStatement();
       }
 
       @Override
@@ -311,6 +311,8 @@ class ParseOnceIntegrationTest {
     assertEquals(1, checkerCallCount.get(), "Second validation should skip checker (cached)");
   }
 }
+
+
 
 
 

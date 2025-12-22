@@ -237,3 +237,4 @@ public class P6SpySqlSafetyModule extends JdbcEventListener {
         config = newConfig;
     }
 }
+

@@ -237,3 +237,4 @@ public abstract class JdbcInterceptorBase {
         logger.debug("Error during SQL interception", e);
     }
 }
+

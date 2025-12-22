@@ -21,7 +21,7 @@ import net.sf.jsqlparser.statement.Statement;
  * 
  * <p><strong>Immutability Guarantees:</strong></p>
  * <ul>
- *   <li>{@code parsedSql}, {@code type}, and {@code mapperId} are final and cannot be modified
+ *   <li>{@code statement}, {@code type}, and {@code mapperId} are final and cannot be modified
  *       after construction to prevent accidental changes during validation chain execution.</li>
  *   <li>Optional fields ({@code params}, {@code datasource}, {@code rowBounds}) can be null.</li>
  * </ul>
@@ -32,6 +32,7 @@ import net.sf.jsqlparser.statement.Statement;
  *     .sql("SELECT * FROM users WHERE id = ?")
  *     .type(SqlCommandType.SELECT)
  *     .mapperId("com.example.UserMapper.selectById")
+ *     .statement(parsedStatement)
  *     .params(paramMap)
  *     .build();
  * }</pre>
@@ -48,9 +49,8 @@ public final class SqlContext {
 
   /**
    * Parsed SQL statement AST from JSQLParser (optional).
-   * Set by SQL parsing layer before validation.
    */
-  private final Statement parsedSql;
+  private final Statement statement;
 
   /**
    * SQL command type classification (required).
@@ -84,7 +84,7 @@ public final class SqlContext {
    */
   private SqlContext(SqlContextBuilder builder) {
     this.sql = builder.sql;
-    this.parsedSql = builder.parsedSql;
+    this.statement = builder.statement;
     this.type = builder.type;
     this.mapperId = builder.mapperId;
     this.params = builder.params;
@@ -107,8 +107,13 @@ public final class SqlContext {
     return sql;
   }
 
-  public Statement getParsedSql() {
-    return parsedSql;
+  /**
+   * Returns the parsed SQL statement.
+   *
+   * @return the parsed SQL statement, or null if not set
+   */
+  public Statement getStatement() {
+    return statement;
   }
 
   public SqlCommandType getType() {
@@ -135,11 +140,11 @@ public final class SqlContext {
    * Builder for constructing SqlContext instances with fluent API.
    *
    * <p>Required fields: sql, type, mapperId</p>
-   * <p>Optional fields: parsedSql, params, datasource, rowBounds</p>
+   * <p>Optional fields: statement, params, datasource, rowBounds</p>
    */
   public static class SqlContextBuilder {
     private String sql;
-    private Statement parsedSql;
+    private Statement statement;
     private SqlCommandType type;
     private String mapperId;
     private Map<String, Object> params;
@@ -161,13 +166,13 @@ public final class SqlContext {
     }
 
     /**
-     * Sets the parsed SQL statement AST (optional).
+     * Sets the parsed SQL statement AST.
      *
-     * @param parsedSql the parsed Statement from JSQLParser
+     * @param statement the parsed Statement from JSQLParser
      * @return this builder
      */
-    public SqlContextBuilder parsedSql(Statement parsedSql) {
-      this.parsedSql = parsedSql;
+    public SqlContextBuilder statement(Statement statement) {
+      this.statement = statement;
       return this;
     }
 
@@ -264,8 +269,9 @@ public final class SqlContext {
       return false;
     }
     SqlContext that = (SqlContext) o;
+    // Use getStatement() to ensure both statement and parsedSql are considered
     return Objects.equals(sql, that.sql)
-        && Objects.equals(parsedSql, that.parsedSql)
+        && Objects.equals(getStatement(), that.getStatement())
         && type == that.type
         && Objects.equals(mapperId, that.mapperId)
         && Objects.equals(params, that.params)
@@ -275,14 +281,15 @@ public final class SqlContext {
 
   @Override
   public int hashCode() {
-    return Objects.hash(sql, parsedSql, type, mapperId, params, datasource, rowBounds);
+    // Use getStatement() for consistent hashing
+    return Objects.hash(sql, getStatement(), type, mapperId, params, datasource, rowBounds);
   }
 
   @Override
   public String toString() {
     return "SqlContext{"
         + "sql='" + sql + '\''
-        + ", parsedSql=" + parsedSql
+        + ", statement=" + getStatement()
         + ", type=" + type
         + ", mapperId='" + mapperId + '\''
         + ", params=" + params

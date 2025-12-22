@@ -87,7 +87,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user LIMIT 10";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithLimit")
         .build();
@@ -110,7 +110,7 @@ class NoPaginationCheckerTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithRowBounds")
         .rowBounds(new RowBounds(0, 10))
@@ -138,7 +138,7 @@ class NoPaginationCheckerTest {
     
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithIPage")
         .params(params)
@@ -157,7 +157,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE deleted=0";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectNoPagination")
         .build();
@@ -176,7 +176,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectAll")
         .build();
@@ -197,7 +197,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE 1=1";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectDummy")
         .build();
@@ -215,7 +215,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE deleted=0";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectByDeleted")
         .build();
@@ -236,7 +236,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 AND status='active'";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectMixed")
         .build();
@@ -259,7 +259,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 AND status='active'";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectMixed")
         .build();
@@ -286,7 +286,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("UserMapper.getById")
         .build();
@@ -309,7 +309,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("UserMapper.getById")
         .build();
@@ -332,7 +332,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("UserMapper.countAll")
         .build();
@@ -355,7 +355,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM config_table";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("ConfigMapper.selectAll")
         .build();
@@ -378,7 +378,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id=?";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("UserMapper.selectById")
         .build();
@@ -396,7 +396,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id=123";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("UserMapper.selectById")
         .build();
@@ -414,7 +414,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE user_id=?";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("UserMapper.selectByUserId")
         .build();
@@ -438,7 +438,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE status=?";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("UserMapper.selectByStatus")
         .build();
@@ -458,7 +458,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE deleted=0";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("UserMapper.selectNotDeleted")
         .build();
@@ -475,7 +475,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE deleted=0 AND status='active'";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("UserMapper.selectActiveNotDeleted")
         .build();
@@ -492,7 +492,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 AND deleted=0";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("UserMapper.selectByIdNotDeleted")
         .build();
@@ -515,7 +515,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 AND deleted=0";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("UserMapper.selectByIdNotDeleted")
         .build();
@@ -541,7 +541,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("UserMapper.selectAll")
         .build();
@@ -565,7 +565,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE create_time > ?";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("UserMapper.selectByCreateTime")
         .build();
@@ -591,7 +591,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("UserMapper.selectWithNullRowBounds")
         .rowBounds(null)
@@ -610,7 +610,7 @@ class NoPaginationCheckerTest {
     String sql = "SELECT * FROM user";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("UserMapper.selectWithDefaultRowBounds")
         .rowBounds(RowBounds.DEFAULT)
@@ -634,7 +634,7 @@ class NoPaginationCheckerTest {
     // Should NOT trigger NoPaginationChecker
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("UserMapper.selectWithRowBounds")
         .rowBounds(new RowBounds(0, 10))
@@ -657,7 +657,7 @@ class NoPaginationCheckerTest {
     // Physical pagination checkers handle LIMIT queries
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("UserMapper.selectWithLimit")
         .build();

@@ -119,7 +119,7 @@ public class PaginationPluginDetector {
    *
    * <p>Detection logic per design specification:</p>
    * <ol>
-   *   <li>Extract Statement from context.getParsedSql()</li>
+   *   <li>Extract Statement from context.getStatement()</li>
    *   <li>Check hasLimit = (stmt instanceof Select && ((Select)stmt).getLimit() != null)</li>
    *   <li>Check hasPageParam:
    *       <ul>
@@ -146,7 +146,7 @@ public class PaginationPluginDetector {
     }
 
     // Step 1: Extract Statement
-    Statement stmt = context.getParsedSql();
+    Statement stmt = context.getStatement();
     if (stmt == null) {
       return PaginationType.NONE;
     }

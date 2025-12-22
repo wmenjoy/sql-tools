@@ -43,7 +43,7 @@ class MissingOrderByCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 10";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithoutOrderBy")
         .build();
@@ -64,7 +64,7 @@ class MissingOrderByCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 ORDER BY id LIMIT 10";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithOrderBy")
         .build();
@@ -84,7 +84,7 @@ class MissingOrderByCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 ORDER BY id LIMIT 10";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectSingleOrderBy")
         .build();
@@ -102,7 +102,7 @@ class MissingOrderByCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 ORDER BY create_time DESC, id ASC LIMIT 10";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectMultipleOrderBy")
         .build();
@@ -122,7 +122,7 @@ class MissingOrderByCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 ORDER BY LOWER(name) LIMIT 10";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectOrderByExpression")
         .build();
@@ -142,7 +142,7 @@ class MissingOrderByCheckerTest {
     String sql = "SELECT * FROM user";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithRowBounds")
         .rowBounds(new RowBounds(0, 10))
@@ -161,7 +161,7 @@ class MissingOrderByCheckerTest {
     String sql = "SELECT * FROM user WHERE id = ?";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectById")
         .build();
@@ -183,7 +183,7 @@ class MissingOrderByCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 10";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithoutOrderBy")
         .build();
@@ -205,7 +205,7 @@ class MissingOrderByCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 10";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithoutOrderBy")
         .build();
@@ -226,7 +226,7 @@ class MissingOrderByCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 10";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithoutOrderBy")
         .build();
@@ -249,7 +249,7 @@ class MissingOrderByCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 ORDER BY id LIMIT 10 OFFSET 100";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectOffsetWithOrderBy")
         .build();
@@ -267,7 +267,7 @@ class MissingOrderByCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 10 OFFSET 100";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectOffsetWithoutOrderBy")
         .build();

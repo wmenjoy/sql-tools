@@ -2,11 +2,11 @@ package com.footstone.sqlguard.validator.pagination.impl;
 
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlContext;
-import com.footstone.sqlguard.core.model.ValidationResult;
 import com.footstone.sqlguard.validator.pagination.PaginationPluginDetector;
 import com.footstone.sqlguard.validator.pagination.PaginationType;
 import com.footstone.sqlguard.validator.rule.AbstractRuleChecker;
 import com.footstone.sqlguard.validator.rule.impl.LogicalPaginationConfig;
+import net.sf.jsqlparser.statement.select.Select;
 import org.apache.ibatis.session.RowBounds;
 
 /**
@@ -86,6 +86,7 @@ public class LogicalPaginationChecker extends AbstractRuleChecker {
    */
   public LogicalPaginationChecker(PaginationPluginDetector detector, 
       LogicalPaginationConfig config) {
+    super(config);  // NEW: Pass config to AbstractRuleChecker
     if (detector == null) {
       throw new IllegalArgumentException("PaginationPluginDetector cannot be null");
     }
@@ -97,7 +98,7 @@ public class LogicalPaginationChecker extends AbstractRuleChecker {
   }
 
   /**
-   * Checks for logical pagination violations in the SQL execution context.
+   * Visit SELECT statement to check for logical pagination violations.
    *
    * <p><strong>Validation Flow:</strong></p>
    * <ol>
@@ -116,11 +117,11 @@ public class LogicalPaginationChecker extends AbstractRuleChecker {
    *   <li>{@code paginationType}: Always "LOGICAL" for this violation</li>
    * </ul>
    *
+   * @param select the SELECT statement
    * @param context SQL execution context containing parsed SQL and parameters
-   * @param result validation result to accumulate violations
    */
   @Override
-  public void check(SqlContext context, ValidationResult result) {
+  public void visitSelect(Select select, SqlContext context) {
     // Step 1: Skip if checker disabled
     if (!isEnabled()) {
       return;
@@ -146,14 +147,13 @@ public class LogicalPaginationChecker extends AbstractRuleChecker {
     }
 
     // Step 5: Add CRITICAL violation
-    String message = "检测到逻辑分页!将加载全表数据到内存,可能导致OOM";
-    String suggestion = "立即配置分页插件:MyBatis-Plus PaginationInnerInterceptor或PageHelper";
-    result.addViolation(RiskLevel.CRITICAL, message, suggestion);
+    addViolation(RiskLevel.CRITICAL, "检测到逻辑分页!将加载全表数据到内存,可能导致OOM",
+        "立即配置分页插件:MyBatis-Plus PaginationInnerInterceptor或PageHelper");
 
     // Step 6: Add pagination parameters to violation details
-    result.getDetails().put("offset", offset);
-    result.getDetails().put("limit", limit);
-    result.getDetails().put("paginationType", "LOGICAL");
+    getCurrentResult().getDetails().put("offset", offset);
+    getCurrentResult().getDetails().put("limit", limit);
+    getCurrentResult().getDetails().put("paginationType", "LOGICAL");
   }
 
   /**
@@ -166,6 +166,7 @@ public class LogicalPaginationChecker extends AbstractRuleChecker {
     return config.isEnabled();
   }
 }
+
 
 
 

@@ -341,3 +341,4 @@ public class DruidJdbcInterceptor extends JdbcInterceptorBase {
         return sb.toString();
     }
 }
+

@@ -121,3 +121,4 @@ Task 11.5 is complete. The P6Spy module is ready for integration:
 1. Users can depend on `sql-guard-jdbc-p6spy` for universal JDBC interception
 2. Users should NOT depend on both `sql-guard-jdbc-druid` and `sql-guard-jdbc-p6spy` simultaneously
 3. Integration documentation should be updated to reference the new module
+

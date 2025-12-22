@@ -33,7 +33,7 @@ class SqlContextTest {
         // Act
         SqlContext context = SqlContext.builder()
                 .sql(sql)
-                .parsedSql(parsedSql)
+                .statement(parsedSql)
                 .type(type)
                 .mapperId(mapperId)
                 .params(params)
@@ -44,7 +44,7 @@ class SqlContextTest {
         // Assert
         assertNotNull(context);
         assertEquals(sql, context.getSql());
-        assertEquals(parsedSql, context.getParsedSql());
+        assertEquals(parsedSql, context.getStatement());
         assertEquals(type, context.getType());
         assertEquals(mapperId, context.getMapperId());
         assertEquals(params, context.getParams());
@@ -70,7 +70,7 @@ class SqlContextTest {
         // Assert
         assertNotNull(context);
         assertEquals(sql, context.getSql());
-        assertNull(context.getParsedSql());
+        assertNull(context.getStatement());
         assertEquals(type, context.getType());
         assertEquals(mapperId, context.getMapperId());
         assertNull(context.getParams());
@@ -90,14 +90,14 @@ class SqlContextTest {
         // Act
         SqlContext context = SqlContext.builder()
                 .sql(sql)
-                .parsedSql(parsedSql)
+                .statement(parsedSql)
                 .type(type)
                 .mapperId(mapperId)
                 .build();
 
         // Assert - parsedSql should be immutable (final field)
-        assertNotNull(context.getParsedSql());
-        assertSame(parsedSql, context.getParsedSql());
+        assertNotNull(context.getStatement());
+        assertSame(parsedSql, context.getStatement());
     }
 
     @Test

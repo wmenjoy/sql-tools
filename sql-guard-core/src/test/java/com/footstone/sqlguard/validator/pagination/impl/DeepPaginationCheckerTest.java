@@ -56,7 +56,7 @@ class DeepPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 20 OFFSET 9999";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectBelowThreshold")
         .build();
@@ -76,7 +76,7 @@ class DeepPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 20 OFFSET 10001";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectAboveThreshold")
         .build();
@@ -100,7 +100,7 @@ class DeepPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 20 OFFSET 10000";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectEqualsThreshold")
         .build();
@@ -120,7 +120,7 @@ class DeepPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 20 OFFSET 9999";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectMaxMinusOne")
         .build();
@@ -140,7 +140,7 @@ class DeepPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 20 OFFSET 10001";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectMaxPlusOne")
         .build();
@@ -162,7 +162,7 @@ class DeepPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 20 OFFSET 5000";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectLimitOffset")
         .build();
@@ -182,7 +182,7 @@ class DeepPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 5000,20";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectMySQLSyntax")
         .build();
@@ -202,7 +202,7 @@ class DeepPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 100";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectLimitOnly")
         .build();
@@ -224,7 +224,7 @@ class DeepPaginationCheckerTest {
     String sql = "SELECT * FROM user";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithRowBounds")
         .rowBounds(new RowBounds(0, 10))
@@ -245,7 +245,7 @@ class DeepPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id = ?";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectById")
         .build();
@@ -268,7 +268,7 @@ class DeepPaginationCheckerTest {
     String sql = "SELECT * FROM user LIMIT 20 OFFSET 50000";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectDeepOffsetNoWhere")
         .build();
@@ -292,7 +292,7 @@ class DeepPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 20 OFFSET 50000";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectDeepOffset")
         .build();
@@ -319,7 +319,7 @@ class DeepPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 20 OFFSET 6000";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectCustomThreshold")
         .build();
@@ -346,7 +346,7 @@ class DeepPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 20 OFFSET 50000";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectDeepOffset")
         .build();
@@ -371,7 +371,7 @@ class DeepPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 20 OFFSET 15000";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectOffset15000")
         .build();
@@ -396,7 +396,7 @@ class DeepPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 20 OFFSET 15000";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectDeepOffset")
         .build();
@@ -421,7 +421,7 @@ class DeepPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 15000,20";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectMySQLDeepOffset")
         .build();
@@ -438,6 +438,7 @@ class DeepPaginationCheckerTest {
     assertTrue(message.contains("offset=15000"), "Message should contain offset value");
   }
 }
+
 
 
 

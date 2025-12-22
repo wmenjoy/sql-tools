@@ -47,6 +47,11 @@
         <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
         <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
         <checkstyle-maven-plugin.version>3.3.1</checkstyle-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
+
+        <!-- JaCoCo Coverage Settings -->
+        <jacoco.line.coverage.minimum>0.80</jacoco.line.coverage.minimum>
+        <jacoco.branch.coverage.minimum>0.70</jacoco.branch.coverage.minimum>
     </properties>
 
     <dependencyManagement>
@@ -246,6 +251,30 @@
                             <phase>verify</phase>
                             <goals>
                                 <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <!-- JaCoCo Plugin for Code Coverage -->
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco-maven-plugin.version}</version>
+                    <executions>
+                        <!-- Prepare agent for unit tests -->
+                        <execution>
+                            <id>prepare-agent</id>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                        </execution>
+                        <!-- Generate report after tests -->
+                        <execution>
+                            <id>report</id>
+                            <phase>test</phase>
+                            <goals>
+                                <goal>report</goal>
                             </goals>
                         </execution>
                     </executions>

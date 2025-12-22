@@ -80,3 +80,4 @@ public class SqlSafetyViolationException extends RuntimeException {
         return "42000";
     }
 }
+

@@ -2,7 +2,6 @@ package com.footstone.sqlguard.validator.pagination.impl;
 
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlContext;
-import com.footstone.sqlguard.core.model.ValidationResult;
 import com.footstone.sqlguard.validator.pagination.PaginationPluginDetector;
 import com.footstone.sqlguard.validator.rule.AbstractRuleChecker;
 import com.footstone.sqlguard.validator.rule.impl.BlacklistFieldsConfig;
@@ -18,7 +17,8 @@ import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.StringValue;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.schema.Column;
-import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.schema.Table;
+import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import org.apache.ibatis.session.RowBounds;
 
@@ -48,8 +48,8 @@ import org.apache.ibatis.session.RowBounds;
  *
  * <p><strong>Detection Logic:</strong></p>
  * <pre>
- * 1. Skip if checker disabled
- * 2. Skip if not SELECT statement
+ * 1. Skip if checker disabled (handled by AbstractRuleChecker.isEnabled())
+ * 2. visitSelect() invoked for SELECT statements only
  * 3. Check for pagination (LIMIT/RowBounds/IPage) - skip if present
  * 4. Check whitelist exemptions - skip if whitelisted
  * 5. Assess risk based on WHERE clause and add violation
@@ -57,6 +57,7 @@ import org.apache.ibatis.session.RowBounds;
  *
  * @see NoPaginationConfig
  * @see PaginationPluginDetector
+ * @since 1.0.0 (refactored in 1.1.0 for visitor pattern)
  */
 public class NoPaginationChecker extends AbstractRuleChecker {
 
@@ -73,59 +74,49 @@ public class NoPaginationChecker extends AbstractRuleChecker {
    */
   public NoPaginationChecker(PaginationPluginDetector pluginDetector,
       BlacklistFieldsConfig blacklistConfig, NoPaginationConfig config) {
+    super(config);  // Pass config to AbstractRuleChecker
     this.pluginDetector = pluginDetector;
     this.blacklistConfig = blacklistConfig;
     this.config = config;
-  }
-
-  /**
-   * Checks if the SQL query lacks pagination and assesses risk level.
-   *
-   * <p>Detection flow:</p>
-   * <ol>
-   *   <li>Skip if checker disabled</li>
-   *   <li>Skip if not SELECT statement</li>
-   *   <li>Check for pagination (LIMIT/RowBounds/IPage) - skip if present</li>
-   *   <li>Check whitelist exemptions - skip if whitelisted</li>
-   *   <li>Assess risk based on WHERE clause and add violation</li>
-   * </ol>
-   *
-   * @param context SQL execution context
-   * @param result validation result to accumulate violations
-   */
-  @Override
-  public void check(SqlContext context, ValidationResult result) {
-    // Step 1: Skip if checker disabled
-    if (!isEnabled()) {
-      return;
-    }
-
-    // Step 2: Skip if not SELECT
-    Statement stmt = context.getParsedSql();
-    if (!(stmt instanceof Select)) {
-      return;
-    }
-
-    Select select = (Select) stmt;
-
-    // Step 3: Check for pagination
-    if (hasPaginationLimit(select, context)) {
-      return;
-    }
-
-    // Step 4: Check whitelist exemptions
-    if (isWhitelisted(select, context)) {
-      return;
-    }
-
-    // Step 5: Assess risk and add violation
-    assessNoPaginationRisk(select, context, result);
   }
 
   @Override
   public boolean isEnabled() {
     return config.isEnabled();
   }
+
+  /**
+   * Validates SELECT statements for missing pagination.
+   *
+   * <p>This method is called by AbstractRuleChecker's template method for SELECT statements.
+   * It checks for pagination presence, whitelist exemptions, and risk assessment.</p>
+   *
+   * @param select the SELECT statement (type-safe)
+   * @param context the SQL execution context
+   * @since 1.1.0
+   */
+  @Override
+  public void visitSelect(Select select, SqlContext context) {
+    // Step 0: Skip if checker disabled
+    if (!isEnabled()) {
+      return;
+    }
+
+    // Step 1: Check for pagination
+    if (hasPaginationLimit(select, context)) {
+      return;
+    }
+
+    // Step 2: Check whitelist exemptions
+    if (isWhitelisted(select, context)) {
+      return;
+    }
+
+    // Step 3: Assess risk and add violation
+    assessNoPaginationRisk(select, context);
+  }
+
+  // ==================== Pagination Detection ====================
 
   /**
    * Checks if any form of pagination is present.
@@ -186,7 +177,7 @@ public class NoPaginationChecker extends AbstractRuleChecker {
     for (Object value : params.values()) {
       if (value != null) {
         String className = value.getClass().getName();
-        if (className.contains("IPage") 
+        if (className.contains("IPage")
             || className.contains("com.baomidou.mybatisplus.core.metadata.IPage")) {
           return true;
         }
@@ -195,6 +186,8 @@ public class NoPaginationChecker extends AbstractRuleChecker {
 
     return false;
   }
+
+  // ==================== Whitelist Exemption ====================
 
   /**
    * Checks if the query should be exempt from check.
@@ -217,14 +210,15 @@ public class NoPaginationChecker extends AbstractRuleChecker {
       return true;
     }
 
-    // Check table whitelist
-    String tableName = extractTableName(select);
+    // Check table whitelist - use local method
+    PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+    String tableName = extractTableNameFromSelect(plainSelect);
     if (tableName != null && config.getWhitelistTables().contains(tableName)) {
       return true;
     }
 
     // Check unique key condition
-    if (hasUniqueKeyCondition(select, context)) {
+    if (hasUniqueKeyCondition(plainSelect, context)) {
       return true;
     }
 
@@ -237,13 +231,13 @@ public class NoPaginationChecker extends AbstractRuleChecker {
    * <p>Returns true if WHERE contains an equality condition on a unique key field
    * (default "id" or custom unique keys from config) with a constant or parameter value.</p>
    *
-   * @param select the SELECT statement
+   * @param plainSelect the PlainSelect statement
    * @param context SQL execution context
    * @return true if unique key equality found, false otherwise
    */
-  private boolean hasUniqueKeyCondition(Select select, SqlContext context) {
-    // Extract WHERE clause
-    Expression where = extractWhere(select);
+  private boolean hasUniqueKeyCondition(PlainSelect plainSelect, SqlContext context) {
+    // Extract WHERE clause - use direct API
+    Expression where = plainSelect.getWhere();
     if (where == null) {
       return false;
     }
@@ -261,6 +255,8 @@ public class NoPaginationChecker extends AbstractRuleChecker {
     return visitor.isFoundUniqueKeyEquals();
   }
 
+  // ==================== Risk Assessment ====================
+
   /**
    * Assesses risk level based on WHERE clause characteristics and adds violation.
    *
@@ -274,27 +270,27 @@ public class NoPaginationChecker extends AbstractRuleChecker {
    *
    * @param select the SELECT statement
    * @param context SQL execution context
-   * @param result validation result to add violation
    */
-  private void assessNoPaginationRisk(Select select, SqlContext context, ValidationResult result) {
-    Expression where = extractWhere(select);
+  private void assessNoPaginationRisk(Select select, SqlContext context) {
+    PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+    Expression where = plainSelect.getWhere();  // ✅ Direct JSqlParser API
 
     // CRITICAL: No WHERE or dummy WHERE
-    if (where == null || isDummyCondition(where)) {
-      result.addViolation(
+    if (where == null || isDummyConditionExpression(where)) {
+      addViolation(
           RiskLevel.CRITICAL,
           "SELECT查询无条件且无分页限制,可能返回全表数据导致内存溢出",
           "添加WHERE条件和分页限制(LIMIT或RowBounds)");
       return;
     }
 
-    // Extract fields from WHERE clause
-    Set<String> whereFields = extractFields(where);
+    // Extract fields from WHERE clause - use local method
+    Set<String> whereFields = extractFieldsFromExpression(where);
 
     // HIGH: WHERE uses ONLY blacklist fields
     if (!whereFields.isEmpty() && allFieldsBlacklisted(whereFields, blacklistConfig)) {
       String fieldsStr = String.join(", ", whereFields);
-      result.addViolation(
+      addViolation(
           RiskLevel.HIGH,
           String.format("SELECT查询条件只有黑名单字段[%s]且无分页,可能返回大量数据", fieldsStr),
           "添加业务字段条件或分页限制");
@@ -303,7 +299,7 @@ public class NoPaginationChecker extends AbstractRuleChecker {
 
     // MEDIUM: Normal WHERE (only if enforceForAllQueries=true)
     if (config.isEnforceForAllQueries()) {
-      result.addViolation(
+      addViolation(
           RiskLevel.MEDIUM,
           "SELECT查询缺少分页限制,建议添加LIMIT或使用分页",
           "为避免潜在性能问题,建议添加分页");
@@ -317,14 +313,14 @@ public class NoPaginationChecker extends AbstractRuleChecker {
    * @param blacklistConfig blacklist configuration
    * @return true if all fields are blacklisted, false otherwise
    */
-  private boolean allFieldsBlacklisted(Set<String> whereFields, 
+  private boolean allFieldsBlacklisted(Set<String> whereFields,
       BlacklistFieldsConfig blacklistConfig) {
     if (whereFields.isEmpty()) {
       return false;
     }
 
     Set<String> blacklist = blacklistConfig.getFields();
-    
+
     for (String field : whereFields) {
       String fieldLower = field.toLowerCase();
       boolean isBlacklisted = false;
@@ -332,13 +328,13 @@ public class NoPaginationChecker extends AbstractRuleChecker {
       // Check exact match or wildcard pattern
       for (String blacklistPattern : blacklist) {
         String patternLower = blacklistPattern.toLowerCase();
-        
+
         // Exact match
         if (fieldLower.equals(patternLower)) {
           isBlacklisted = true;
           break;
         }
-        
+
         // Wildcard pattern (e.g., "create_*")
         if (patternLower.endsWith("*")) {
           String prefix = patternLower.substring(0, patternLower.length() - 1);
@@ -393,6 +389,106 @@ public class NoPaginationChecker extends AbstractRuleChecker {
     return false;
   }
 
+  // ==================== Local Helper Methods (NEW in 1.1.0) ====================
+
+  /**
+   * Checks if the expression is a dummy condition (e.g., WHERE 1=1, WHERE true).
+   *
+   * <p>This is a local implementation replacing the removed AbstractRuleChecker.isDummyCondition()
+   * utility method. It detects common dummy conditions that effectively match all rows.</p>
+   *
+   * @param where the WHERE expression
+   * @return true if dummy condition, false otherwise
+   * @since 1.1.0
+   */
+  private boolean isDummyConditionExpression(Expression where) {
+    if (where == null) {
+      return false;
+    }
+
+    String whereStr = where.toString().trim().toUpperCase();
+
+    // Common dummy conditions
+    if (whereStr.equals("1=1")
+        || whereStr.equals("1 = 1")
+        || whereStr.equals("TRUE")
+        || whereStr.equals("'1'='1'")) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Extracts all field names from a WHERE expression.
+   *
+   * <p>This is a local implementation replacing the removed AbstractRuleChecker.extractFields()
+   * utility method. It uses a visitor pattern to collect all Column references.</p>
+   *
+   * @param expression the WHERE expression
+   * @return set of field names (lowercase)
+   * @since 1.1.0
+   */
+  private Set<String> extractFieldsFromExpression(Expression expression) {
+    if (expression == null) {
+      return new HashSet<>();
+    }
+
+    FieldCollectorVisitor visitor = new FieldCollectorVisitor();
+    expression.accept(visitor);
+    return visitor.getFields();
+  }
+
+  /**
+   * Extracts table name from PlainSelect.
+   *
+   * <p>This is a local implementation replacing the removed AbstractRuleChecker.extractTableName()
+   * utility method. It directly accesses the FromItem to get the table name.</p>
+   *
+   * @param plainSelect the PlainSelect statement
+   * @return table name or null if not found
+   * @since 1.1.0
+   */
+  private String extractTableNameFromSelect(PlainSelect plainSelect) {
+    if (plainSelect.getFromItem() == null) {
+      return null;
+    }
+
+    if (plainSelect.getFromItem() instanceof Table) {
+      Table table = (Table) plainSelect.getFromItem();
+      return table.getName();
+    }
+
+    return null;
+  }
+
+  // ==================== Inner Classes ====================
+
+  /**
+   * Visitor that collects all Column references from an Expression.
+   *
+   * <p>This visitor traverses the expression tree and adds each Column's name
+   * to a Set for later analysis.</p>
+   *
+   * @since 1.1.0
+   */
+  private static class FieldCollectorVisitor extends ExpressionVisitorAdapter {
+
+    private final Set<String> fields = new HashSet<>();
+
+    public Set<String> getFields() {
+      return fields;
+    }
+
+    @Override
+    public void visit(Column column) {
+      String columnName = column.getColumnName();
+      if (columnName != null) {
+        fields.add(columnName.toLowerCase());
+      }
+    }
+  }
+
   /**
    * Visitor that detects unique key equality conditions in WHERE clause.
    *
@@ -435,8 +531,8 @@ public class NoPaginationChecker extends AbstractRuleChecker {
         String columnName = ((Column) left).getColumnName().toLowerCase();
         if (uniqueKeys.contains(columnName)) {
           // Check if right is constant or parameter (not another column)
-          if (right instanceof JdbcParameter 
-              || right instanceof LongValue 
+          if (right instanceof JdbcParameter
+              || right instanceof LongValue
               || right instanceof StringValue) {
             foundUniqueKeyEquals = true;
           }
@@ -445,4 +541,3 @@ public class NoPaginationChecker extends AbstractRuleChecker {
     }
   }
 }
-

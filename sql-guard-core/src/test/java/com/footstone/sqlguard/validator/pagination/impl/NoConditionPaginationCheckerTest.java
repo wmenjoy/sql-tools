@@ -58,7 +58,7 @@ class NoConditionPaginationCheckerTest {
     String sql = "SELECT * FROM user LIMIT 10";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithLimit")
         .build();
@@ -87,7 +87,7 @@ class NoConditionPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE 1=1 LIMIT 10";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithDummyWhere")
         .build();
@@ -107,7 +107,7 @@ class NoConditionPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id > ? LIMIT 10";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithValidWhere")
         .build();
@@ -127,7 +127,7 @@ class NoConditionPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE status='active' AND create_time > ? LIMIT 20";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectActiveUsers")
         .build();
@@ -150,7 +150,7 @@ class NoConditionPaginationCheckerTest {
     String sql = "SELECT * FROM user";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithRowBounds")
         .rowBounds(new RowBounds(0, 10))
@@ -171,7 +171,7 @@ class NoConditionPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE id = ?";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectById")
         .build();
@@ -193,7 +193,7 @@ class NoConditionPaginationCheckerTest {
     String sql = "SELECT * FROM user LIMIT 10 OFFSET 100";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithOffset")
         .build();
@@ -216,7 +216,7 @@ class NoConditionPaginationCheckerTest {
     String sql = "SELECT * FROM user LIMIT 50";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectFirst50")
         .build();
@@ -238,7 +238,7 @@ class NoConditionPaginationCheckerTest {
     String sql = "SELECT * FROM user LIMIT 100, 20";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectMySQLSyntax")
         .build();
@@ -262,7 +262,7 @@ class NoConditionPaginationCheckerTest {
     String sql = "SELECT * FROM user LIMIT 10";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithLimit")
         .build();
@@ -287,7 +287,7 @@ class NoConditionPaginationCheckerTest {
     String sql = "SELECT * FROM user LIMIT 10";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithLimit")
         .build();
@@ -312,7 +312,7 @@ class NoConditionPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE true LIMIT 10";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithWhereTrue")
         .build();
@@ -332,7 +332,7 @@ class NoConditionPaginationCheckerTest {
     String sql = "SELECT * FROM user WHERE 'a'='a' LIMIT 10";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithStringEquals")
         .build();
@@ -354,7 +354,7 @@ class NoConditionPaginationCheckerTest {
     String sql = "SELECT * FROM user LIMIT 10";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithLimit")
         .build();
@@ -370,7 +370,7 @@ class NoConditionPaginationCheckerTest {
     String sql = "SELECT * FROM user";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithRowBounds")
         .rowBounds(new RowBounds(0, 10))

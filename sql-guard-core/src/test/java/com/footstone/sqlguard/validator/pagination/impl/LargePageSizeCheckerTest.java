@@ -44,7 +44,7 @@ class LargePageSizeCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 999";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectBelowThreshold")
         .build();
@@ -62,7 +62,7 @@ class LargePageSizeCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 1001";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectAboveThreshold")
         .build();
@@ -83,7 +83,7 @@ class LargePageSizeCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 1000";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectEqualsThreshold")
         .build();
@@ -101,7 +101,7 @@ class LargePageSizeCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 999";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectMaxMinusOne")
         .build();
@@ -119,7 +119,7 @@ class LargePageSizeCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 1001";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectMaxPlusOne")
         .build();
@@ -139,7 +139,7 @@ class LargePageSizeCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 500";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectLimitOnly")
         .build();
@@ -157,7 +157,7 @@ class LargePageSizeCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 100,500";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectMySQLSyntax")
         .build();
@@ -175,7 +175,7 @@ class LargePageSizeCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 500 OFFSET 100";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectLimitOffset")
         .build();
@@ -195,7 +195,7 @@ class LargePageSizeCheckerTest {
     String sql = "SELECT * FROM user";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectWithRowBounds")
         .rowBounds(new RowBounds(0, 10))
@@ -214,7 +214,7 @@ class LargePageSizeCheckerTest {
     String sql = "SELECT * FROM user WHERE id = ?";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectById")
         .build();
@@ -237,7 +237,7 @@ class LargePageSizeCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 600";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectCustomThreshold")
         .build();
@@ -261,7 +261,7 @@ class LargePageSizeCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 5000";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectLargePageSize")
         .build();
@@ -283,7 +283,7 @@ class LargePageSizeCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 5000";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectPageSize5000")
         .build();
@@ -304,7 +304,7 @@ class LargePageSizeCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 2000";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectLargePageSize")
         .build();
@@ -326,7 +326,7 @@ class LargePageSizeCheckerTest {
     String sql = "SELECT * FROM user WHERE id > 0 LIMIT 100000";
     SqlContext context = SqlContext.builder()
         .sql(sql)
-        .parsedSql(parser.parse(sql))
+        .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
         .mapperId("com.example.UserMapper.selectVeryLarge")
         .build();

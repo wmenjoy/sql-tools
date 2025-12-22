@@ -144,3 +144,4 @@ public enum ViolationStrategy {
         return logLevel;
     }
 }
+

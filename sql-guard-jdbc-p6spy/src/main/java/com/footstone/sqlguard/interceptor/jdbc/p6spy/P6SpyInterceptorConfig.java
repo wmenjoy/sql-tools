@@ -105,3 +105,4 @@ public interface P6SpyInterceptorConfig extends JdbcInterceptorConfig {
         return getPropertyPrefix() + "." + property;
     }
 }
+
