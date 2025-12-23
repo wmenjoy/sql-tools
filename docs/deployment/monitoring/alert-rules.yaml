@@ -1,0 +1,351 @@
+groups:
+  - name: sql-audit-service-alerts
+    interval: 30s
+    rules:
+
+    # ============================================================
+    # Kafka Consumer Alerts
+    # ============================================================
+
+    - alert: HighKafkaConsumerLag
+      expr: kafka_consumer_lag{group="audit-service-group"} > 10000
+      for: 5m
+      labels:
+        severity: warning
+        component: kafka
+        team: audit-platform
+      annotations:
+        summary: "Kafka consumer lag is high for {{ $labels.topic }}"
+        description: "Consumer lag is {{ $value }} messages on partition {{ $labels.partition }}. This may indicate slow processing or insufficient consumer instances."
+        runbook: "https://wiki.example.com/runbooks/kafka-consumer-lag"
+
+    - alert: CriticalKafkaConsumerLag
+      expr: kafka_consumer_lag{group="audit-service-group"} > 50000
+      for: 10m
+      labels:
+        severity: critical
+        component: kafka
+        team: audit-platform
+      annotations:
+        summary: "CRITICAL: Kafka consumer lag is very high"
+        description: "Consumer lag is {{ $value }} messages. Immediate action required."
+        action: "Scale up audit service replicas or investigate slow checkers"
+
+    - alert: KafkaConsumerDown
+      expr: up{job="sql-audit-service"} == 0
+      for: 2m
+      labels:
+        severity: critical
+        component: kafka
+        team: audit-platform
+      annotations:
+        summary: "Kafka consumer is down"
+        description: "SQL Audit Service instance {{ $labels.pod_name }} is not consuming from Kafka"
+
+    # ============================================================
+    # Processing Performance Alerts
+    # ============================================================
+
+    - alert: HighProcessingLatency
+      expr: histogram_quantile(0.99, rate(audit_event_processing_duration_seconds_bucket[5m])) > 0.5
+      for: 5m
+      labels:
+        severity: warning
+        component: processing
+        team: audit-platform
+      annotations:
+        summary: "Processing latency is high"
+        description: "P99 processing latency is {{ $value }}s (threshold: 0.5s)"
+        impact: "Audit events are being processed slowly, may lead to consumer lag"
+
+    - alert: CriticalProcessingLatency
+      expr: histogram_quantile(0.99, rate(audit_event_processing_duration_seconds_bucket[5m])) > 2
+      for: 5m
+      labels:
+        severity: critical
+        component: processing
+        team: audit-platform
+      annotations:
+        summary: "CRITICAL: Processing latency is very high"
+        description: "P99 processing latency is {{ $value }}s (threshold: 2s)"
+        action: "Check checker performance, database connections, and resource utilization"
+
+    - alert: HighProcessingErrorRate
+      expr: rate(audit_processing_errors_total[5m]) > 0.05
+      for: 5m
+      labels:
+        severity: warning
+        component: processing
+        team: audit-platform
+      annotations:
+        summary: "Processing error rate is high"
+        description: "Error rate is {{ $value }} errors/sec (threshold: 0.05/sec)"
+        action: "Check application logs for error details"
+
+    - alert: CriticalProcessingErrorRate
+      expr: rate(audit_processing_errors_total[5m]) > 0.5
+      for: 5m
+      labels:
+        severity: critical
+        component: processing
+        team: audit-platform
+      annotations:
+        summary: "CRITICAL: Processing error rate is very high"
+        description: "Error rate is {{ $value }} errors/sec. Majority of events are failing"
+        action: "Immediate investigation required. Check database connectivity and checker logic"
+
+    # ============================================================
+    # Checker Performance Alerts
+    # ============================================================
+
+    - alert: SlowChecker
+      expr: |
+        rate(audit_checker_duration_seconds_sum[5m]) / rate(audit_checker_duration_seconds_count[5m]) > 0.1
+      for: 10m
+      labels:
+        severity: warning
+        component: checker
+        team: audit-platform
+      annotations:
+        summary: "Checker {{ $labels.checker }} is slow"
+        description: "Average duration is {{ $value }}s (threshold: 0.1s)"
+        action: "Optimize checker {{ $labels.checker }} logic or reduce workload"
+
+    # ============================================================
+    # Database Alerts
+    # ============================================================
+
+    - alert: PostgreSQLConnectionPoolExhausted
+      expr: hikaricp_connections_active{pool="postgres"} / hikaricp_connections_max{pool="postgres"} > 0.9
+      for: 5m
+      labels:
+        severity: warning
+        component: database
+        team: audit-platform
+      annotations:
+        summary: "PostgreSQL connection pool is nearly exhausted"
+        description: "Active connections: {{ $value }}% of max pool size"
+        action: "Increase connection pool size or optimize database queries"
+
+    - alert: PostgreSQLConnectionTimeout
+      expr: rate(hikaricp_connections_timeout_total{pool="postgres"}[5m]) > 0
+      for: 2m
+      labels:
+        severity: critical
+        component: database
+        team: audit-platform
+      annotations:
+        summary: "PostgreSQL connection timeouts occurring"
+        description: "Connection timeout rate: {{ $value }}/sec"
+        action: "Check PostgreSQL health, network connectivity, and connection pool settings"
+
+    - alert: ClickHouseWriteLatencyHigh
+      expr: histogram_quantile(0.99, rate(clickhouse_write_duration_seconds_bucket[5m])) > 1
+      for: 5m
+      labels:
+        severity: warning
+        component: clickhouse
+        team: audit-platform
+      annotations:
+        summary: "ClickHouse write latency is high"
+        description: "P99 write latency is {{ $value }}s (threshold: 1s)"
+        action: "Check ClickHouse cluster health and network latency"
+
+    - alert: ClickHouseWriteErrors
+      expr: rate(clickhouse_write_errors_total[5m]) > 0.01
+      for: 2m
+      labels:
+        severity: critical
+        component: clickhouse
+        team: audit-platform
+      annotations:
+        summary: "ClickHouse write errors occurring"
+        description: "Write error rate: {{ $value }}/sec"
+        action: "Check ClickHouse logs and cluster status"
+
+    # ============================================================
+    # JVM/Memory Alerts
+    # ============================================================
+
+    - alert: HighHeapMemoryUsage
+      expr: |
+        100 * jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"} > 80
+      for: 10m
+      labels:
+        severity: warning
+        component: jvm
+        team: audit-platform
+      annotations:
+        summary: "High heap memory usage on {{ $labels.pod_name }}"
+        description: "Heap usage: {{ $value }}% (threshold: 80%)"
+        action: "Monitor for memory leak, consider increasing heap size"
+
+    - alert: CriticalHeapMemoryUsage
+      expr: |
+        100 * jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"} > 95
+      for: 5m
+      labels:
+        severity: critical
+        component: jvm
+        team: audit-platform
+      annotations:
+        summary: "CRITICAL: Heap memory near exhaustion on {{ $labels.pod_name }}"
+        description: "Heap usage: {{ $value }}% (threshold: 95%)"
+        action: "Pod may crash due to OOM. Restart or scale up immediately"
+
+    - alert: FrequentGarbageCollection
+      expr: rate(jvm_gc_pause_seconds_count[5m]) > 10
+      for: 5m
+      labels:
+        severity: warning
+        component: jvm
+        team: audit-platform
+      annotations:
+        summary: "Frequent garbage collection on {{ $labels.pod_name }}"
+        description: "GC rate: {{ $value }}/sec (threshold: 10/sec)"
+        action: "Check for memory pressure, optimize object allocation"
+
+    - alert: LongGCPauses
+      expr: rate(jvm_gc_pause_seconds_sum[5m]) / rate(jvm_gc_pause_seconds_count[5m]) > 0.1
+      for: 5m
+      labels:
+        severity: warning
+        component: jvm
+        team: audit-platform
+      annotations:
+        summary: "Long GC pauses on {{ $labels.pod_name }}"
+        description: "Average GC pause: {{ $value }}s (threshold: 0.1s)"
+        action: "Tune GC parameters or increase heap size"
+
+    # ============================================================
+    # HTTP API Alerts
+    # ============================================================
+
+    - alert: High4xxErrorRate
+      expr: |
+        100 * sum(rate(http_server_requests_seconds_count{status=~"4.."}[5m])) /
+        sum(rate(http_server_requests_seconds_count[5m])) > 10
+      for: 5m
+      labels:
+        severity: warning
+        component: api
+        team: audit-platform
+      annotations:
+        summary: "High 4xx error rate"
+        description: "4xx error rate: {{ $value }}% (threshold: 10%)"
+        action: "Check for client misconfigurations or API usage issues"
+
+    - alert: High5xxErrorRate
+      expr: |
+        100 * sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) /
+        sum(rate(http_server_requests_seconds_count[5m])) > 5
+      for: 5m
+      labels:
+        severity: critical
+        component: api
+        team: audit-platform
+      annotations:
+        summary: "High 5xx error rate"
+        description: "5xx error rate: {{ $value }}% (threshold: 5%)"
+        action: "Check application logs and database connectivity"
+
+    - alert: SlowAPIResponse
+      expr: histogram_quantile(0.95, rate(http_server_requests_seconds_bucket[5m])) > 1
+      for: 5m
+      labels:
+        severity: warning
+        component: api
+        team: audit-platform
+      annotations:
+        summary: "Slow API response time"
+        description: "P95 response time: {{ $value }}s (threshold: 1s)"
+        action: "Optimize slow queries or scale up resources"
+
+    # ============================================================
+    # Application Health Alerts
+    # ============================================================
+
+    - alert: ApplicationNotReady
+      expr: application_readiness_state{state="READY"} == 0
+      for: 2m
+      labels:
+        severity: critical
+        component: health
+        team: audit-platform
+      annotations:
+        summary: "Application {{ $labels.pod_name }} is not ready"
+        description: "Pod is not accepting traffic"
+        action: "Check readiness probe logs and dependencies (Kafka, PostgreSQL, ClickHouse)"
+
+    - alert: ApplicationNotLive
+      expr: application_liveness_state{state="UP"} == 0
+      for: 1m
+      labels:
+        severity: critical
+        component: health
+        team: audit-platform
+      annotations:
+        summary: "Application {{ $labels.pod_name }} is not live"
+        description: "Pod will be restarted by Kubernetes"
+        action: "Check application logs for fatal errors"
+
+    # ============================================================
+    # Throughput Alerts
+    # ============================================================
+
+    - alert: LowEventThroughput
+      expr: rate(audit_events_processed_total[5m]) < 1
+      for: 10m
+      labels:
+        severity: warning
+        component: processing
+        team: audit-platform
+      annotations:
+        summary: "Low event processing throughput"
+        description: "Processing rate: {{ $value }} events/sec (threshold: 1/sec)"
+        action: "Check if applications are sending audit events"
+
+    - alert: NoEventsProcessed
+      expr: rate(audit_events_processed_total[15m]) == 0
+      for: 15m
+      labels:
+        severity: critical
+        component: processing
+        team: audit-platform
+      annotations:
+        summary: "No events being processed"
+        description: "Zero events processed in last 15 minutes"
+        action: "Check Kafka connectivity and application health"
+
+    # ============================================================
+    # SLO Alerts (Service Level Objectives)
+    # ============================================================
+
+    - alert: SLOViolation_Availability
+      expr: |
+        100 * (1 - (
+          sum(rate(http_server_requests_seconds_count{status=~"5.."}[30m])) /
+          sum(rate(http_server_requests_seconds_count[30m]))
+        )) < 99.9
+      for: 5m
+      labels:
+        severity: critical
+        component: slo
+        team: audit-platform
+      annotations:
+        summary: "SLO Violation: Availability below 99.9%"
+        description: "Current availability: {{ $value }}%"
+        action: "Investigate and resolve service errors immediately"
+
+    - alert: SLOViolation_Latency
+      expr: |
+        histogram_quantile(0.95, rate(http_server_requests_seconds_bucket[30m])) > 0.5
+      for: 5m
+      labels:
+        severity: warning
+        component: slo
+        team: audit-platform
+      annotations:
+        summary: "SLO Violation: P95 latency above 500ms"
+        description: "Current P95 latency: {{ $value }}s"
+        action: "Optimize slow endpoints or scale up resources"

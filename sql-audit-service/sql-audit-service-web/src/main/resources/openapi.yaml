@@ -1,0 +1,582 @@
+openapi: 3.0.3
+info:
+  title: SQL Audit Service API
+  version: 2.0.0
+  description: |
+    REST API for querying SQL audit reports, managing checker configuration, and accessing statistics.
+
+    The SQL Audit Service provides retrospective analysis of SQL execution patterns, risk scoring,
+    and configuration management for audit checkers.
+
+    **Key Features:**
+    - Query audit findings with filtering and pagination
+    - Access dashboard statistics and trends
+    - Manage checker configuration
+    - Export audit data in multiple formats
+
+  contact:
+    name: SQL Guard Team
+    email: support@example.com
+    url: https://github.com/example/sql-guard
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: http://localhost:8090/api/v1
+    description: Local development server
+  - url: https://audit-dev.example.com/api/v1
+    description: Development environment
+  - url: https://audit.example.com/api/v1
+    description: Production environment
+
+tags:
+  - name: Audit Reports
+    description: Query and retrieve audit findings
+  - name: Statistics
+    description: Access aggregated statistics and trends
+  - name: Configuration
+    description: Manage checker configuration
+  - name: Health
+    description: Service health and status
+
+paths:
+  /audits:
+    get:
+      tags:
+        - Audit Reports
+      summary: Query audit reports
+      description: |
+        Retrieve audit reports with optional filtering and pagination.
+
+        **Filtering Options:**
+        - By SQL identifier (sqlId)
+        - By risk level (CRITICAL, HIGH, MEDIUM, LOW)
+        - By time range (startTime, endTime)
+
+        **Pagination:**
+        - Default page size: 20
+        - Maximum page size: 1000
+        - Results sorted by creation time (newest first)
+
+      operationId: getAudits
+      parameters:
+        - name: sqlId
+          in: query
+          description: Filter by SQL identifier (MD5 hash of SQL statement)
+          required: false
+          schema:
+            type: string
+            example: "a3d4e5f6789012345678901234567890"
+
+        - name: riskLevel
+          in: query
+          description: Filter by risk level
+          required: false
+          schema:
+            type: string
+            enum: [CRITICAL, HIGH, MEDIUM, LOW]
+            example: CRITICAL
+
+        - name: startTime
+          in: query
+          description: Start time for time range filter (ISO-8601 format)
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: "2024-01-01T00:00:00Z"
+
+        - name: endTime
+          in: query
+          description: End time for time range filter (ISO-8601 format)
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: "2024-12-31T23:59:59Z"
+
+        - name: page
+          in: query
+          description: Page number (zero-based)
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+            example: 0
+
+        - name: size
+          in: query
+          description: Page size
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 20
+            example: 20
+
+        - name: sort
+          in: query
+          description: Sort field and direction
+          required: false
+          schema:
+            type: string
+            default: "createdAt,desc"
+            example: "createdAt,desc"
+
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditReportPage'
+              examples:
+                criticalFindings:
+                  summary: Critical findings
+                  value:
+                    content:
+                      - id: "audit-001"
+                        sqlId: "a3d4e5f6"
+                        sql: "DELETE FROM users"
+                        riskLevel: CRITICAL
+                        riskScore: 95
+                        checkerId: "NO_WHERE_CLAUSE"
+                        message: "DELETE without WHERE clause"
+                        recommendation: "Add WHERE clause to limit affected rows"
+                        createdAt: "2024-12-23T10:00:00Z"
+                    totalElements: 1
+                    totalPages: 1
+                    size: 20
+                    number: 0
+
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /audits/{reportId}:
+    get:
+      tags:
+        - Audit Reports
+      summary: Get audit report by ID
+      description: Retrieve a specific audit report by its identifier
+      operationId: getAuditById
+      parameters:
+        - name: reportId
+          in: path
+          description: Audit report identifier
+          required: true
+          schema:
+            type: string
+            example: "audit-001"
+
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditReport'
+
+        '404':
+          description: Audit report not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /statistics/dashboard:
+    get:
+      tags:
+        - Statistics
+      summary: Get dashboard statistics
+      description: |
+        Retrieve aggregated statistics for dashboard display.
+
+        **Included Metrics:**
+        - Total findings count
+        - Findings by severity (CRITICAL, HIGH, MEDIUM, LOW)
+        - Top risky SQL patterns
+        - Trend data (last 7 days)
+
+      operationId: getDashboardStats
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardStats'
+              example:
+                totalFindings: 1234
+                criticalCount: 45
+                highCount: 123
+                mediumCount: 456
+                lowCount: 610
+                topRiskySql:
+                  - sqlId: "a3d4e5f6"
+                    sql: "DELETE FROM users"
+                    riskScore: 95
+                    occurrences: 5
+                trendData:
+                  - date: "2024-12-17"
+                    count: 150
+                  - date: "2024-12-18"
+                    count: 180
+
+  /statistics/trends:
+    get:
+      tags:
+        - Statistics
+      summary: Get trend statistics
+      description: Retrieve time-series trend data for findings
+      operationId: getTrendStats
+      parameters:
+        - name: startTime
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+
+        - name: endTime
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+
+        - name: granularity
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [HOUR, DAY, WEEK, MONTH]
+            default: DAY
+
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TrendDataPoint'
+
+  /configuration/checkers:
+    get:
+      tags:
+        - Configuration
+      summary: List all checkers
+      description: Retrieve list of all registered audit checkers
+      operationId: listCheckers
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CheckerInfo'
+
+  /configuration/checkers/{checkerId}:
+    get:
+      tags:
+        - Configuration
+      summary: Get checker configuration
+      description: Retrieve configuration for a specific checker
+      operationId: getCheckerConfig
+      parameters:
+        - name: checkerId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "TABLE_LOCK"
+
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckerConfig'
+
+    put:
+      tags:
+        - Configuration
+      summary: Update checker configuration
+      description: Update configuration for a specific checker
+      operationId: updateCheckerConfig
+      parameters:
+        - name: checkerId
+          in: path
+          required: true
+          schema:
+            type: string
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckerConfigUpdate'
+
+      responses:
+        '200':
+          description: Configuration updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckerConfig'
+
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Service health check
+      description: Check service health and dependencies
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+
+components:
+  schemas:
+    AuditReport:
+      type: object
+      description: Complete audit report with all details
+      required:
+        - id
+        - sqlId
+        - sql
+        - riskLevel
+        - riskScore
+        - checkerId
+        - createdAt
+      properties:
+        id:
+          type: string
+          description: Unique audit report identifier
+          example: "audit-001"
+        sqlId:
+          type: string
+          description: MD5 hash of SQL statement
+          example: "a3d4e5f6789012345678901234567890"
+        sql:
+          type: string
+          description: The SQL statement
+          example: "DELETE FROM users WHERE id = ?"
+        riskLevel:
+          type: string
+          enum: [CRITICAL, HIGH, MEDIUM, LOW]
+          description: Risk severity level
+        riskScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Calculated risk score (0-100)
+          example: 80
+        checkerId:
+          type: string
+          description: Identifier of the checker that generated this finding
+          example: "TABLE_LOCK"
+        message:
+          type: string
+          description: Human-readable description of the finding
+          example: "Table lock held for 2000ms"
+        recommendation:
+          type: string
+          description: Actionable recommendation
+          example: "Optimize transaction scope or use row-level locks"
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional metadata
+        createdAt:
+          type: string
+          format: date-time
+          description: When the audit was created
+
+    AuditReportPage:
+      type: object
+      description: Paginated audit report results
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditReport'
+        totalElements:
+          type: integer
+          description: Total number of matching reports
+        totalPages:
+          type: integer
+          description: Total number of pages
+        size:
+          type: integer
+          description: Page size
+        number:
+          type: integer
+          description: Current page number (zero-based)
+
+    DashboardStats:
+      type: object
+      description: Aggregated statistics for dashboard
+      properties:
+        totalFindings:
+          type: integer
+          description: Total number of findings
+        criticalCount:
+          type: integer
+          description: Count of CRITICAL findings
+        highCount:
+          type: integer
+          description: Count of HIGH findings
+        mediumCount:
+          type: integer
+          description: Count of MEDIUM findings
+        lowCount:
+          type: integer
+          description: Count of LOW findings
+        topRiskySql:
+          type: array
+          description: Top risky SQL patterns
+          items:
+            $ref: '#/components/schemas/RiskySqlSummary'
+        trendData:
+          type: array
+          description: Trend data points
+          items:
+            $ref: '#/components/schemas/TrendDataPoint'
+
+    RiskySqlSummary:
+      type: object
+      properties:
+        sqlId:
+          type: string
+        sql:
+          type: string
+        riskScore:
+          type: integer
+        occurrences:
+          type: integer
+
+    TrendDataPoint:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        count:
+          type: integer
+        criticalCount:
+          type: integer
+        highCount:
+          type: integer
+
+    CheckerInfo:
+      type: object
+      description: Basic checker information
+      properties:
+        checkerId:
+          type: string
+          example: "TABLE_LOCK"
+        name:
+          type: string
+          example: "Table Lock Checker"
+        description:
+          type: string
+          example: "Detects queries holding table locks"
+        enabled:
+          type: boolean
+
+    CheckerConfig:
+      type: object
+      description: Checker configuration details
+      properties:
+        checkerId:
+          type: string
+        enabled:
+          type: boolean
+        threshold:
+          type: integer
+        severityLevels:
+          type: object
+          additionalProperties: true
+
+    CheckerConfigUpdate:
+      type: object
+      description: Checker configuration update request
+      properties:
+        enabled:
+          type: boolean
+        threshold:
+          type: integer
+        severityLevels:
+          type: object
+          additionalProperties: true
+
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [UP, DOWN, DEGRADED]
+        components:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              status:
+                type: string
+              details:
+                type: object
+
+    ErrorResponse:
+      type: object
+      description: Error response structure
+      required:
+        - timestamp
+        - status
+        - error
+        - message
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp
+        status:
+          type: integer
+          description: HTTP status code
+        error:
+          type: string
+          description: HTTP error name
+        message:
+          type: string
+          description: Error message
+        path:
+          type: string
+          description: Request path
+        details:
+          type: array
+          description: Additional error details
+          items:
+            type: string

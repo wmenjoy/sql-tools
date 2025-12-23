@@ -1,0 +1,302 @@
+{
+  "dashboard": {
+    "title": "SQL Audit Service - Production Dashboard",
+    "tags": ["sql-guard", "audit-service", "production"],
+    "timezone": "browser",
+    "schemaVersion": 36,
+    "version": 1,
+    "refresh": "30s",
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "templating": {
+      "list": [
+        {
+          "name": "namespace",
+          "type": "query",
+          "query": "label_values(up{job=\"sql-audit-service\"}, namespace)",
+          "current": {
+            "value": "sqlguard"
+          }
+        },
+        {
+          "name": "pod",
+          "type": "query",
+          "query": "label_values(up{job=\"sql-audit-service\",namespace=\"$namespace\"}, pod_name)",
+          "multi": true,
+          "includeAll": true
+        }
+      ]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Kafka Consumer Lag",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "kafka_consumer_lag{group=\"audit-service-group\",namespace=\"$namespace\"}",
+            "legendFormat": "{{topic}}-p{{partition}}"
+          }
+        ],
+        "yaxes": [
+          {"label": "Messages", "format": "short"},
+          {"show": false}
+        ],
+        "alert": {
+          "name": "High Consumer Lag",
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [10000],
+                "type": "gt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": ["A", "5m", "now"]
+              },
+              "type": "query"
+            }
+          ]
+        }
+      },
+      {
+        "id": 2,
+        "title": "Processing Throughput (Events/sec)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "sum(rate(audit_events_processed_total{namespace=\"$namespace\"}[5m]))",
+            "legendFormat": "Total"
+          },
+          {
+            "expr": "sum by (severity) (rate(audit_events_processed_total{namespace=\"$namespace\"}[5m]))",
+            "legendFormat": "{{severity}}"
+          }
+        ],
+        "yaxes": [
+          {"label": "Events/sec", "format": "short"},
+          {"show": false}
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Processing Latency (P95, P99)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(audit_event_processing_duration_seconds_bucket{namespace=\"$namespace\"}[5m])) by (le))",
+            "legendFormat": "P95"
+          },
+          {
+            "expr": "histogram_quantile(0.99, sum(rate(audit_event_processing_duration_seconds_bucket{namespace=\"$namespace\"}[5m])) by (le))",
+            "legendFormat": "P99"
+          }
+        ],
+        "yaxes": [
+          {"label": "Seconds", "format": "s"},
+          {"show": false}
+        ],
+        "thresholds": [
+          {"value": 0.5, "colorMode": "critical", "op": "gt", "fill": true, "line": true}
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Error Rate",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "targets": [
+          {
+            "expr": "sum(rate(audit_processing_errors_total{namespace=\"$namespace\"}[5m]))",
+            "legendFormat": "Errors/sec"
+          },
+          {
+            "expr": "sum by (error_type) (rate(audit_processing_errors_total{namespace=\"$namespace\"}[5m]))",
+            "legendFormat": "{{error_type}}"
+          }
+        ],
+        "yaxes": [
+          {"label": "Errors/sec", "format": "short"},
+          {"show": false}
+        ]
+      },
+      {
+        "id": 5,
+        "title": "JVM Heap Memory Usage",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+        "targets": [
+          {
+            "expr": "jvm_memory_used_bytes{area=\"heap\",namespace=\"$namespace\",pod_name=~\"$pod\"}",
+            "legendFormat": "{{pod_name}} - Used"
+          },
+          {
+            "expr": "jvm_memory_max_bytes{area=\"heap\",namespace=\"$namespace\",pod_name=~\"$pod\"}",
+            "legendFormat": "{{pod_name}} - Max"
+          }
+        ],
+        "yaxes": [
+          {"label": "Bytes", "format": "bytes"},
+          {"show": false}
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Database Connection Pool (PostgreSQL)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+        "targets": [
+          {
+            "expr": "hikaricp_connections_active{pool=\"postgres\",namespace=\"$namespace\"}",
+            "legendFormat": "{{pod_name}} - Active"
+          },
+          {
+            "expr": "hikaricp_connections_idle{pool=\"postgres\",namespace=\"$namespace\"}",
+            "legendFormat": "{{pod_name}} - Idle"
+          },
+          {
+            "expr": "hikaricp_connections_max{pool=\"postgres\",namespace=\"$namespace\"}",
+            "legendFormat": "Max"
+          }
+        ],
+        "yaxes": [
+          {"label": "Connections", "format": "short"},
+          {"show": false}
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Checker Performance (Avg Duration)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+        "targets": [
+          {
+            "expr": "sum by (checker) (rate(audit_checker_duration_seconds_sum{namespace=\"$namespace\"}[5m])) / sum by (checker) (rate(audit_checker_duration_seconds_count{namespace=\"$namespace\"}[5m]))",
+            "legendFormat": "{{checker}}"
+          }
+        ],
+        "yaxes": [
+          {"label": "Avg Duration (s)", "format": "s"},
+          {"show": false}
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Violations by Severity (Last Hour)",
+        "type": "piechart",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
+        "targets": [
+          {
+            "expr": "sum by (severity) (increase(audit_checker_violations_total{namespace=\"$namespace\"}[1h]))",
+            "legendFormat": "{{severity}}"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "HTTP API Response Time (P95, P99)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 32},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{namespace=\"$namespace\"}[5m])) by (uri, le))",
+            "legendFormat": "{{uri}} - P95"
+          },
+          {
+            "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{namespace=\"$namespace\"}[5m])) by (uri, le))",
+            "legendFormat": "{{uri}} - P99"
+          }
+        ],
+        "yaxes": [
+          {"label": "Seconds", "format": "s"},
+          {"show": false}
+        ]
+      },
+      {
+        "id": 10,
+        "title": "HTTP Status Codes",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 32},
+        "targets": [
+          {
+            "expr": "sum by (status) (rate(http_server_requests_seconds_count{namespace=\"$namespace\"}[5m]))",
+            "legendFormat": "{{status}}"
+          }
+        ],
+        "yaxes": [
+          {"label": "Requests/sec", "format": "short"},
+          {"show": false}
+        ]
+      },
+      {
+        "id": 11,
+        "title": "ClickHouse Write Latency",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 40},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(clickhouse_write_duration_seconds_bucket{namespace=\"$namespace\"}[5m]))",
+            "legendFormat": "P95"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(clickhouse_write_duration_seconds_bucket{namespace=\"$namespace\"}[5m]))",
+            "legendFormat": "P99"
+          }
+        ],
+        "yaxes": [
+          {"label": "Seconds", "format": "s"},
+          {"show": false}
+        ]
+      },
+      {
+        "id": 12,
+        "title": "System Metrics (CPU, Memory)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 40},
+        "targets": [
+          {
+            "expr": "rate(process_cpu_usage{namespace=\"$namespace\",pod_name=~\"$pod\"}[5m]) * 100",
+            "legendFormat": "{{pod_name}} - CPU %"
+          },
+          {
+            "expr": "100 * jvm_memory_used_bytes{area=\"heap\",namespace=\"$namespace\",pod_name=~\"$pod\"} / jvm_memory_max_bytes{area=\"heap\",namespace=\"$namespace\",pod_name=~\"$pod\"}",
+            "legendFormat": "{{pod_name}} - Memory %"
+          }
+        ],
+        "yaxes": [
+          {"label": "Percentage", "format": "percent"},
+          {"show": false}
+        ]
+      }
+    ],
+    "annotations": {
+      "list": [
+        {
+          "name": "Deployments",
+          "datasource": "Prometheus",
+          "enable": true,
+          "expr": "changes(application_info{namespace=\"$namespace\"}[1m]) > 0",
+          "tagKeys": "version",
+          "textFormat": "Deployment: {{version}}",
+          "iconColor": "green"
+        },
+        {
+          "name": "Alerts",
+          "datasource": "Prometheus",
+          "enable": true,
+          "expr": "ALERTS{namespace=\"$namespace\",alertstate=\"firing\"}",
+          "tagKeys": "alertname,severity",
+          "textFormat": "Alert: {{alertname}} ({{severity}})",
+          "iconColor": "red"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,247 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: sql-audit-service
+  namespace: sqlguard
+  labels:
+    app: sql-audit-service
+    component: audit
+    tier: backend
+spec:
+  serviceName: sql-audit-service
+  replicas: 3
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: sql-audit-service
+  template:
+    metadata:
+      labels:
+        app: sql-audit-service
+        component: audit
+        tier: backend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8091"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      serviceAccountName: sql-audit-service
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - sql-audit-service
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: audit-service
+        image: sql-audit-service:2.0.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8090
+          name: http
+          protocol: TCP
+        - containerPort: 8091
+          name: actuator
+          protocol: TCP
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "prod"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+
+        # Kafka Configuration
+        - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: audit-config
+              key: kafka.bootstrap.servers
+        - name: SPRING_KAFKA_CONSUMER_GROUP_ID
+          valueFrom:
+            configMapKeyRef:
+              name: audit-config
+              key: kafka.consumer.group
+        - name: AUDIT_KAFKA_TOPIC
+          valueFrom:
+            configMapKeyRef:
+              name: audit-config
+              key: kafka.topic
+        - name: SPRING_KAFKA_LISTENER_CONCURRENCY
+          valueFrom:
+            configMapKeyRef:
+              name: audit-config
+              key: kafka.consumer.concurrency
+
+        # PostgreSQL Configuration
+        - name: SPRING_DATASOURCE_URL
+          valueFrom:
+            secretKeyRef:
+              name: audit-secrets
+              key: postgres.url
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: audit-secrets
+              key: postgres.username
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: audit-secrets
+              key: postgres.password
+
+        # ClickHouse Configuration
+        - name: CLICKHOUSE_URL
+          valueFrom:
+            secretKeyRef:
+              name: audit-secrets
+              key: clickhouse.url
+        - name: CLICKHOUSE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: audit-secrets
+              key: clickhouse.username
+        - name: CLICKHOUSE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: audit-secrets
+              key: clickhouse.password
+
+        # Security Configuration
+        - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
+          valueFrom:
+            secretKeyRef:
+              name: audit-secrets
+              key: jwt.issuer.uri
+              optional: true
+
+        # JVM Configuration
+        - name: JAVA_OPTS
+          value: >-
+            -Xms2g
+            -Xmx4g
+            -XX:+UseG1GC
+            -XX:MaxGCPauseMillis=200
+            -XX:InitiatingHeapOccupancyPercent=45
+            -XX:+HeapDumpOnOutOfMemoryError
+            -XX:HeapDumpPath=/app/heap-dumps
+            -Xlog:gc*:file=/app/logs/gc.log:time,uptime:filecount=10,filesize=10M
+
+        resources:
+          requests:
+            cpu: "2"
+            memory: "4Gi"
+          limits:
+            cpu: "4"
+            memory: "8Gi"
+
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8091
+            scheme: HTTP
+          initialDelaySeconds: 120
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8091
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+
+        startupProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8091
+            scheme: HTTP
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 30
+
+        volumeMounts:
+        - name: cache
+          mountPath: /app/cache
+        - name: logs
+          mountPath: /app/logs
+        - name: heap-dumps
+          mountPath: /app/heap-dumps
+        - name: tmp
+          mountPath: /tmp
+
+      volumes:
+      - name: tmp
+        emptyDir: {}
+
+  volumeClaimTemplates:
+  - metadata:
+      name: cache
+      labels:
+        app: sql-audit-service
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: fast-ssd
+      resources:
+        requests:
+          storage: 10Gi
+
+  - metadata:
+      name: logs
+      labels:
+        app: sql-audit-service
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: standard
+      resources:
+        requests:
+          storage: 20Gi
+
+  - metadata:
+      name: heap-dumps
+      labels:
+        app: sql-audit-service
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: standard
+      resources:
+        requests:
+          storage: 30Gi
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: sql-audit-service-pdb
+  namespace: sqlguard
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: sql-audit-service

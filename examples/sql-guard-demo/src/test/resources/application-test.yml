@@ -10,6 +10,11 @@ spring:
   h2:
     console:
       enabled: false
+  
+  # Disable Kafka for tests
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
 
 sql-guard:
   enabled: true
@@ -46,6 +51,12 @@ sql-guard:
 logging:
   level:
     com.footstone.sqlguard: WARN
+
+
+
+
+
+
 
 
 

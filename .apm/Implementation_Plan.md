@@ -750,7 +750,7 @@
 
 **验收标准:** 所有案例可复现, 优先级矩阵准确, 修复手册有效.
 
-### Task 12.4 – API Reference & Developer Documentation │ Agent_Documentation
+### Task 14.4 – API Reference & Developer Documentation │ Agent_Documentation
 
 - **Objective:** Generate comprehensive API reference documentation for audit platform public APIs, documenting audit checker extension points for custom checker development, providing API usage examples (Low Fix L3: 明确为API使用示例而非完整SDK) for programmatic audit result access, and creating developer tutorials for common integration scenarios.
 - **Output:**

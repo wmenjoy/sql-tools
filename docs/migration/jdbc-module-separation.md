@@ -252,3 +252,8 @@ For migration assistance:
 - Open an issue: [GitHub Issues](https://github.com/footstone/sql-safety-guard/issues)
 - Check documentation: `docs/user-guide/`
 
+
+
+
+
+

@@ -1,0 +1,35 @@
+apiVersion: 1
+
+datasources:
+  # ClickHouse Data Source for Audit Logs
+  - name: ClickHouse
+    type: grafana-clickhouse-datasource
+    access: proxy
+    url: http://clickhouse:8123
+    isDefault: true
+    jsonData:
+      defaultDatabase: audit
+      host: clickhouse
+      port: 8123
+      protocol: http
+      username: audit
+    secureJsonData:
+      password: audit
+    editable: true
+
+  # Infinity Data Source for Audit Service REST API
+  - name: Audit Service API
+    type: yesoreyeram-infinity-datasource
+    access: proxy
+    url: http://audit-service:8080/api
+    isDefault: false
+    jsonData:
+      datasource_mode: advanced
+      global_queries: []
+      global_headers: []
+      auth_method: none
+    editable: true
+
+
+
+

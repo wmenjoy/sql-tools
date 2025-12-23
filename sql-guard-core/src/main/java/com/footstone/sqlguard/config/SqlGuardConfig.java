@@ -9,6 +9,7 @@ public class SqlGuardConfig {
 
     private boolean enabled = true;
     private String activeStrategy = "prod";
+    private ViolationStrategy violationStrategy = ViolationStrategy.BLOCK;
     private InterceptorsConfig interceptors = new InterceptorsConfig();
     private DeduplicationConfig deduplication = new DeduplicationConfig();
     private RulesConfig rules = new RulesConfig();
@@ -28,6 +29,14 @@ public class SqlGuardConfig {
 
     public void setActiveStrategy(String activeStrategy) {
         this.activeStrategy = activeStrategy;
+    }
+
+    public ViolationStrategy getViolationStrategy() {
+        return violationStrategy;
+    }
+
+    public void setViolationStrategy(ViolationStrategy violationStrategy) {
+        this.violationStrategy = violationStrategy;
     }
 
     public InterceptorsConfig getInterceptors() {

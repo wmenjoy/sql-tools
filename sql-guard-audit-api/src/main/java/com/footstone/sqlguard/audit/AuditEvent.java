@@ -57,6 +57,7 @@ import java.util.Objects;
  * @see AuditLogWriter
  * @see SqlCommandType
  * @see ValidationResult
+ * @since 2.0.0
  */
 public final class AuditEvent {
 

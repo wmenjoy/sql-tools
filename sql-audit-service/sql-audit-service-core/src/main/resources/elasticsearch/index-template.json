@@ -1,0 +1,103 @@
+{
+  "index_patterns": ["sql-audit-*"],
+  "template": {
+    "settings": {
+      "index": {
+        "number_of_shards": 3,
+        "number_of_replicas": 1,
+        "refresh_interval": "5s",
+        "max_result_window": 100000
+      },
+      "analysis": {
+        "analyzer": {
+          "sql_analyzer": {
+            "type": "custom",
+            "tokenizer": "standard",
+            "filter": ["lowercase", "sql_stop_filter"]
+          }
+        },
+        "filter": {
+          "sql_stop_filter": {
+            "type": "stop",
+            "stopwords": ["select", "from", "where", "and", "or", "insert", "update", "delete", "into", "values"]
+          }
+        }
+      }
+    },
+    "mappings": {
+      "properties": {
+        "event_id": {
+          "type": "keyword",
+          "doc_values": true
+        },
+        "sql_id": {
+          "type": "keyword",
+          "doc_values": true
+        },
+        "sql_text": {
+          "type": "text",
+          "analyzer": "sql_analyzer",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 8191
+            }
+          }
+        },
+        "sql_type": {
+          "type": "keyword",
+          "doc_values": true
+        },
+        "mapper_id": {
+          "type": "keyword",
+          "doc_values": true
+        },
+        "datasource": {
+          "type": "keyword",
+          "doc_values": true
+        },
+        "execution_time_ms": {
+          "type": "long"
+        },
+        "rows_affected": {
+          "type": "integer"
+        },
+        "error_message": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 1024
+            }
+          }
+        },
+        "@timestamp": {
+          "type": "date",
+          "format": "strict_date_optional_time||epoch_millis"
+        },
+        "risk_score": {
+          "type": "integer"
+        },
+        "severity": {
+          "type": "keyword"
+        },
+        "checker_id": {
+          "type": "keyword"
+        },
+        "recommendation": {
+          "type": "text"
+        }
+      }
+    },
+    "aliases": {
+      "sql-audit-all": {}
+    }
+  },
+  "priority": 100,
+  "composed_of": [],
+  "_meta": {
+    "description": "SQL Audit Service index template for audit log storage",
+    "version": "2.0.0"
+  }
+}
+

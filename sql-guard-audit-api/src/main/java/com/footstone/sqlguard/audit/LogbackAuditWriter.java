@@ -23,6 +23,10 @@ import java.util.Objects;
  * </ul>
  *
  * <p><strong>Thread Safety:</strong> This class is thread-safe.</p>
+ *
+ * @see AuditLogWriter
+ * @see AuditEvent
+ * @since 2.0.0
  */
 public class LogbackAuditWriter implements AuditLogWriter {
 

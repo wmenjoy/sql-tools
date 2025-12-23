@@ -1,0 +1,152 @@
+# SQL Guard Demo - Audit Profile Configuration
+# Enable full audit logging with Kafka integration
+
+spring:
+  application:
+    name: sql-guard-demo
+  
+  datasource:
+    url: jdbc:mysql://mysql:3306/sqlguard_demo?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: root123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  # Kafka Configuration for audit events
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+    consumer:
+      group-id: sql-guard-demo-consumer
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+
+# SQL Guard Configuration with Audit
+sql-guard:
+  enabled: true
+  active-strategy: LOG
+  
+  # Audit Configuration (Task 8.1 - Audit API)
+  audit:
+    enabled: true
+    log-writer: kafka
+    kafka:
+      topic: sql-audit-events
+      async: true
+      batch-size: 100
+      linger-ms: 10
+  
+  # Interceptor Configuration
+  interceptors:
+    mybatis:
+      enabled: true
+      audit: true
+    mybatis-plus:
+      enabled: true
+      audit: true
+    druid:
+      enabled: false
+      audit: false
+  
+  # Deduplication Configuration
+  deduplication:
+    enabled: true
+    cache-size: 1000
+    ttl-ms: 100
+  
+  # Parser Configuration
+  parser:
+    lenient-mode: false
+  
+  # Rule Configuration
+  rules:
+    no-where-clause:
+      enabled: true
+      risk-level: CRITICAL
+    
+    dummy-condition:
+      enabled: true
+      risk-level: HIGH
+      patterns:
+        - "1=1"
+        - "true"
+        - "'a'='a'"
+    
+    blacklist-fields:
+      enabled: true
+      risk-level: HIGH
+      blacklist-fields:
+        - deleted
+        - status
+        - enabled
+    
+    whitelist-fields:
+      enabled: true
+      risk-level: HIGH
+      whitelist-fields:
+        user:
+          - id
+          - email
+        order:
+          - id
+          - user_id
+    
+    logical-pagination:
+      enabled: true
+      risk-level: CRITICAL
+    
+    no-condition-pagination:
+      enabled: true
+      risk-level: CRITICAL
+    
+    deep-pagination:
+      enabled: true
+      risk-level: MEDIUM
+      max-offset: 10000
+    
+    large-page-size:
+      enabled: true
+      risk-level: MEDIUM
+      max-page-size: 1000
+    
+    missing-orderby:
+      enabled: true
+      risk-level: LOW
+    
+    no-pagination:
+      enabled: true
+      risk-level: MEDIUM
+      estimated-rows-threshold: 10000
+
+# Logging Configuration
+logging:
+  level:
+    com.footstone.sqlguard: DEBUG
+    com.footstone.sqlguard.demo: DEBUG
+    org.apache.kafka: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Server Configuration
+server:
+  port: 8080
+
+# Actuator for health checks
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+
+
+

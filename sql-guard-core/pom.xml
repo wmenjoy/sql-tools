@@ -55,6 +55,14 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- MyBatis-Plus Extension (for Page class in tests) -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-extension</artifactId>
+            <version>${mybatis-plus.modern.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Jackson annotations (optional, for JSON serialization support) -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

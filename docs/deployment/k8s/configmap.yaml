@@ -1,0 +1,173 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: audit-config
+  namespace: sqlguard
+  labels:
+    app: sql-audit-service
+    component: audit
+data:
+  # Kafka Configuration
+  kafka.bootstrap.servers: "kafka-0.kafka.sqlguard.svc.cluster.local:9092,kafka-1.kafka.sqlguard.svc.cluster.local:9092,kafka-2.kafka.sqlguard.svc.cluster.local:9092"
+  kafka.topic: "sql-audit-events"
+  kafka.consumer.group: "audit-service-group"
+  kafka.consumer.concurrency: "3"
+
+  # Checker Configuration - SlowQueryChecker
+  checker.slowQuery.enabled: "true"
+  checker.slowQuery.threshold: "1000"
+  checker.slowQuery.severity: "MEDIUM"
+
+  # Checker Configuration - ActualImpactChecker
+  checker.actualImpact.enabled: "true"
+  checker.actualImpact.threshold: "1000"
+  checker.actualImpact.severity: "HIGH"
+
+  # Checker Configuration - ErrorRateChecker
+  checker.errorRate.enabled: "true"
+  checker.errorRate.threshold: "0.05"
+  checker.errorRate.window: "60"
+  checker.errorRate.severity: "CRITICAL"
+
+  # Checker Configuration - FrequencyChecker
+  checker.frequency.enabled: "true"
+  checker.frequency.threshold: "100"
+  checker.frequency.window: "60"
+  checker.frequency.severity: "LOW"
+
+  # ClickHouse Batch Configuration
+  clickhouse.batch.size: "1000"
+  clickhouse.batch.timeout: "5000"
+  clickhouse.flush.interval: "10000"
+
+  # Database Connection Pool
+  datasource.hikari.maximum-pool-size: "20"
+  datasource.hikari.minimum-idle: "5"
+  datasource.hikari.connection-timeout: "30000"
+  datasource.hikari.idle-timeout: "600000"
+  datasource.hikari.max-lifetime: "1800000"
+
+  # Logging Configuration
+  logging.level.root: "INFO"
+  logging.level.com.footstone: "DEBUG"
+  logging.level.org.springframework: "INFO"
+  logging.level.org.apache.kafka: "WARN"
+  logging.pattern.console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  logging.pattern.file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+  # Spring Boot Actuator
+  management.endpoints.web.exposure.include: "health,info,metrics,prometheus"
+  management.endpoint.health.show-details: "when-authorized"
+  management.health.livenessState.enabled: "true"
+  management.health.readinessState.enabled: "true"
+
+  # Metrics Export
+  management.metrics.export.prometheus.enabled: "true"
+  management.metrics.tags.application: "sql-audit-service"
+  management.metrics.tags.environment: "production"
+
+  # Server Configuration
+  server.port: "8090"
+  management.server.port: "8091"
+  server.shutdown: "graceful"
+  spring.lifecycle.timeout-per-shutdown-phase: "30s"
+
+  # Cache Configuration
+  spring.cache.type: "caffeine"
+  spring.cache.caffeine.spec: "maximumSize=10000,expireAfterWrite=300s"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: audit-init-scripts
+  namespace: sqlguard
+  labels:
+    app: sql-audit-service
+    component: audit
+data:
+  postgres-init.sql: |
+    -- Create tables if not exists
+    CREATE TABLE IF NOT EXISTS checker_config (
+      id SERIAL PRIMARY KEY,
+      checker_name VARCHAR(100) NOT NULL UNIQUE,
+      enabled BOOLEAN NOT NULL DEFAULT true,
+      threshold_value DOUBLE PRECISION,
+      severity VARCHAR(20),
+      config_json JSONB,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS whitelist_rules (
+      id SERIAL PRIMARY KEY,
+      sql_pattern TEXT NOT NULL,
+      rule_type VARCHAR(50) NOT NULL,
+      enabled BOOLEAN NOT NULL DEFAULT true,
+      description TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS audit_metadata (
+      id SERIAL PRIMARY KEY,
+      metadata_key VARCHAR(100) NOT NULL UNIQUE,
+      metadata_value TEXT,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Create indexes
+    CREATE INDEX IF NOT EXISTS idx_checker_config_name ON checker_config(checker_name);
+    CREATE INDEX IF NOT EXISTS idx_whitelist_rules_type ON whitelist_rules(rule_type);
+    CREATE INDEX IF NOT EXISTS idx_whitelist_rules_enabled ON whitelist_rules(enabled);
+
+  clickhouse-init.sql: |
+    -- Create database
+    CREATE DATABASE IF NOT EXISTS audit ON CLUSTER '{cluster}';
+
+    -- Create audit logs table (ReplicatedMergeTree for HA)
+    CREATE TABLE IF NOT EXISTS audit.audit_logs ON CLUSTER '{cluster}'
+    (
+        event_id String,
+        timestamp DateTime,
+        application_name String,
+        sql_text String,
+        sql_hash String,
+        severity String,
+        risk_score Float32,
+        execution_time_ms Int64,
+        rows_affected Int64,
+        error_occurred UInt8,
+        error_message String,
+        checker_results String,
+        stack_trace String,
+        user_name String,
+        session_id String,
+        transaction_id String,
+        pod_name String,
+        pod_ip String
+    )
+    ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/audit_logs', '{replica}')
+    PARTITION BY toYYYYMM(timestamp)
+    ORDER BY (timestamp, severity, application_name)
+    TTL timestamp + INTERVAL 90 DAY
+    SETTINGS index_granularity = 8192;
+
+    -- Create distributed table for queries
+    CREATE TABLE IF NOT EXISTS audit.audit_logs_distributed ON CLUSTER '{cluster}' AS audit.audit_logs
+    ENGINE = Distributed('{cluster}', audit, audit_logs, rand());
+
+    -- Create materialized view for aggregations
+    CREATE MATERIALIZED VIEW IF NOT EXISTS audit.audit_stats_daily ON CLUSTER '{cluster}'
+    ENGINE = SummingMergeTree()
+    PARTITION BY toYYYYMM(date)
+    ORDER BY (date, application_name, severity)
+    AS SELECT
+        toDate(timestamp) AS date,
+        application_name,
+        severity,
+        count() AS event_count,
+        sum(execution_time_ms) AS total_execution_time,
+        sum(rows_affected) AS total_rows_affected,
+        sum(error_occurred) AS error_count
+    FROM audit.audit_logs
+    GROUP BY date, application_name, severity;

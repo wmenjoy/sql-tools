@@ -35,6 +35,7 @@ package com.footstone.sqlguard.audit;
  *
  * @see AuditEvent
  * @see AuditLogException
+ * @since 2.0.0
  */
 public interface AuditLogWriter {
 

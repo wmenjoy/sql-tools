@@ -445,3 +445,8 @@ class HikariSqlAuditProxyFactoryTest {
 
 
 
+
+
+
+
+

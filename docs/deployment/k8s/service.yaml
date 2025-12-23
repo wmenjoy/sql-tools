@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sql-audit-service
+  namespace: sqlguard
+  labels:
+    app: sql-audit-service
+    component: audit
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8091"
+    prometheus.io/path: "/actuator/prometheus"
+spec:
+  selector:
+    app: sql-audit-service
+  ports:
+  - name: http
+    port: 8090
+    targetPort: 8090
+    protocol: TCP
+  - name: actuator
+    port: 8091
+    targetPort: 8091
+    protocol: TCP
+  type: ClusterIP
+  sessionAffinity: None
+
+---
+# Headless Service for StatefulSet DNS
+apiVersion: v1
+kind: Service
+metadata:
+  name: sql-audit-service-headless
+  namespace: sqlguard
+  labels:
+    app: sql-audit-service
+    component: audit
+spec:
+  selector:
+    app: sql-audit-service
+  ports:
+  - name: http
+    port: 8090
+    targetPort: 8090
+    protocol: TCP
+  - name: actuator
+    port: 8091
+    targetPort: 8091
+    protocol: TCP
+  clusterIP: None
+  type: ClusterIP
+
+---
+# LoadBalancer Service (Optional - for external access without Ingress)
+apiVersion: v1
+kind: Service
+metadata:
+  name: sql-audit-service-lb
+  namespace: sqlguard
+  labels:
+    app: sql-audit-service
+    component: audit
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+spec:
+  selector:
+    app: sql-audit-service
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8090
+    protocol: TCP
+  - name: https
+    port: 443
+    targetPort: 8090
+    protocol: TCP
+  type: LoadBalancer
+  loadBalancerSourceRanges:
+  - 10.0.0.0/8    # Internal VPC CIDR
+  - 172.16.0.0/12 # Internal network

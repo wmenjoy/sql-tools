@@ -1,7 +1,46 @@
 version: '3.8'
 
+# SQL Guard Audit Platform - Complete Demo Stack
+# This docker-compose file orchestrates 8 services for the full audit demo:
+# 1. demo-app: SQL Guard Demo Application
+# 2. mysql: Demo Database
+# 3. zookeeper: Kafka Dependency
+# 4. kafka: Message Queue for Audit Events
+# 5. audit-service: SQL Audit Service
+# 6. postgres: Audit Metadata Storage
+# 7. clickhouse: Audit Log Storage
+# 8. grafana: Visualization Dashboards
+
 services:
-  # MySQL Database
+  # 1. Demo Application (SQL Guard Demo)
+  demo-app:
+    build:
+      context: ../..
+      dockerfile: examples/sql-guard-demo/Dockerfile
+    container_name: sqlguard-demo-app
+    environment:
+      SPRING_PROFILES_ACTIVE: audit
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/sqlguard_demo?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - sqlguard-net
+
+  # 2. MySQL Database (Demo Data)
   mysql:
     image: mysql:8.0
     container_name: sqlguard-demo-mysql
@@ -13,80 +52,168 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
       - ./src/main/resources/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: --default-authentication-plugin=mysql_native_password
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123"]
       interval: 10s
       timeout: 5s
+      retries: 10
+    networks:
+      - sqlguard-net
+
+  # 3. Zookeeper (Kafka Dependency)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: sqlguard-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    healthcheck:
+      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
       retries: 5
     networks:
-      - sqlguard-network
+      - sqlguard-net
 
-  # SQL Guard Demo Application
-  demo-app:
-    build:
-      context: ../..
-      dockerfile: examples/sql-guard-demo/Dockerfile
-    container_name: sqlguard-demo-app
+  # 4. Kafka (Audit Event Queue)
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: sqlguard-kafka
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/sqlguard_demo?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root123
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     ports:
-      - "8080:8080"
+      - "9092:9092"
+      - "29092:29092"
     depends_on:
-      mysql:
+      zookeeper:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     networks:
-      - sqlguard-network
+      - sqlguard-net
 
-  # Optional: Apollo Config Center (uncomment to enable)
-  # apollo-configservice:
-  #   image: apolloconfig/apollo-configservice:2.1.0
-  #   container_name: apollo-configservice
-  #   environment:
-  #     SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ApolloConfigDB?characterEncoding=utf8
-  #     SPRING_DATASOURCE_USERNAME: root
-  #     SPRING_DATASOURCE_PASSWORD: root123
-  #   ports:
-  #     - "8080:8080"
-  #   depends_on:
-  #     mysql:
-  #       condition: service_healthy
-  #   networks:
-  #     - sqlguard-network
+  # 5. SQL Audit Service
+  audit-service:
+    image: sql-audit-service:latest
+    build:
+      context: ../../sql-audit-service/sql-audit-service-web
+      dockerfile: Dockerfile
+    container_name: sqlguard-audit-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/audit
+      SPRING_DATASOURCE_USERNAME: audit
+      SPRING_DATASOURCE_PASSWORD: audit
+      CLICKHOUSE_URL: jdbc:clickhouse://clickhouse:8123/audit
+      CLICKHOUSE_USER: audit
+      CLICKHOUSE_PASSWORD: audit
+    ports:
+      - "8090:8080"
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - sqlguard-net
 
-  # Optional: Nacos Config Center (uncomment to enable)
-  # nacos:
-  #   image: nacos/nacos-server:v2.2.3
-  #   container_name: nacos-server
-  #   environment:
-  #     MODE: standalone
-  #     SPRING_DATASOURCE_PLATFORM: mysql
-  #     MYSQL_SERVICE_HOST: mysql
-  #     MYSQL_SERVICE_PORT: 3306
-  #     MYSQL_SERVICE_DB_NAME: nacos
-  #     MYSQL_SERVICE_USER: root
-  #     MYSQL_SERVICE_PASSWORD: root123
-  #   ports:
-  #     - "8848:8848"
-  #   depends_on:
-  #     mysql:
-  #       condition: service_healthy
-  #   networks:
-  #     - sqlguard-network
+  # 6. PostgreSQL (Audit Metadata)
+  postgres:
+    image: postgres:15
+    container_name: sqlguard-postgres
+    environment:
+      POSTGRES_DB: audit
+      POSTGRES_USER: audit
+      POSTGRES_PASSWORD: audit
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U audit -d audit"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sqlguard-net
 
-volumes:
-  mysql-data:
+  # 7. ClickHouse (Audit Log Storage)
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.8
+    container_name: sqlguard-clickhouse
+    environment:
+      CLICKHOUSE_DB: audit
+      CLICKHOUSE_USER: audit
+      CLICKHOUSE_PASSWORD: audit
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+      - ./clickhouse/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sqlguard-net
 
+  # 8. Grafana (Visualization)
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: sqlguard-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_INSTALL_PLUGINS: grafana-clickhouse-datasource,yesoreyeram-infinity-datasource
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - audit-service
+      - clickhouse
+    networks:
+      - sqlguard-net
+
+# Networks
 networks:
-  sqlguard-network:
+  sqlguard-net:
     driver: bridge
 
-
-
-
-
-
-
-
+# Volumes
+volumes:
+  mysql-data:
+    driver: local
+  postgres-data:
+    driver: local
+  clickhouse-data:
+    driver: local
+  grafana-data:
+    driver: local
