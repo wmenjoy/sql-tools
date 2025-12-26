@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import com.footstone.sqlguard.parser.JSqlParserFacade;
 import com.footstone.sqlguard.validator.pagination.PaginationPluginDetector;
@@ -60,7 +61,8 @@ class NoConditionPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectWithLimit")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectWithLimit")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -89,7 +91,8 @@ class NoConditionPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectWithDummyWhere")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectWithDummyWhere")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -109,7 +112,8 @@ class NoConditionPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectWithValidWhere")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectWithValidWhere")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -129,7 +133,8 @@ class NoConditionPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectActiveUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectActiveUsers")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -152,7 +157,8 @@ class NoConditionPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectWithRowBounds")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectWithRowBounds")
         .rowBounds(new RowBounds(0, 10))
         .build();
     ValidationResult result = ValidationResult.pass();
@@ -173,7 +179,8 @@ class NoConditionPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectById")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -195,7 +202,8 @@ class NoConditionPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectWithOffset")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectWithOffset")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -218,7 +226,8 @@ class NoConditionPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectFirst50")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectFirst50")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -240,7 +249,8 @@ class NoConditionPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectMySQLSyntax")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectMySQLSyntax")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -264,7 +274,8 @@ class NoConditionPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectWithLimit")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectWithLimit")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -289,7 +300,8 @@ class NoConditionPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectWithLimit")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectWithLimit")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -314,7 +326,8 @@ class NoConditionPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectWithWhereTrue")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectWithWhereTrue")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -334,7 +347,8 @@ class NoConditionPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectWithStringEquals")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectWithStringEquals")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -356,7 +370,8 @@ class NoConditionPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectWithLimit")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectWithLimit")
         .build();
 
     PaginationType type = detector.detectPaginationType(context);
@@ -372,7 +387,8 @@ class NoConditionPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectWithRowBounds")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectWithRowBounds")
         .rowBounds(new RowBounds(0, 10))
         .build();
 

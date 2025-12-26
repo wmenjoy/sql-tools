@@ -3,6 +3,7 @@ package com.footstone.audit.service.core.storage.clickhouse;
 import com.clickhouse.jdbc.ClickHouseDataSource;
 import com.footstone.audit.service.core.storage.repository.ExecutionLogRepository;
 import com.footstone.sqlguard.audit.AuditEvent;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -77,7 +78,8 @@ public class ClickHouseExecutionLogger implements ExecutionLogRepository {
                     events.add(AuditEvent.builder()
                             .sql(rs.getString("sql"))
                             .sqlType(com.footstone.sqlguard.core.model.SqlCommandType.valueOf(rs.getString("sql_type")))
-                            .mapperId(rs.getString("mapper_id"))
+                            .executionLayer(ExecutionLayer.UNKNOWN)  // Default for legacy data
+                            .statementId(rs.getString("mapper_id"))
                             .datasource(rs.getString("datasource"))
                             .executionTimeMs(rs.getLong("execution_time_ms"))
                             .rowsAffected(rs.getInt("rows_affected"))
@@ -131,7 +133,7 @@ public class ClickHouseExecutionLogger implements ExecutionLogRepository {
         ps.setString(2, event.getSqlId());
         ps.setString(3, event.getSql());
         ps.setString(4, event.getSqlType().name());
-        ps.setString(5, event.getMapperId());
+        ps.setString(5, event.getStatementId());
         ps.setString(6, event.getDatasource());
         ps.setLong(7, event.getExecutionTimeMs());
         ps.setInt(8, event.getRowsAffected());

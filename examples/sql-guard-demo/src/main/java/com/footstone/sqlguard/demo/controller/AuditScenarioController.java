@@ -27,6 +27,13 @@ import java.util.Map;
  *   <li>GET /api/audit-scenarios/error-sql - Trigger SQL error</li>
  *   <li>GET /api/audit-scenarios/large-page-size - Trigger large page size query</li>
  *   <li>GET /api/audit-scenarios/no-pagination - Trigger query without pagination</li>
+ *   <li>GET /api/audit-scenarios/missing-orderby - Trigger pagination without ORDER BY</li>
+ *   <li>GET /api/audit-scenarios/no-condition-pagination - Trigger pagination without WHERE</li>
+ *   <li>GET /api/audit-scenarios/blacklist-field - Trigger blacklist-only WHERE clause</li>
+ *   <li>GET /api/audit-scenarios/whitelist-violation - Trigger non-whitelisted field access</li>
+ *   <li>GET /api/audit-scenarios/dummy-condition - Trigger dummy condition (1=1)</li>
+ *   <li>GET /api/audit-scenarios/no-where - Trigger SELECT without WHERE</li>
+ *   <li>POST /api/audit-scenarios/delete-no-where - Trigger DELETE with broad WHERE</li>
  * </ul>
  *
  * @see AuditScenarioMapper
@@ -265,6 +272,264 @@ public class AuditScenarioController {
         }
     }
 
+       /**
+     * Trigger missing ORDER BY scenario.
+     *
+     * <p>Executes a pagination query without ORDER BY clause.
+     * This triggers the MissingOrderByChecker and generates a LOW severity audit log.</p>
+     *
+     * @return response with execution details
+     */
+    @GetMapping("/missing-orderby")
+    public ResponseEntity<Map<String, Object>> triggerMissingOrderBy() {
+        log.info("Triggering missing ORDER BY scenario...");
+        long startTime = System.currentTimeMillis();
+
+        try {
+            List<User> users = auditScenarioMapper.paginationWithoutOrderBy();
+            long executionTime = System.currentTimeMillis() - startTime;
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("scenario", "missing-orderby");
+            response.put("status", "success");
+            response.put("message", "Pagination without ORDER BY executed, check audit logs");
+            response.put("executionTimeMs", executionTime);
+            response.put("rowsReturned", users.size());
+            response.put("expectedAudit", "MissingOrderByChecker - LOW severity");
+
+            log.info("Missing ORDER BY completed in {}ms, returned {} rows", executionTime, users.size());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Missing ORDER BY failed", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "scenario", "missing-orderby",
+                "status", "error",
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Trigger no condition pagination scenario.
+     *
+     * <p>Executes a pagination query without WHERE clause.
+     * This triggers the NoConditionPaginationChecker and generates a MEDIUM severity audit log.</p>
+     *
+     * @return response with execution details
+     */
+    @GetMapping("/no-condition-pagination")
+    public ResponseEntity<Map<String, Object>> triggerNoConditionPagination() {
+        log.info("Triggering no condition pagination scenario...");
+        long startTime = System.currentTimeMillis();
+
+        try {
+            List<User> users = auditScenarioMapper.paginationWithoutCondition();
+            long executionTime = System.currentTimeMillis() - startTime;
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("scenario", "no-condition-pagination");
+            response.put("status", "success");
+            response.put("message", "Pagination without WHERE executed, check audit logs");
+            response.put("executionTimeMs", executionTime);
+            response.put("rowsReturned", users.size());
+            response.put("expectedAudit", "NoConditionPaginationChecker - MEDIUM severity");
+
+            log.info("No condition pagination completed in {}ms, returned {} rows", executionTime, users.size());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("No condition pagination failed", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "scenario", "no-condition-pagination",
+                "status", "error",
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Trigger blacklist field only scenario.
+     *
+     * <p>Executes a query using only blacklisted fields in WHERE clause.
+     * This triggers the BlacklistFieldChecker and generates a HIGH severity audit log.</p>
+     *
+     * @return response with execution details
+     */
+    @GetMapping("/blacklist-field")
+    public ResponseEntity<Map<String, Object>> triggerBlacklistField() {
+        log.info("Triggering blacklist field only scenario...");
+        long startTime = System.currentTimeMillis();
+
+        try {
+            List<User> users = auditScenarioMapper.selectWithBlacklistFieldOnly();
+            long executionTime = System.currentTimeMillis() - startTime;
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("scenario", "blacklist-field");
+            response.put("status", "success");
+            response.put("message", "Query with blacklist-only fields executed, check audit logs");
+            response.put("executionTimeMs", executionTime);
+            response.put("rowsReturned", users.size());
+            response.put("expectedAudit", "BlacklistFieldChecker - HIGH severity");
+
+            log.info("Blacklist field completed in {}ms, returned {} rows", executionTime, users.size());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Blacklist field failed", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "scenario", "blacklist-field",
+                "status", "error",
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Trigger whitelist field violation scenario.
+     *
+     * <p>Executes a query accessing non-whitelisted fields.
+     * This triggers the WhitelistFieldChecker and generates a HIGH severity audit log.</p>
+     *
+     * @return response with execution details
+     */
+    @GetMapping("/whitelist-violation")
+    public ResponseEntity<Map<String, Object>> triggerWhitelistViolation() {
+        log.info("Triggering whitelist violation scenario...");
+        long startTime = System.currentTimeMillis();
+
+        try {
+            User user = auditScenarioMapper.selectWithNonWhitelistFields(1L);
+            long executionTime = System.currentTimeMillis() - startTime;
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("scenario", "whitelist-violation");
+            response.put("status", "success");
+            response.put("message", "Query accessing non-whitelisted fields executed, check audit logs");
+            response.put("executionTimeMs", executionTime);
+            response.put("expectedAudit", "WhitelistFieldChecker - HIGH severity");
+
+            log.info("Whitelist violation completed in {}ms", executionTime);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Whitelist violation failed", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "scenario", "whitelist-violation",
+                "status", "error",
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Trigger dummy condition scenario.
+     *
+     * <p>Executes a query with dummy condition like "1=1".
+     * This triggers the DummyConditionChecker and generates a HIGH severity audit log.</p>
+     *
+     * @return response with execution details
+     */
+    @GetMapping("/dummy-condition")
+    public ResponseEntity<Map<String, Object>> triggerDummyCondition() {
+        log.info("Triggering dummy condition scenario...");
+        long startTime = System.currentTimeMillis();
+
+        try {
+            List<User> users = auditScenarioMapper.selectWithDummyCondition();
+            long executionTime = System.currentTimeMillis() - startTime;
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("scenario", "dummy-condition");
+            response.put("status", "success");
+            response.put("message", "Query with dummy condition (1=1) executed, check audit logs");
+            response.put("executionTimeMs", executionTime);
+            response.put("rowsReturned", users.size());
+            response.put("expectedAudit", "DummyConditionChecker - HIGH severity");
+
+            log.info("Dummy condition completed in {}ms, returned {} rows", executionTime, users.size());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Dummy condition failed", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "scenario", "dummy-condition",
+                "status", "error",
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Trigger no WHERE clause scenario.
+     *
+     * <p>Executes a SELECT without WHERE clause.
+     * This triggers the NoWhereClauseChecker and generates a HIGH severity audit log.</p>
+     *
+     * @return response with execution details
+     */
+    @GetMapping("/no-where")
+    public ResponseEntity<Map<String, Object>> triggerNoWhere() {
+        log.info("Triggering no WHERE clause scenario...");
+        long startTime = System.currentTimeMillis();
+
+        try {
+            List<User> users = auditScenarioMapper.selectWithoutWhere();
+            long executionTime = System.currentTimeMillis() - startTime;
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("scenario", "no-where");
+            response.put("status", "success");
+            response.put("message", "SELECT without WHERE executed, check audit logs");
+            response.put("executionTimeMs", executionTime);
+            response.put("rowsReturned", users.size());
+            response.put("expectedAudit", "NoWhereClauseChecker - HIGH severity");
+
+            log.info("No WHERE completed in {}ms, returned {} rows", executionTime, users.size());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("No WHERE failed", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "scenario", "no-where",
+                "status", "error",
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Trigger DELETE without WHERE scenario.
+     *
+     * <p>Executes a DELETE with limited WHERE clause.
+     * This triggers the NoWhereClauseChecker and generates a CRITICAL severity audit log.</p>
+     *
+     * @return response with execution details
+     */
+    @PostMapping("/delete-no-where")
+    public ResponseEntity<Map<String, Object>> triggerDeleteNoWhere() {
+        log.warn("Triggering DELETE scenario...");
+        long startTime = System.currentTimeMillis();
+
+        try {
+            int affected = auditScenarioMapper.deleteWithoutProperWhere();
+            long executionTime = System.currentTimeMillis() - startTime;
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("scenario", "delete-no-where");
+            response.put("status", "success");
+            response.put("message", "DELETE executed, check audit logs");
+            response.put("executionTimeMs", executionTime);
+            response.put("rowsAffected", affected);
+            response.put("expectedAudit", "NoWhereClauseChecker - CRITICAL severity");
+
+            log.warn("DELETE completed in {}ms, affected {} rows", executionTime, affected);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("DELETE failed", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "scenario", "delete-no-where",
+                "status", "error",
+                "message", e.getMessage()
+            ));
+        }
+    }
+
     /**
      * Get all available audit scenarios.
      *
@@ -316,12 +581,62 @@ public class AuditScenarioController {
                 "description", "Trigger query without pagination",
                 "checker", "NoPaginationChecker",
                 "severity", "MEDIUM/CRITICAL"
+            ),
+            Map.of(
+                "endpoint", "/api/audit-scenarios/missing-orderby",
+                "method", "GET",
+                "description", "Trigger pagination without ORDER BY",
+                "checker", "MissingOrderByChecker",
+                "severity", "LOW"
+            ),
+            Map.of(
+                "endpoint", "/api/audit-scenarios/no-condition-pagination",
+                "method", "GET",
+                "description", "Trigger pagination without WHERE clause",
+                "checker", "NoConditionPaginationChecker",
+                "severity", "MEDIUM"
+            ),
+            Map.of(
+                "endpoint", "/api/audit-scenarios/blacklist-field",
+                "method", "GET",
+                "description", "Trigger query with blacklist-only fields",
+                "checker", "BlacklistFieldChecker",
+                "severity", "HIGH"
+            ),
+            Map.of(
+                "endpoint", "/api/audit-scenarios/whitelist-violation",
+                "method", "GET",
+                "description", "Trigger query accessing non-whitelisted fields",
+                "checker", "WhitelistFieldChecker",
+                "severity", "HIGH"
+            ),
+            Map.of(
+                "endpoint", "/api/audit-scenarios/dummy-condition",
+                "method", "GET",
+                "description", "Trigger query with dummy condition (1=1)",
+                "checker", "DummyConditionChecker",
+                "severity", "HIGH"
+            ),
+            Map.of(
+                "endpoint", "/api/audit-scenarios/no-where",
+                "method", "GET",
+                "description", "Trigger SELECT without WHERE clause",
+                "checker", "NoWhereClauseChecker",
+                "severity", "HIGH"
+            ),
+            Map.of(
+                "endpoint", "/api/audit-scenarios/delete-no-where",
+                "method", "POST",
+                "description", "Trigger DELETE with broad WHERE",
+                "checker", "NoWhereClauseChecker",
+                "severity", "CRITICAL"
             )
         ));
-        
+
         return ResponseEntity.ok(response);
     }
 }
+
 
 
 

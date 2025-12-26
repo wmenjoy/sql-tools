@@ -1,12 +1,15 @@
 package com.footstone.audit.service.core.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
 @Configuration
@@ -16,6 +19,15 @@ public class AuditEngineConfig {
     private Map<String, CheckerConfig> checkers = new HashMap<>();
     private List<String> whitelistRules = new ArrayList<>();
     private List<Pattern> whitelistPatterns;
+
+    /**
+     * 提供虚拟线程执行器用于并发执行Checker
+     * Provides virtual thread executor for concurrent checker execution
+     */
+    @Bean
+    public ExecutorService auditCheckerExecutor() {
+        return Executors.newVirtualThreadPerTaskExecutor();
+    }
 
     public long getCheckerTimeoutMs() {
         return checkerTimeoutMs;

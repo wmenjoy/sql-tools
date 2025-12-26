@@ -1,6 +1,7 @@
 package com.footstone.sqlguard.audit;
 
 import com.footstone.sqlguard.core.model.SqlCommandType;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -187,7 +188,8 @@ class AuditLogWriterBenchmark {
                         AuditEvent event = AuditEvent.builder()
                                 .sql("SELECT * FROM test WHERE id = " + (threadId * 10000 + j))
                                 .sqlType(SqlCommandType.SELECT)
-                                .mapperId("TestMapper.select")
+                                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("TestMapper.select")
                                 .datasource("test")
                                 .timestamp(Instant.now())
                                 .build();
@@ -286,7 +288,8 @@ class AuditLogWriterBenchmark {
         return AuditEvent.builder()
                 .sql(sql)
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("BenchmarkMapper.select")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("BenchmarkMapper.select")
                 .datasource("benchmark")
                 .timestamp(Instant.now())
                 .executionTimeMs(10L)
@@ -309,6 +312,7 @@ class AuditLogWriterBenchmark {
         }
     }
 }
+
 
 
 

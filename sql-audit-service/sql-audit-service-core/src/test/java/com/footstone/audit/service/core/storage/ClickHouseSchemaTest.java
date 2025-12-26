@@ -51,7 +51,7 @@ class ClickHouseSchemaTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("SELECT 1")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("test")
+                .statementId("test")
                 .timestamp(Instant.now())
                 .build();
 
@@ -70,14 +70,14 @@ class ClickHouseSchemaTest {
         AuditEvent e1 = AuditEvent.builder()
                 .sql("SELECT batch1")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("test")
+                .statementId("test")
                 .timestamp(Instant.now())
                 .build();
         
         AuditEvent e2 = AuditEvent.builder()
                 .sql("SELECT batch2")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("test")
+                .statementId("test")
                 .timestamp(Instant.now())
                 .build();
 

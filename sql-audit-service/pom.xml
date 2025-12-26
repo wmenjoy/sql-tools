@@ -49,6 +49,11 @@
                 <artifactId>sql-audit-service-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.footstone</groupId>
+                <artifactId>sql-audit-service-consumer</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>

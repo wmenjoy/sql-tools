@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.parser.JSqlParserFacade;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +41,8 @@ public class PaginationTypeDetectionTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectUsers")
         .rowBounds(new RowBounds(0, 10))  // RowBounds with offset=0, limit=10
         .build();
     
@@ -63,7 +65,8 @@ public class PaginationTypeDetectionTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectUsers")
         .rowBounds(new RowBounds(0, 10))
         .build();
     
@@ -94,7 +97,8 @@ public class PaginationTypeDetectionTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectPage")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectPage")
         .params(params)
         .build();
     
@@ -120,7 +124,8 @@ public class PaginationTypeDetectionTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectUsers")
         .build();
     
     PaginationPluginDetector detector = new PaginationPluginDetector(null, null);
@@ -142,7 +147,8 @@ public class PaginationTypeDetectionTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectById")
         .build();
     
     PaginationPluginDetector detector = new PaginationPluginDetector(null, null);
@@ -164,7 +170,8 @@ public class PaginationTypeDetectionTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectUsers")
         .rowBounds(RowBounds.DEFAULT)  // DEFAULT = infinite bounds, not pagination
         .build();
     
@@ -187,7 +194,8 @@ public class PaginationTypeDetectionTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectUsers")
         .build();
     
     PaginationPluginDetector detector = new PaginationPluginDetector(null, null);
@@ -213,7 +221,8 @@ public class PaginationTypeDetectionTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectPage")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectPage")
         .params(params)
         .build();
     
@@ -298,6 +307,7 @@ public class PaginationTypeDetectionTest {
     // Class name doesn't contain "PaginationInnerInterceptor"
   }
 }
+
 
 
 

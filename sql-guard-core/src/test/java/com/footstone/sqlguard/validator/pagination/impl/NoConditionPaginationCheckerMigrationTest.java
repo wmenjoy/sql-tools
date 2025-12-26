@@ -3,6 +3,7 @@ package com.footstone.sqlguard.validator.pagination.impl;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import com.footstone.sqlguard.validator.pagination.PaginationPluginDetector;
 import com.footstone.sqlguard.validator.pagination.PaginationType;
@@ -67,8 +68,9 @@ public class NoConditionPaginationCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.noWhere")
+                    .statementId("test.noWhere")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -95,8 +97,9 @@ public class NoConditionPaginationCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.dummyWhere")
+                    .statementId("test.dummyWhere")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -121,8 +124,9 @@ public class NoConditionPaginationCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.validWhere")
+                    .statementId("test.validWhere")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -151,8 +155,9 @@ public class NoConditionPaginationCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.logical")
+                    .statementId("test.logical")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -176,8 +181,9 @@ public class NoConditionPaginationCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.none")
+                    .statementId("test.none")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -209,8 +215,9 @@ public class NoConditionPaginationCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.disabled")
+                    .statementId("test.disabled")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -246,6 +253,7 @@ public class NoConditionPaginationCheckerMigrationTest {
         }
     }
 }
+
 
 
 

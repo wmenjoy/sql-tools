@@ -44,13 +44,6 @@
             <optional>true</optional>
         </dependency>
 
-        <dependency>
-            <groupId>com.footstone</groupId>
-            <artifactId>sql-guard-jdbc</artifactId>
-            <version>${project.version}</version>
-            <optional>true</optional>
-        </dependency>
-
         <!-- MyBatis (optional - for pagination plugin detection) -->
         <dependency>
             <groupId>org.mybatis</groupId>

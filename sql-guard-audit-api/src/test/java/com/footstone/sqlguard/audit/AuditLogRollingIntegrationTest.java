@@ -5,6 +5,7 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy;
 import com.footstone.sqlguard.core.model.SqlCommandType;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -192,7 +193,8 @@ class AuditLogRollingIntegrationTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("SELECT * FROM rolling_test WHERE id = 12345")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("RollingTestMapper.select")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("RollingTestMapper.select")
                 .datasource("test")
                 .timestamp(Instant.now())
                 .executionTimeMs(100L)
@@ -280,7 +282,8 @@ class AuditLogRollingIntegrationTest {
         return AuditEvent.builder()
                 .sql(sql)
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("TestMapper.select")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("TestMapper.select")
                 .datasource("test")
                 .timestamp(Instant.now())
                 .executionTimeMs(10L)

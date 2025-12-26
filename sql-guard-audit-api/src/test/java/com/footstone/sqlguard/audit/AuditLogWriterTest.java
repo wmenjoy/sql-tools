@@ -1,6 +1,7 @@
 package com.footstone.sqlguard.audit;
 
 import com.footstone.sqlguard.core.model.SqlCommandType;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -29,7 +30,8 @@ class AuditLogWriterTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("SELECT * FROM users WHERE id = ?")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("com.example.UserMapper.selectById")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("com.example.UserMapper.selectById")
                 .datasource("primary")
                 .timestamp(Instant.now())
                 .executionTimeMs(150L)
@@ -50,7 +52,8 @@ class AuditLogWriterTest {
         assertThrows(IllegalArgumentException.class, () -> {
             AuditEvent.builder()
                     .sqlType(SqlCommandType.SELECT)
-                    .mapperId("com.example.UserMapper.selectById")
+                    .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("com.example.UserMapper.selectById")
                     .timestamp(Instant.now())
                     .build();
         });
@@ -59,7 +62,8 @@ class AuditLogWriterTest {
         assertThrows(IllegalArgumentException.class, () -> {
             AuditEvent.builder()
                     .sql("SELECT * FROM users")
-                    .mapperId("com.example.UserMapper.selectById")
+                    .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("com.example.UserMapper.selectById")
                     .timestamp(Instant.now())
                     .build();
         });
@@ -78,7 +82,8 @@ class AuditLogWriterTest {
             AuditEvent.builder()
                     .sql("SELECT * FROM users")
                     .sqlType(SqlCommandType.SELECT)
-                    .mapperId("com.example.UserMapper.selectById")
+                    .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("com.example.UserMapper.selectById")
                     .build();
         });
     }
@@ -108,7 +113,7 @@ class AuditLogWriterTest {
             if (event.getSqlType() == null) {
                 throw new IllegalArgumentException("sqlType field is required");
             }
-            if (event.getMapperId() == null) {
+            if (event.getStatementId() == null) {
                 throw new IllegalArgumentException("mapperId field is required");
             }
             if (event.getTimestamp() == null) {
@@ -122,6 +127,7 @@ class AuditLogWriterTest {
         }
     }
 }
+
 
 
 

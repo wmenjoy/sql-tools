@@ -1,0 +1,77 @@
+# ============================================================================
+# SQL Audit Service - MySQL Docker Compose配置
+# ============================================================================
+# 用于在远程主机(192.168.220.202)上启动MySQL数据库
+#
+# 使用方法:
+# 1. 将此文件复制到远程主机: scp docker-compose-mysql.yml user@192.168.220.202:/opt/sql-audit/
+# 2. SSH到远程主机: ssh user@192.168.220.202
+# 3. 启动MySQL: cd /opt/sql-audit && docker-compose -f docker-compose-mysql.yml up -d
+# 4. 查看日志: docker-compose -f docker-compose-mysql.yml logs -f
+# 5. 停止服务: docker-compose -f docker-compose-mysql.yml down
+# ============================================================================
+
+version: '3.8'
+
+services:
+  # MySQL数据库服务
+  mysql:
+    image: mysql:8.0
+    container_name: sql-audit-mysql
+    restart: always
+
+    # 环境变量配置
+    environment:
+      # 根用户密码
+      MYSQL_ROOT_PASSWORD: root123
+      # 创建数据库
+      MYSQL_DATABASE: sql_audit_service
+      # MySQL字符集
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+      # 时区
+      TZ: Asia/Shanghai
+
+    # 端口映射 - 映射到宿主机3307端口(避免与本地MySQL冲突)
+    ports:
+      - "3307:3306"
+
+    # 数据卷挂载
+    volumes:
+      # 数据持久化 - 将MySQL数据目录挂载到当前目录
+      - ./mysql-data:/var/lib/mysql
+      # 初始化SQL脚本
+      - ./mysql-init.sql:/docker-entrypoint-initdb.d/01-init.sql
+
+    # MySQL配置参数
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+      - --max_connections=1000
+      - --max_allowed_packet=256M
+      # InnoDB配置 - 提升性能
+      - --innodb_buffer_pool_size=1G
+      - --innodb_log_file_size=256M
+      - --innodb_flush_log_at_trx_commit=2
+      - --innodb_flush_method=O_DIRECT
+      # 慢查询日志
+      - --slow_query_log=1
+      - --slow_query_log_file=/var/lib/mysql/slow.log
+      - --long_query_time=2
+
+    # 健康检查
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+    # 网络配置
+    networks:
+      - sql-audit-network
+
+networks:
+  sql-audit-network:
+    driver: bridge

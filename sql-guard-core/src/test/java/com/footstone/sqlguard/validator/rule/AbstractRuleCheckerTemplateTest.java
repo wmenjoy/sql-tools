@@ -3,6 +3,7 @@ package com.footstone.sqlguard.validator.rule;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -77,8 +78,9 @@ public class AbstractRuleCheckerTemplateTest {
             Statement stmt = CCJSqlParserUtil.parse("SELECT * FROM users");
             SqlContext context = SqlContext.builder()
                     .sql("SELECT * FROM users")
-                    .mapperId("test.select")
+                    .statementId("test.select")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -110,8 +112,9 @@ public class AbstractRuleCheckerTemplateTest {
             Statement stmt = CCJSqlParserUtil.parse("UPDATE users SET name = 'foo'");
             SqlContext context = SqlContext.builder()
                     .sql("UPDATE users SET name = 'foo'")
-                    .mapperId("test.update")
+                    .statementId("test.update")
                     .type(SqlCommandType.UPDATE)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -141,8 +144,9 @@ public class AbstractRuleCheckerTemplateTest {
             Statement stmt = CCJSqlParserUtil.parse("DELETE FROM users");
             SqlContext context = SqlContext.builder()
                     .sql("DELETE FROM users")
-                    .mapperId("test.delete")
+                    .statementId("test.delete")
                     .type(SqlCommandType.DELETE)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -172,8 +176,9 @@ public class AbstractRuleCheckerTemplateTest {
             Statement stmt = CCJSqlParserUtil.parse("INSERT INTO users VALUES (1, 'foo')");
             SqlContext context = SqlContext.builder()
                     .sql("INSERT INTO users VALUES (1, 'foo')")
-                    .mapperId("test.insert")
+                    .statementId("test.insert")
                     .type(SqlCommandType.INSERT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -225,8 +230,9 @@ public class AbstractRuleCheckerTemplateTest {
                 Statement stmt = statements[i];
                 SqlContext context = SqlContext.builder()
                         .sql(stmt.toString())
-                        .mapperId(mapperIds[i])
+                        .statementId(mapperIds[i])
                         .type(types[i])
+                        .executionLayer(ExecutionLayer.MYBATIS)
                         .statement(stmt)
                         .build();
 
@@ -295,8 +301,9 @@ public class AbstractRuleCheckerTemplateTest {
             Statement stmt = CCJSqlParserUtil.parse("SELECT * FROM users");
             SqlContext context = SqlContext.builder()
                     .sql("SELECT * FROM users")
-                    .mapperId("test.select")
+                    .statementId("test.select")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -332,8 +339,9 @@ public class AbstractRuleCheckerTemplateTest {
             Statement stmt = CCJSqlParserUtil.parse("UPDATE users SET name = 'foo'");
             SqlContext context = SqlContext.builder()
                     .sql("UPDATE users SET name = 'foo'")
-                    .mapperId("test.update")
+                    .statementId("test.update")
                     .type(SqlCommandType.UPDATE)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -365,8 +373,9 @@ public class AbstractRuleCheckerTemplateTest {
             Statement stmt = CCJSqlParserUtil.parse("DELETE FROM users");
             SqlContext context = SqlContext.builder()
                     .sql("DELETE FROM users")
-                    .mapperId("test.delete")
+                    .statementId("test.delete")
                     .type(SqlCommandType.DELETE)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -412,8 +421,9 @@ public class AbstractRuleCheckerTemplateTest {
             Statement stmt = CCJSqlParserUtil.parse("SELECT * FROM users");
             SqlContext context = SqlContext.builder()
                     .sql("SELECT * FROM users")
-                    .mapperId("test.select")
+                    .statementId("test.select")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -452,8 +462,9 @@ public class AbstractRuleCheckerTemplateTest {
             Statement stmt = CCJSqlParserUtil.parse("SELECT * FROM users");
             SqlContext context = SqlContext.builder()
                     .sql("SELECT * FROM users")
-                    .mapperId("test.select")
+                    .statementId("test.select")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 

@@ -1,5 +1,6 @@
 package com.footstone.sqlguard.validator;
 
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.SqlContext;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import com.footstone.sqlguard.parser.JSqlParserFacade;
@@ -161,7 +162,8 @@ public class DefaultSqlSafetyValidator implements SqlSafetyValidator {
             .sql(context.getSql())
             .statement(stmt)
             .type(context.getType())
-            .mapperId(context.getMapperId())
+            .executionLayer(context.getExecutionLayer())
+            .statementId(context.getStatementId())
             .params(context.getParams())
             .datasource(context.getDatasource())
             .rowBounds(context.getRowBounds())

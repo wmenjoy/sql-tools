@@ -1,6 +1,8 @@
 package com.footstone.sqlguard.scanner;
 
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.SqlContext;
+import com.footstone.sqlguard.core.model.ValidationResult;
 import com.footstone.sqlguard.core.model.ViolationInfo;
 import com.footstone.sqlguard.scanner.model.ScanContext;
 import com.footstone.sqlguard.scanner.model.ScanReport;
@@ -193,14 +195,16 @@ public class SqlScanner {
       logger.error("Failed to scan for wrapper usage: {}", e.getMessage());
     }
 
+    // Perform SQL safety validation if validator is available
+    if (validator != null) {
+      performValidation(report.getEntries());
+    }
+
     // Perform semantic analysis if service is available
     if (semanticAnalysisService != null) {
       performSemanticAnalysis(report.getEntries(), context.getProjectPath());
     }
 
-    // XML-level validation has already been performed in XmlMapperParser
-    // No need for additional SQL-level validation
-    
     // Calculate statistics
     report.calculateStatistics();
 
@@ -208,6 +212,46 @@ public class SqlScanner {
         report.getEntries().size(), report.getWrapperUsages().size());
 
     return report;
+  }
+
+  /**
+   * Performs SQL safety validation on all SQL entries using the configured validator.
+   *
+   * <p>This method creates a SqlContext for each entry and invokes the validator,
+   * adding any detected violations to the corresponding SqlEntry.</p>
+   *
+   * @param entries the list of SQL entries to validate
+   */
+  private void performValidation(List<SqlEntry> entries) {
+    if (entries == null || entries.isEmpty()) {
+      return;
+    }
+
+    logger.info("Performing SQL safety validation for {} entries", entries.size());
+
+    int totalViolationsFound = 0;
+    for (SqlEntry entry : entries) {
+      try {
+        SqlContext context = SqlContext.builder()
+            .sql(entry.getRawSql())
+            .type(entry.getSqlType())
+            .executionLayer(ExecutionLayer.MYBATIS)
+            .statementId(entry.getStatementId())
+            .build();
+
+        ValidationResult result = validator.validate(context);
+        if (!result.isPassed()) {
+          for (ViolationInfo violation : result.getViolations()) {
+            entry.addViolation(violation);
+            totalViolationsFound++;
+          }
+        }
+      } catch (Exception e) {
+        logger.warn("Failed to validate SQL entry {}: {}", entry.getStatementId(), e.getMessage());
+      }
+    }
+
+    logger.info("SQL safety validation completed. Total violations found: {}", totalViolationsFound);
   }
 
   /**
@@ -257,7 +301,7 @@ public class SqlScanner {
             
             // Add Java method signatures to entries
             for (SqlEntry entry : fileEntries) {
-              String methodId = entry.getMapperId().substring(entry.getMapperId().lastIndexOf('.') + 1);
+              String methodId = entry.getStatementId().substring(entry.getStatementId().lastIndexOf('.') + 1);
               for (com.footstone.sqlguard.scanner.mybatis.model.MethodInfo method : interfaceInfo.getMethods()) {
                 if (method.getName().equals(methodId)) {
                   // Build full signature with return type and parameters
@@ -281,10 +325,10 @@ public class SqlScanner {
 
         // Convert risks to violations and add to entries
         for (SqlEntry entry : fileEntries) {
-          List<SecurityRisk> entryRisks = risks.get(entry.getMapperId());
+          List<SecurityRisk> entryRisks = risks.get(entry.getStatementId());
           if (entryRisks != null && !entryRisks.isEmpty()) {
             for (SecurityRisk risk : entryRisks) {
-              ViolationInfo violation = SecurityRiskConverter.toViolationInfo(risk, entry.getMapperId());
+              ViolationInfo violation = SecurityRiskConverter.toViolationInfo(risk, entry.getStatementId());
               entry.addViolation(violation);
               totalRisksFound++;
             }
@@ -320,7 +364,7 @@ public class SqlScanner {
     }
 
     // Extract namespace from mapper ID (e.g., "com.example.UserMapper.selectUsers" -> "com.example.UserMapper")
-    String mapperId = entries.get(0).getMapperId();
+    String mapperId = entries.get(0).getStatementId();
     int lastDot = mapperId.lastIndexOf('.');
     if (lastDot < 0) {
       return null;

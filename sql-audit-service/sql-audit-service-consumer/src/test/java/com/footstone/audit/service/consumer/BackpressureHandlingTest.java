@@ -1,5 +1,6 @@
 package com.footstone.audit.service.consumer;
 
+import com.footstone.audit.service.consumer.config.KafkaConsumerProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,10 +23,19 @@ class BackpressureHandlingTest {
     private MessageListenerContainer container;
 
     private BackpressureHandler backpressureHandler;
+    private KafkaConsumerProperties properties;
 
     @BeforeEach
     void setUp() {
-        backpressureHandler = new BackpressureHandler(registry);
+        // 创建配置属性
+        properties = new KafkaConsumerProperties();
+        properties.getBackpressure().setEnabled(true);
+        properties.getBackpressure().setLatencyThresholdMs(200);
+        properties.getBackpressure().setFailureThreshold(5);
+        properties.getBackpressure().setCheckIntervalMs(5000);
+
+        backpressureHandler = new BackpressureHandler(registry, properties);
+
         // Mock registry to return our container
         lenient().when(registry.getListenerContainer(anyString())).thenReturn(container);
         lenient().when(registry.getAllListenerContainers()).thenReturn(Collections.singletonList(container));

@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: sql-audit-service-test
+
+  # 数据库配置
+  datasource:
+    url: jdbc:mysql://192.168.220.202:3307/sql_audit_service?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: root123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # JPA配置
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  # 禁用Flyway
+  flyway:
+    enabled: false
+
+  # Kafka配置
+  kafka:
+    bootstrap-servers: 192.168.126.18:9092
+    consumer:
+      group-id: audit-service-test
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+# 审计配置
+audit:
+  kafka:
+    topic: sql-audit-events
+    consumer:
+      virtual-thread:
+        enabled: true
+        concurrency: 1
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.footstone.audit.service: DEBUG
+    org.springframework.kafka: DEBUG

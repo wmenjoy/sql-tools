@@ -25,15 +25,15 @@ public class SecurityRiskConverterTest {
             SqlPosition.ORDER_BY,
             "String"
         );
-        String mapperId = "com.example.UserMapper.selectUsers";
+        String statementId = "com.example.UserMapper.selectUsers";
 
         // Act
-        ViolationInfo violation = SecurityRiskConverter.toViolationInfo(risk, mapperId);
+        ViolationInfo violation = SecurityRiskConverter.toViolationInfo(risk, statementId);
 
         // Assert
         assertNotNull(violation);
         assertEquals(com.footstone.sqlguard.core.model.RiskLevel.CRITICAL, violation.getRiskLevel());
-        assertTrue(violation.getMessage().contains(mapperId));
+        assertTrue(violation.getMessage().contains(statementId));
         assertTrue(violation.getMessage().contains("sortColumn"));
         assertTrue(violation.getMessage().contains("ORDER_BY"));
         assertEquals("Use whitelist validation or enum", violation.getSuggestion());
@@ -41,37 +41,37 @@ public class SecurityRiskConverterTest {
 
     @Test
     public void testAllRiskLevels() {
-        String mapperId = "com.example.UserMapper.selectUsers";
+        String statementId = "com.example.UserMapper.selectUsers";
 
         // Test CRITICAL
         SecurityRisk critical = new SecurityRisk("param", RiskLevel.CRITICAL, "msg", "rec", SqlPosition.WHERE, "String");
-        ViolationInfo criticalViolation = SecurityRiskConverter.toViolationInfo(critical, mapperId);
+        ViolationInfo criticalViolation = SecurityRiskConverter.toViolationInfo(critical, statementId);
         assertEquals(com.footstone.sqlguard.core.model.RiskLevel.CRITICAL, criticalViolation.getRiskLevel());
 
         // Test HIGH
         SecurityRisk high = new SecurityRisk("param", RiskLevel.HIGH, "msg", "rec", SqlPosition.WHERE, "String");
-        ViolationInfo highViolation = SecurityRiskConverter.toViolationInfo(high, mapperId);
+        ViolationInfo highViolation = SecurityRiskConverter.toViolationInfo(high, statementId);
         assertEquals(com.footstone.sqlguard.core.model.RiskLevel.HIGH, highViolation.getRiskLevel());
 
         // Test MEDIUM
         SecurityRisk medium = new SecurityRisk("param", RiskLevel.MEDIUM, "msg", "rec", SqlPosition.WHERE, "String");
-        ViolationInfo mediumViolation = SecurityRiskConverter.toViolationInfo(medium, mapperId);
+        ViolationInfo mediumViolation = SecurityRiskConverter.toViolationInfo(medium, statementId);
         assertEquals(com.footstone.sqlguard.core.model.RiskLevel.MEDIUM, mediumViolation.getRiskLevel());
 
         // Test LOW
         SecurityRisk low = new SecurityRisk("param", RiskLevel.LOW, "msg", "rec", SqlPosition.WHERE, "String");
-        ViolationInfo lowViolation = SecurityRiskConverter.toViolationInfo(low, mapperId);
+        ViolationInfo lowViolation = SecurityRiskConverter.toViolationInfo(low, statementId);
         assertEquals(com.footstone.sqlguard.core.model.RiskLevel.LOW, lowViolation.getRiskLevel());
 
         // Test INFO (maps to LOW)
         SecurityRisk info = new SecurityRisk("param", RiskLevel.INFO, "msg", "rec", SqlPosition.WHERE, "String");
-        ViolationInfo infoViolation = SecurityRiskConverter.toViolationInfo(info, mapperId);
+        ViolationInfo infoViolation = SecurityRiskConverter.toViolationInfo(info, statementId);
         assertEquals(com.footstone.sqlguard.core.model.RiskLevel.LOW, infoViolation.getRiskLevel());
     }
 
     @Test
     public void testMessageFormatting() {
-        String mapperId = "com.example.UserMapper.selectUsers";
+        String statementId = "com.example.UserMapper.selectUsers";
 
         SecurityRisk risk = new SecurityRisk(
             "sortColumn",
@@ -82,7 +82,7 @@ public class SecurityRiskConverterTest {
             "String"
         );
 
-        ViolationInfo violation = SecurityRiskConverter.toViolationInfo(risk, mapperId);
+        ViolationInfo violation = SecurityRiskConverter.toViolationInfo(risk, statementId);
 
         // Message should contain all context
         String message = violation.getMessage();
@@ -95,7 +95,7 @@ public class SecurityRiskConverterTest {
 
     @Test
     public void testMessageWithoutParameterType() {
-        String mapperId = "com.example.UserMapper.selectUsers";
+        String statementId = "com.example.UserMapper.selectUsers";
 
         SecurityRisk risk = new SecurityRisk(
             "id",
@@ -106,7 +106,7 @@ public class SecurityRiskConverterTest {
             null  // No parameter type
         );
 
-        ViolationInfo violation = SecurityRiskConverter.toViolationInfo(risk, mapperId);
+        ViolationInfo violation = SecurityRiskConverter.toViolationInfo(risk, statementId);
 
         // Should still format correctly
         assertTrue(violation.getMessage().contains("id"));
@@ -115,7 +115,7 @@ public class SecurityRiskConverterTest {
 
     @Test
     public void testMessageWithoutParameterName() {
-        String mapperId = "com.example.UserMapper.selectUsers";
+        String statementId = "com.example.UserMapper.selectUsers";
 
         SecurityRisk risk = new SecurityRisk(
             null,  // No parameter name
@@ -126,16 +126,16 @@ public class SecurityRiskConverterTest {
             null
         );
 
-        ViolationInfo violation = SecurityRiskConverter.toViolationInfo(risk, mapperId);
+        ViolationInfo violation = SecurityRiskConverter.toViolationInfo(risk, statementId);
 
         // Should still contain mapper ID and message
-        assertTrue(violation.getMessage().contains(mapperId));
+        assertTrue(violation.getMessage().contains(statementId));
         assertTrue(violation.getMessage().contains("General message"));
     }
 
     @Test
     public void testAllSqlPositions() {
-        String mapperId = "com.example.UserMapper.selectUsers";
+        String statementId = "com.example.UserMapper.selectUsers";
 
         for (SqlPosition position : SqlPosition.values()) {
             SecurityRisk risk = new SecurityRisk(
@@ -147,7 +147,7 @@ public class SecurityRiskConverterTest {
                 "String"
             );
 
-            ViolationInfo violation = SecurityRiskConverter.toViolationInfo(risk, mapperId);
+            ViolationInfo violation = SecurityRiskConverter.toViolationInfo(risk, statementId);
 
             // Should contain position in message
             assertTrue(violation.getMessage().contains(position.toString()));
@@ -156,10 +156,10 @@ public class SecurityRiskConverterTest {
 
     @Test
     public void testNullRiskThrowsException() {
-        String mapperId = "com.example.UserMapper.selectUsers";
+        String statementId = "com.example.UserMapper.selectUsers";
 
         assertThrows(IllegalArgumentException.class, () -> {
-            SecurityRiskConverter.toViolationInfo(null, mapperId);
+            SecurityRiskConverter.toViolationInfo(null, statementId);
         });
     }
 

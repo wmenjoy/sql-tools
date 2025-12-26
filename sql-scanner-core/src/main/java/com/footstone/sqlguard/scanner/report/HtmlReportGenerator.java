@@ -265,7 +265,7 @@ public class HtmlReportGenerator {
     html.append("</td>\n");
 
     // Mapper ID
-    html.append("                    <td>").append(escapeHtml(entry.getMapperId())).append("</td>\n");
+    html.append("                    <td>").append(escapeHtml(entry.getStatementId())).append("</td>\n");
 
     // Message
     html.append("                    <td>").append(escapeHtml(entry.getMessage())).append("</td>\n");

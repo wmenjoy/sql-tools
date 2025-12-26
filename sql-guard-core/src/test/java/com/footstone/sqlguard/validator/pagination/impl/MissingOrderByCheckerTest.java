@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
@@ -45,7 +46,8 @@ class MissingOrderByCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectWithoutOrderBy")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectWithoutOrderBy")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -66,7 +68,8 @@ class MissingOrderByCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectWithOrderBy")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectWithOrderBy")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -86,7 +89,8 @@ class MissingOrderByCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectSingleOrderBy")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectSingleOrderBy")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -104,7 +108,8 @@ class MissingOrderByCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectMultipleOrderBy")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectMultipleOrderBy")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -124,7 +129,8 @@ class MissingOrderByCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectOrderByExpression")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectOrderByExpression")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -144,7 +150,8 @@ class MissingOrderByCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectWithRowBounds")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectWithRowBounds")
         .rowBounds(new RowBounds(0, 10))
         .build();
     ValidationResult result = ValidationResult.pass();
@@ -163,7 +170,8 @@ class MissingOrderByCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectById")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -185,7 +193,8 @@ class MissingOrderByCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectWithoutOrderBy")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectWithoutOrderBy")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -207,7 +216,8 @@ class MissingOrderByCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectWithoutOrderBy")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectWithoutOrderBy")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -228,7 +238,8 @@ class MissingOrderByCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectWithoutOrderBy")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectWithoutOrderBy")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -251,7 +262,8 @@ class MissingOrderByCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectOffsetWithOrderBy")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectOffsetWithOrderBy")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -269,7 +281,8 @@ class MissingOrderByCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectOffsetWithoutOrderBy")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectOffsetWithoutOrderBy")
         .build();
     ValidationResult result = ValidationResult.pass();
 

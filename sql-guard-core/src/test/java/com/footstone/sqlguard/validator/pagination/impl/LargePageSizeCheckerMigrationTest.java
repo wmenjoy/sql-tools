@@ -1,5 +1,6 @@
 package com.footstone.sqlguard.validator.pagination.impl;
 
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
@@ -67,8 +68,9 @@ public class LargePageSizeCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.largePageSize")
+                    .statementId("test.largePageSize")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -94,8 +96,9 @@ public class LargePageSizeCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.normalPageSize")
+                    .statementId("test.normalPageSize")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -119,8 +122,9 @@ public class LargePageSizeCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.boundaryPageSize")
+                    .statementId("test.boundaryPageSize")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -149,8 +153,9 @@ public class LargePageSizeCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.logical")
+                    .statementId("test.logical")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -174,8 +179,9 @@ public class LargePageSizeCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.none")
+                    .statementId("test.none")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -207,8 +213,9 @@ public class LargePageSizeCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.disabled")
+                    .statementId("test.disabled")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 

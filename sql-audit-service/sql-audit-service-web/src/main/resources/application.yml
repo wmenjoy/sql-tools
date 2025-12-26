@@ -4,12 +4,121 @@ spring:
   threads:
     virtual:
       enabled: true
+
+  # ============================================================================
+  # 数据库配置 - MySQL
+  # ============================================================================
+  datasource:
+    # MySQL连接URL - Docker在192.168.220.202上，端口3307
+    url: jdbc:mysql://192.168.220.202:3307/sql_audit_service?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: root123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    # HikariCP连接池配置
+    hikari:
+      # 最小空闲连接数
+      minimum-idle: 5
+      # 最大连接池大小
+      maximum-pool-size: 20
+      # 连接超时时间(毫秒)
+      connection-timeout: 30000
+      # 空闲连接最大存活时间(毫秒) - 10分钟
+      idle-timeout: 600000
+      # 连接最大存活时间(毫秒) - 30分钟
+      max-lifetime: 1800000
+      # 连接测试查询
+      connection-test-query: SELECT 1
+
+  # ============================================================================
+  # JPA/Hibernate配置
+  # ============================================================================
+  jpa:
+    # Hibernate DDL模式 - update会自动创建/更新表结构
+    hibernate:
+      ddl-auto: update
+    # 显示SQL语句(开发环境使用，生产环境应设为false)
+    show-sql: false
+    # 格式化SQL输出
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+  # 禁用Flyway（使用Hibernate DDL自动创建表）
+  flyway:
+    enabled: false
+
+  # ============================================================================
+  # Kafka配置
+  # ============================================================================
+  kafka:
+    # Kafka集群地址
+    bootstrap-servers: 192.168.126.18:9092
+
+    # 消费者配置
+    consumer:
+      # 消费者组ID
+      group-id: audit-service
+      # 自动提交偏移量(关闭，改用手动确认)
+      enable-auto-commit: false
+      # 自动提交间隔
+      auto-commit-interval: 100
+      # 反序列化器 - Key
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # 反序列化器 - Value
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # 消费起始位置 - earliest表示从最早的消息开始消费
+      auto-offset-reset: earliest
+      # 单次拉取最大记录数
+      max-poll-records: 500
+      # 拉取超时时间(毫秒)
+      fetch-max-wait: 500
+      # 心跳间隔(毫秒)
+      heartbeat-interval: 3000
+      # 会话超时时间(毫秒)
+      session-timeout: 30000
+      # 拉取间隔(毫秒)
+      max-poll-interval: 300000
+
+    # 生产者配置(用于DLQ)
+    producer:
+      # 序列化器 - Key
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # 序列化器 - Value
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # 应答级别 - all表示等待所有副本确认
+      acks: all
+      # 重试次数
+      retries: 3
+      # 批量发送大小(字节)
+      batch-size: 16384
+      # 批量发送延迟(毫秒)
+      linger-ms: 1
+      # 缓冲区大小(字节)
+      buffer-memory: 33554432
+
+    # 监听器配置
+    listener:
+      # 确认模式 - MANUAL表示手动确认
+      ack-mode: MANUAL
+      # 并发数
+      concurrency: 1
+      # 轮询超时时间(毫秒)
+      poll-timeout: 3000
+
+  # ============================================================================
+  # 分页配置
+  # ============================================================================
   data:
     web:
       pageable:
         default-page-size: 20
         max-page-size: 100
 
+# ============================================================================
+# SpringDoc/Swagger配置
+# ============================================================================
 springdoc:
   api-docs:
     path: /api-docs
@@ -17,40 +126,228 @@ springdoc:
     path: /swagger-ui.html
     operations-sorter: method
 
+# ============================================================================
+# Actuator监控配置
+# ============================================================================
 management:
   endpoints:
     web:
       exposure:
-        include: health,prometheus,info
+        # 暴露的端点: health, prometheus, info, metrics
+        include: health,prometheus,info,metrics
   endpoint:
     health:
       show-details: always
     prometheus:
       enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
 
+# ============================================================================
+# 环境标识
+# ============================================================================
 environment:
-  name: default
+  name: dev
+
+# ============================================================================
+# SQL审计服务核心配置
+# ============================================================================
+audit:
+  # --------------------------------------------------------------------------
+  # Kafka消费者配置
+  # 用于从Kafka消费SQL审计事件，并进行安全检查和存储
+  # --------------------------------------------------------------------------
+  kafka:
+    # Kafka主题名称，用于接收SQL审计事件
+    topic: sql-audit-events
+
+    consumer:
+      # 消费者组ID，同一组内的消费者会分担消息消费负载
+      group-id: audit-service
+
+      # 死信队列(DLQ)主题名称
+      # 当消息处理失败且重试次数超过限制后，消息将被发送到此主题
+      dlq-topic: sql-audit-events-dlq
+
+      # 错误处理器配置
+      error-handler:
+        # 重试初始间隔时间(毫秒)，第一次重试前的等待时间
+        retry-initial-interval: 1000
+
+        # 重试间隔倍数(指数退避)
+        # 每次重试后，等待时间会乘以此倍数
+        # 例如: initialInterval=1000, multiplier=2.0, 则重试间隔为: 1s, 2s, 4s, 8s...
+        retry-multiplier: 2.0
+
+        # 最大重试次数，超过此次数后，消息将被发送到DLQ
+        max-attempts: 3
+
+      # 背压控制配置
+      # 用于在系统负载过高时自动暂停消费，避免系统崩溃
+      backpressure:
+        # 是否启用背压控制
+        enabled: true
+
+        # 延迟阈值(毫秒)
+        # 当消息处理延迟超过此阈值时，会触发背压机制暂停消费
+        # 建议值: 对于实时系统设为100-200ms，对于批处理系统可设为500-1000ms
+        latency-threshold-ms: 200
+
+        # 失败次数阈值
+        # 当连续失败次数超过此阈值时，会触发背压机制暂停消费
+        # 建议值: 3-10次，取决于业务容错能力
+        failure-threshold: 5
+
+        # 背压检查间隔(毫秒)
+        # 定期检查系统状态，决定是否需要暂停/恢复消费
+        check-interval-ms: 5000
+
+      # 虚拟线程配置
+      # 启用虚拟线程可以提高并发处理能力，降低线程切换开销
+      virtual-thread:
+        # 是否启用虚拟线程(需要JDK 21+)
+        enabled: true
+
+        # 虚拟线程名称前缀，用于日志和监控中识别线程来源
+        name-prefix: kafka-virtual-
+
+        # 并发消费者数量
+        # Kafka监听器容器的并发数，每个并发实例会处理不同的分区
+        # 建议值: 与Kafka主题分区数相同或略小
+        concurrency: 1
+
+  # --------------------------------------------------------------------------
+  # 审计引擎配置
+  # --------------------------------------------------------------------------
+  engine:
+    # 检查器超时时间(毫秒)
+    # 单个检查器执行超过此时间会被中断
+    checker-timeout-ms: 5000
+
+    # 白名单规则(正则表达式列表)
+    # 匹配这些规则的SQL会跳过安全检查
+    whitelist-rules: []
+
+  # --------------------------------------------------------------------------
+  # 存储配置
+  # --------------------------------------------------------------------------
+  storage:
+    # 存储模式选择
+    # - mysql-es: MySQL(元数据) + Elasticsearch(时序日志) [推荐]
+    # - mysql-only: 仅MySQL (本配置使用此模式)
+    # - postgresql-only: 仅PostgreSQL
+    # - full: PostgreSQL + ClickHouse (大规模场景)
+    # - elasticsearch: 仅Elasticsearch
+    mode: mysql-only
+
+    # Elasticsearch配置(当mode包含es或elasticsearch时生效)
+    elasticsearch:
+      # Elasticsearch集群地址，多个地址用逗号分隔
+      hosts: localhost:9200
+
+      # 认证用户名(可选)
+      username: ""
+
+      # 认证密码(可选)
+      password: ""
+
+      # 是否启用SSL/TLS
+      ssl-enabled: false
+
+      # 连接超时时间(毫秒)
+      connect-timeout: 5000
+
+      # Socket超时时间(毫秒)
+      socket-timeout: 60000
+
+    # ClickHouse配置(当mode为full时生效)
+    clickhouse:
+      # ClickHouse连接URL
+      url: jdbc:clickhouse://localhost:8123/audit
+
+      # 认证用户名
+      username: default
+
+      # 认证密码
+      password: ""
+
+    # 数据保留配置
+    retention:
+      # 是否启用数据保留策略
+      enabled: true
+
+      # 数据保留天数，超过此天数的数据会被自动清理
+      retention-days: 90
+
+      # 数据清理任务执行时间(Cron表达式)
+      # 默认: 每天凌晨2点执行
+      cron: "0 0 2 * * *"
+
+# ============================================================================
+# 日志配置
+# ============================================================================
+logging:
+  level:
+    root: INFO
+    com.footstone.audit.service: DEBUG
+    com.footstone.sqlguard: DEBUG
+    org.springframework.kafka: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
 ---
+# ============================================================================
+# 开发环境配置
+# ============================================================================
 spring:
   config:
     activate:
       on-profile: dev
+
 environment:
   name: dev
 
+logging:
+  level:
+    root: INFO
+    com.footstone: DEBUG
+
 ---
+# ============================================================================
+# 预发环境配置
+# ============================================================================
 spring:
   config:
     activate:
       on-profile: staging
+
 environment:
   name: staging
 
+logging:
+  level:
+    root: INFO
+    com.footstone: INFO
+
 ---
+# ============================================================================
+# 生产环境配置
+# ============================================================================
 spring:
   config:
     activate:
       on-profile: prod
+  # 生产环境关闭SQL日志
+  jpa:
+    show-sql: false
+
 environment:
   name: prod
+
+logging:
+  level:
+    root: WARN
+    com.footstone: INFO
+    org.hibernate.SQL: WARN

@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import com.footstone.sqlguard.parser.JSqlParserFacade;
 import net.sf.jsqlparser.statement.Statement;
@@ -54,7 +55,8 @@ class NoWhereClauseCheckerTest {
         .sql(sql)
         .statement(stmt)  // Use statement() instead of parsedSql()
         .type(SqlCommandType.DELETE)
-        .mapperId("com.example.UserMapper.deleteAll")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.deleteAll")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -77,7 +79,8 @@ class NoWhereClauseCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.UPDATE)
-        .mapperId("com.example.UserMapper.updateAll")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.updateAll")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -102,7 +105,8 @@ class NoWhereClauseCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectAll")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectAll")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -124,7 +128,8 @@ class NoWhereClauseCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectById")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -144,7 +149,8 @@ class NoWhereClauseCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.DELETE)
-        .mapperId("com.example.UserMapper.deleteById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.deleteById")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -164,7 +170,8 @@ class NoWhereClauseCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.UPDATE)
-        .mapperId("com.example.UserMapper.updateById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.updateById")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -184,7 +191,8 @@ class NoWhereClauseCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.INSERT)
-        .mapperId("com.example.UserMapper.insert")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.insert")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -205,7 +213,8 @@ class NoWhereClauseCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.UPDATE)
-        .mapperId("com.example.UserMapper.updateWithDummy")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.updateWithDummy")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -225,7 +234,8 @@ class NoWhereClauseCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.DELETE)
-        .mapperId("com.example.UserMapper.deleteComplex")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.deleteComplex")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -248,7 +258,8 @@ class NoWhereClauseCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.DELETE)
-        .mapperId("com.example.UserMapper.deleteAll")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.deleteAll")
         .build();
     ValidationResult result = ValidationResult.pass();
 

@@ -52,7 +52,7 @@ class MySQLStorageAdapterTest {
                 eq(event.getSqlId()),
                 eq(event.getSql()),
                 eq("SELECT"),
-                eq(event.getMapperId()),
+                eq(event.getStatementId()),
                 eq(event.getDatasource()),
                 eq(event.getExecutionTimeMs()),
                 eq(event.getRowsAffected()),
@@ -160,7 +160,7 @@ class MySQLStorageAdapterTest {
         return AuditEvent.builder()
                 .sql(sql)
                 .sqlType(sqlType)
-                .mapperId("TestMapper.method")
+                .statementId("TestMapper.method")
                 .datasource("testdb")
                 .executionTimeMs(100L)
                 .rowsAffected(1)

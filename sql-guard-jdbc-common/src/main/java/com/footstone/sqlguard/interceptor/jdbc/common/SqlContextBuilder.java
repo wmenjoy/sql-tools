@@ -1,5 +1,6 @@
 package com.footstone.sqlguard.interceptor.jdbc.common;
 
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
 
@@ -43,8 +44,8 @@ import com.footstone.sqlguard.core.model.SqlContext;
  */
 public final class SqlContextBuilder {
 
-    /** Prefix for JDBC mapper IDs */
-    private static final String JDBC_MAPPER_PREFIX = "jdbc";
+    /** Prefix for JDBC statement IDs */
+    private static final String JDBC_STATEMENT_PREFIX = "jdbc";
 
     /**
      * Private constructor to prevent instantiation.
@@ -76,6 +77,9 @@ public final class SqlContextBuilder {
     /**
      * Builds a SqlContext with specified interceptor type.
      *
+     * <p>Generates unique statementId using {@link StatementIdGenerator}
+     * with format: {@code jdbc.{interceptorType}:{datasource}:{sqlHash}}</p>
+     *
      * @param sql the SQL statement
      * @param params prepared statement parameters (may be null or empty)
      * @param datasourceName the datasource name (may be null, defaults to "default")
@@ -83,24 +87,31 @@ public final class SqlContextBuilder {
      * @return constructed SqlContext
      * @throws IllegalArgumentException if sql is null
      */
-    public static SqlContext buildContext(String sql, Object[] params, 
+    public static SqlContext buildContext(String sql, Object[] params,
             String datasourceName, String interceptorType) {
         if (sql == null) {
             throw new IllegalArgumentException("SQL cannot be null");
         }
 
-        String effectiveDatasource = (datasourceName != null && !datasourceName.isEmpty()) 
+        String effectiveDatasource = (datasourceName != null && !datasourceName.isEmpty())
             ? datasourceName : "default";
         String effectiveInterceptorType = (interceptorType != null && !interceptorType.isEmpty())
             ? interceptorType : "jdbc";
 
         SqlCommandType type = detectSqlType(sql);
-        String mapperId = buildMapperId(effectiveInterceptorType, effectiveDatasource);
+
+        // Use StatementIdGenerator for unique statementId
+        String statementId = StatementIdGenerator.generate(
+            effectiveInterceptorType,
+            effectiveDatasource,
+            sql
+        );
 
         return SqlContext.builder()
             .sql(sql)
             .type(type)
-            .mapperId(mapperId)
+            .executionLayer(ExecutionLayer.JDBC)
+            .statementId(statementId)
             .datasource(effectiveDatasource)
             .build();
     }
@@ -131,19 +142,6 @@ public final class SqlContextBuilder {
         } else {
             return SqlCommandType.UNKNOWN;
         }
-    }
-
-    /**
-     * Builds a mapper ID for JDBC interceptors.
-     *
-     * <p>Format: "jdbc.{interceptorType}:{datasource}"</p>
-     *
-     * @param interceptorType the interceptor type (e.g., "druid", "hikari")
-     * @param datasource the datasource name
-     * @return formatted mapper ID
-     */
-    public static String buildMapperId(String interceptorType, String datasource) {
-        return String.format("%s.%s:%s", JDBC_MAPPER_PREFIX, interceptorType, datasource);
     }
 
     /**
@@ -225,6 +223,9 @@ public final class SqlContextBuilder {
         /**
          * Builds the SqlContext.
          *
+         * <p>Uses {@link StatementIdGenerator} to create unique statementId
+         * with format: {@code jdbc.{interceptorType}:{datasource}:{sqlHash}}</p>
+         *
          * @return constructed SqlContext
          * @throws IllegalArgumentException if sql is null
          */
@@ -234,17 +235,21 @@ public final class SqlContextBuilder {
             }
 
             SqlCommandType effectiveType = (type != null) ? type : detectSqlType(sql);
-            String mapperId = buildMapperId(interceptorType, datasource);
+
+            // Use StatementIdGenerator for unique statementId
+            String statementId = StatementIdGenerator.generate(interceptorType, datasource, sql);
 
             return SqlContext.builder()
                 .sql(sql)
                 .type(effectiveType)
-                .mapperId(mapperId)
+                .executionLayer(ExecutionLayer.JDBC)
+                .statementId(statementId)
                 .datasource(datasource)
                 .build();
         }
     }
 }
+
 
 
 

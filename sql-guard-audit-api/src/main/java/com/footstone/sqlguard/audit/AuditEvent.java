@@ -1,7 +1,9 @@
 package com.footstone.sqlguard.audit;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.ValidationResult;
 
@@ -23,12 +25,14 @@ import java.util.Objects;
  * <ul>
  *   <li>{@code sql} - The SQL statement being audited</li>
  *   <li>{@code sqlType} - The SQL command type (SELECT, UPDATE, DELETE, INSERT)</li>
- *   <li>{@code mapperId} - The mapper identifier (e.g., "UserMapper.selectById")</li>
+ *   <li>{@code executionLayer} - The persistence layer (MYBATIS, JDBC, JPA, etc.)</li>
  *   <li>{@code timestamp} - The event timestamp</li>
  * </ul>
  *
  * <p><strong>Optional Fields:</strong></p>
  * <ul>
+ *   <li>{@code statementId} - The statement identifier (e.g., "UserMapper.selectById" for MyBatis,
+ *       "com.example.dao.UserDao.findById:42" for JDBC with stack trace, or null for JDBC without stack trace)</li>
  *   <li>{@code datasource} - The datasource name (nullable)</li>
  *   <li>{@code params} - Parameter bindings (nullable)</li>
  *   <li>{@code executionTimeMs} - Execution time in milliseconds (default: 0)</li>
@@ -41,12 +45,18 @@ import java.util.Objects;
  * <p>The {@code sqlId} field is automatically generated as the MD5 hash of the SQL
  * statement. This enables deduplication and efficient indexing of audit logs.</p>
  *
- * <p><strong>Usage Example:</strong></p>
+ * <p><strong>Execution Layer:</strong></p>
+ * <p>The {@code executionLayer} field identifies the persistence technology stack
+ * (MyBatis, JDBC, JPA, etc.), allowing the audit system to work uniformly across
+ * different frameworks while preserving layer-specific context.</p>
+ *
+ * <p><strong>Usage Example (MyBatis):</strong></p>
  * <pre>{@code
  * AuditEvent event = AuditEvent.builder()
  *     .sql("SELECT * FROM users WHERE id = ?")
  *     .sqlType(SqlCommandType.SELECT)
- *     .mapperId("UserMapper.selectById")
+ *     .executionLayer(ExecutionLayer.MYBATIS)
+ *     .statementId("com.example.UserMapper.selectById")
  *     .datasource("primary")
  *     .timestamp(Instant.now())
  *     .executionTimeMs(150L)
@@ -54,7 +64,20 @@ import java.util.Objects;
  *     .build();
  * }</pre>
  *
+ * <p><strong>Usage Example (JDBC):</strong></p>
+ * <pre>{@code
+ * AuditEvent event = AuditEvent.builder()
+ *     .sql("SELECT COUNT(*) FROM orders")
+ *     .sqlType(SqlCommandType.SELECT)
+ *     .executionLayer(ExecutionLayer.JDBC)
+ *     .statementId(null)  // Optional for JDBC
+ *     .datasource("slave-db")
+ *     .timestamp(Instant.now())
+ *     .build();
+ * }</pre>
+ *
  * @see AuditLogWriter
+ * @see ExecutionLayer
  * @see SqlCommandType
  * @see ValidationResult
  * @since 2.0.0
@@ -77,9 +100,20 @@ public final class AuditEvent {
     private final SqlCommandType sqlType;
 
     /**
-     * The mapper identifier (e.g., "com.example.UserMapper.selectById").
+     * The execution layer/persistence technology (MYBATIS, JDBC, JPA, etc.).
+     * <p>This field is required and identifies which persistence framework executed the SQL.</p>
      */
-    private final String mapperId;
+    private final ExecutionLayer executionLayer;
+
+    /**
+     * The statement identifier (nullable).
+     * <p>For MyBatis: full qualified mapper method (e.g., "com.example.UserMapper.selectById")</p>
+     * <p>For JDBC with stack trace: calling method location (e.g., "com.example.dao.UserDao.findById:42")</p>
+     * <p>For JDBC without stack trace: null</p>
+     */
+    @JsonProperty("statementId")
+    @JsonAlias("mapperId")  // Backward compatibility: read old 'mapperId' field as 'statementId'
+    private final String statementId;
 
     /**
      * The datasource name (nullable).
@@ -122,7 +156,8 @@ public final class AuditEvent {
     private AuditEvent(Builder builder) {
         this.sql = builder.sql;
         this.sqlType = builder.sqlType;
-        this.mapperId = builder.mapperId;
+        this.executionLayer = builder.executionLayer;
+        this.statementId = builder.statementId;
         this.datasource = builder.datasource;
         this.params = builder.params;
         this.executionTimeMs = builder.executionTimeMs;
@@ -135,11 +170,12 @@ public final class AuditEvent {
 
     /**
      * Constructor for Jackson deserialization.
-     * 
+     *
      * @param sqlId the SQL ID (will be regenerated from sql)
      * @param sql the SQL statement
      * @param sqlType the SQL command type
-     * @param mapperId the mapper identifier
+     * @param executionLayer the execution layer (MYBATIS, JDBC, etc.)
+     * @param statementId the statement identifier (nullable)
      * @param datasource the datasource name
      * @param params the parameter bindings
      * @param executionTimeMs the execution time in milliseconds
@@ -153,7 +189,8 @@ public final class AuditEvent {
             @JsonProperty("sqlId") String sqlId,
             @JsonProperty("sql") String sql,
             @JsonProperty("sqlType") SqlCommandType sqlType,
-            @JsonProperty("mapperId") String mapperId,
+            @JsonProperty("executionLayer") ExecutionLayer executionLayer,
+            @JsonProperty("statementId") @JsonAlias("mapperId") String statementId,
             @JsonProperty("datasource") String datasource,
             @JsonProperty("params") Map<String, Object> params,
             @JsonProperty("executionTimeMs") long executionTimeMs,
@@ -163,7 +200,8 @@ public final class AuditEvent {
             @JsonProperty("violations") ValidationResult violations) {
         this.sql = sql;
         this.sqlType = sqlType;
-        this.mapperId = mapperId;
+        this.executionLayer = executionLayer;
+        this.statementId = statementId;
         this.datasource = datasource;
         this.params = params;
         this.executionTimeMs = executionTimeMs;
@@ -222,8 +260,12 @@ public final class AuditEvent {
         return sqlType;
     }
 
-    public String getMapperId() {
-        return mapperId;
+    public ExecutionLayer getExecutionLayer() {
+        return executionLayer;
+    }
+
+    public String getStatementId() {
+        return statementId;
     }
 
     public String getDatasource() {
@@ -264,7 +306,8 @@ public final class AuditEvent {
                 Objects.equals(sqlId, that.sqlId) &&
                 Objects.equals(sql, that.sql) &&
                 sqlType == that.sqlType &&
-                Objects.equals(mapperId, that.mapperId) &&
+                executionLayer == that.executionLayer &&
+                Objects.equals(statementId, that.statementId) &&
                 Objects.equals(datasource, that.datasource) &&
                 Objects.equals(params, that.params) &&
                 Objects.equals(errorMessage, that.errorMessage) &&
@@ -274,7 +317,7 @@ public final class AuditEvent {
 
     @Override
     public int hashCode() {
-        return Objects.hash(sqlId, sql, sqlType, mapperId, datasource, params,
+        return Objects.hash(sqlId, sql, sqlType, executionLayer, statementId, datasource, params,
                 executionTimeMs, rowsAffected, errorMessage, timestamp, violations);
     }
 
@@ -284,7 +327,8 @@ public final class AuditEvent {
                 "sqlId='" + sqlId + '\'' +
                 ", sql='" + sql + '\'' +
                 ", sqlType=" + sqlType +
-                ", mapperId='" + mapperId + '\'' +
+                ", executionLayer=" + executionLayer +
+                ", statementId='" + statementId + '\'' +
                 ", datasource='" + datasource + '\'' +
                 ", executionTimeMs=" + executionTimeMs +
                 ", rowsAffected=" + rowsAffected +
@@ -303,7 +347,8 @@ public final class AuditEvent {
     public static class Builder {
         private String sql;
         private SqlCommandType sqlType;
-        private String mapperId;
+        private ExecutionLayer executionLayer;
+        private String statementId;
         private String datasource;
         private Map<String, Object> params;
         private long executionTimeMs = 0L;
@@ -325,8 +370,13 @@ public final class AuditEvent {
             return this;
         }
 
-        public Builder mapperId(String mapperId) {
-            this.mapperId = mapperId;
+        public Builder executionLayer(ExecutionLayer executionLayer) {
+            this.executionLayer = executionLayer;
+            return this;
+        }
+
+        public Builder statementId(String statementId) {
+            this.statementId = statementId;
             return this;
         }
 
@@ -370,7 +420,8 @@ public final class AuditEvent {
          *
          * <p><strong>Validation Rules:</strong></p>
          * <ul>
-         *   <li>Required fields (sql, sqlType, mapperId, timestamp) must not be null</li>
+         *   <li>Required fields (sql, sqlType, executionLayer, timestamp) must not be null</li>
+         *   <li>statementId is optional (nullable)</li>
          *   <li>executionTimeMs must be >= 0</li>
          *   <li>rowsAffected must be >= -1</li>
          *   <li>timestamp must not be in the future (with 5 second tolerance)</li>
@@ -387,12 +438,14 @@ public final class AuditEvent {
             if (sqlType == null) {
                 throw new IllegalArgumentException("sqlType field is required");
             }
-            if (mapperId == null) {
-                throw new IllegalArgumentException("mapperId field is required");
+            if (executionLayer == null) {
+                throw new IllegalArgumentException("executionLayer field is required");
             }
             if (timestamp == null) {
                 throw new IllegalArgumentException("timestamp field is required");
             }
+
+            // Note: statementId is optional (nullable) - no validation needed
 
             // Validate constraints
             if (executionTimeMs < 0) {

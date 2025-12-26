@@ -6,38 +6,51 @@ import net.sf.jsqlparser.statement.Statement;
 
 /**
  * Immutable context object containing SQL execution information for validation.
- * 
+ *
  * <p>SqlContext encapsulates all necessary information about a SQL statement execution,
- * including the raw SQL string, parsed AST representation, command type, and execution
- * context (mapper ID, parameters, datasource, pagination bounds).</p>
- * 
+ * including the raw SQL string, parsed AST representation, command type, execution layer,
+ * and execution context (statement ID, parameters, datasource, pagination bounds).</p>
+ *
  * <p>This class uses the Builder pattern to accommodate varying contexts across different
  * SQL execution scenarios:</p>
  * <ul>
- *   <li>MyBatis XML Mapper execution (with mapperId, params, rowBounds)</li>
- *   <li>Direct JDBC execution (minimal context)</li>
+ *   <li>MyBatis XML Mapper execution (with statementId, params, rowBounds)</li>
+ *   <li>Direct JDBC execution (minimal context, statementId may be null)</li>
  *   <li>MyBatis-Plus QueryWrapper execution (with datasource routing)</li>
  * </ul>
- * 
+ *
  * <p><strong>Immutability Guarantees:</strong></p>
  * <ul>
- *   <li>{@code statement}, {@code type}, and {@code mapperId} are final and cannot be modified
+ *   <li>{@code statement}, {@code type}, {@code executionLayer} are final and cannot be modified
  *       after construction to prevent accidental changes during validation chain execution.</li>
- *   <li>Optional fields ({@code params}, {@code datasource}, {@code rowBounds}) can be null.</li>
+ *   <li>Optional fields ({@code statementId}, {@code params}, {@code datasource}, {@code rowBounds}) can be null.</li>
  * </ul>
- * 
- * <p><strong>Usage Example:</strong></p>
+ *
+ * <p><strong>Usage Example (MyBatis):</strong></p>
  * <pre>{@code
  * SqlContext context = SqlContext.builder()
  *     .sql("SELECT * FROM users WHERE id = ?")
  *     .type(SqlCommandType.SELECT)
- *     .mapperId("com.example.UserMapper.selectById")
+ *     .executionLayer(ExecutionLayer.MYBATIS)
+ *     .statementId("com.example.UserMapper.selectById")
  *     .statement(parsedStatement)
  *     .params(paramMap)
  *     .build();
  * }</pre>
  *
+ * <p><strong>Usage Example (JDBC):</strong></p>
+ * <pre>{@code
+ * SqlContext context = SqlContext.builder()
+ *     .sql("SELECT COUNT(*) FROM orders")
+ *     .type(SqlCommandType.SELECT)
+ *     .executionLayer(ExecutionLayer.JDBC)
+ *     .statementId(null)  // Optional for JDBC
+ *     .datasource("slave-db")
+ *     .build();
+ * }</pre>
+ *
  * @see SqlContextBuilder
+ * @see ExecutionLayer
  * @see SqlCommandType
  */
 public final class SqlContext {
@@ -58,10 +71,17 @@ public final class SqlContext {
   private final SqlCommandType type;
 
   /**
-   * Mapper identifier in format "namespace.methodId" (required).
-   * Example: "com.example.UserMapper.selectById"
+   * The execution layer/persistence technology (required).
    */
-  private final String mapperId;
+  private final ExecutionLayer executionLayer;
+
+  /**
+   * Statement identifier (optional, nullable).
+   * <p>For MyBatis: full qualified mapper method (e.g., "com.example.UserMapper.selectById")</p>
+   * <p>For JDBC with stack trace: calling method location (e.g., "com.example.dao.UserDao.findById:42")</p>
+   * <p>For JDBC without stack trace: null</p>
+   */
+  private final String statementId;
 
   /**
    * Execution parameters map (optional).
@@ -86,7 +106,8 @@ public final class SqlContext {
     this.sql = builder.sql;
     this.statement = builder.statement;
     this.type = builder.type;
-    this.mapperId = builder.mapperId;
+    this.executionLayer = builder.executionLayer;
+    this.statementId = builder.statementId;
     this.params = builder.params;
     this.datasource = builder.datasource;
     this.rowBounds = builder.rowBounds;
@@ -120,8 +141,12 @@ public final class SqlContext {
     return type;
   }
 
-  public String getMapperId() {
-    return mapperId;
+  public ExecutionLayer getExecutionLayer() {
+    return executionLayer;
+  }
+
+  public String getStatementId() {
+    return statementId;
   }
 
   public Map<String, Object> getParams() {
@@ -139,14 +164,15 @@ public final class SqlContext {
   /**
    * Builder for constructing SqlContext instances with fluent API.
    *
-   * <p>Required fields: sql, type, mapperId</p>
-   * <p>Optional fields: statement, params, datasource, rowBounds</p>
+   * <p>Required fields: sql, type, executionLayer</p>
+   * <p>Optional fields: statement, statementId, params, datasource, rowBounds</p>
    */
   public static class SqlContextBuilder {
     private String sql;
     private Statement statement;
     private SqlCommandType type;
-    private String mapperId;
+    private ExecutionLayer executionLayer;
+    private String statementId;
     private Map<String, Object> params;
     private String datasource;
     private Object rowBounds;
@@ -188,14 +214,24 @@ public final class SqlContext {
     }
 
     /**
-     * Sets the mapper identifier (required).
-     * Must be in format "namespace.methodId".
+     * Sets the execution layer (required).
      *
-     * @param mapperId the mapper identifier
+     * @param executionLayer the ExecutionLayer
      * @return this builder
      */
-    public SqlContextBuilder mapperId(String mapperId) {
-      this.mapperId = mapperId;
+    public SqlContextBuilder executionLayer(ExecutionLayer executionLayer) {
+      this.executionLayer = executionLayer;
+      return this;
+    }
+
+    /**
+     * Sets the statement identifier (optional).
+     *
+     * @param statementId the statement identifier
+     * @return this builder
+     */
+    public SqlContextBuilder statementId(String statementId) {
+      this.statementId = statementId;
       return this;
     }
 
@@ -246,15 +282,11 @@ public final class SqlContext {
       if (type == null) {
         throw new IllegalArgumentException("type cannot be null");
       }
-      if (mapperId == null || mapperId.trim().isEmpty()) {
-        throw new IllegalArgumentException("mapperId cannot be null or empty");
+      if (executionLayer == null) {
+        throw new IllegalArgumentException("executionLayer cannot be null");
       }
 
-      // Validate mapperId format (must contain at least one dot)
-      if (!mapperId.contains(".")) {
-        throw new IllegalArgumentException(
-            "mapperId must be in format 'namespace.methodId', got: " + mapperId);
-      }
+      // Note: statementId is optional (nullable) for JDBC scenarios
 
       return new SqlContext(this);
     }
@@ -269,11 +301,11 @@ public final class SqlContext {
       return false;
     }
     SqlContext that = (SqlContext) o;
-    // Use getStatement() to ensure both statement and parsedSql are considered
     return Objects.equals(sql, that.sql)
         && Objects.equals(getStatement(), that.getStatement())
         && type == that.type
-        && Objects.equals(mapperId, that.mapperId)
+        && executionLayer == that.executionLayer
+        && Objects.equals(statementId, that.statementId)
         && Objects.equals(params, that.params)
         && Objects.equals(datasource, that.datasource)
         && Objects.equals(rowBounds, that.rowBounds);
@@ -281,8 +313,7 @@ public final class SqlContext {
 
   @Override
   public int hashCode() {
-    // Use getStatement() for consistent hashing
-    return Objects.hash(sql, getStatement(), type, mapperId, params, datasource, rowBounds);
+    return Objects.hash(sql, getStatement(), type, executionLayer, statementId, params, datasource, rowBounds);
   }
 
   @Override
@@ -291,7 +322,8 @@ public final class SqlContext {
         + "sql='" + sql + '\''
         + ", statement=" + getStatement()
         + ", type=" + type
-        + ", mapperId='" + mapperId + '\''
+        + ", executionLayer=" + executionLayer
+        + ", statementId='" + statementId + '\''
         + ", params=" + params
         + ", datasource='" + datasource + '\''
         + ", rowBounds=" + rowBounds

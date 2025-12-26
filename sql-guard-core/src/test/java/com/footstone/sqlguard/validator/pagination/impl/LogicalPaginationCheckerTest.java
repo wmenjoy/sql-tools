@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import com.footstone.sqlguard.core.model.ViolationInfo;
 import com.footstone.sqlguard.validator.pagination.PaginationPluginDetector;
@@ -59,7 +60,8 @@ public class LogicalPaginationCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectUsers")
         .rowBounds(rowBounds)
         .build();
     
@@ -101,7 +103,8 @@ public class LogicalPaginationCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectUsers")
         .rowBounds(rowBounds)
         .build();
     
@@ -135,7 +138,8 @@ public class LogicalPaginationCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectById")
         .build();
     
     PaginationPluginDetector detector = new PaginationPluginDetector(null, null);
@@ -164,7 +168,8 @@ public class LogicalPaginationCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectAll")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectAll")
         .rowBounds(RowBounds.DEFAULT)
         .build();
     
@@ -195,7 +200,8 @@ public class LogicalPaginationCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectUsers")
         .rowBounds(rowBounds)
         .build();
     
@@ -230,7 +236,8 @@ public class LogicalPaginationCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectUsers")
         .rowBounds(rowBounds)
         .build();
     
@@ -265,7 +272,8 @@ public class LogicalPaginationCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectUsers")
         .rowBounds(rowBounds)
         .build();
     
@@ -302,7 +310,8 @@ public class LogicalPaginationCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectPage")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectPage")
         .params(params)
         .build();
     
@@ -336,7 +345,8 @@ public class LogicalPaginationCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectPage")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectPage")
         .rowBounds(rowBounds)
         .build();
     
@@ -371,7 +381,8 @@ public class LogicalPaginationCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectUsers")
         .rowBounds(rowBounds)
         .build();
     
@@ -419,7 +430,8 @@ public class LogicalPaginationCheckerTest {
           .sql(sql)
           .statement(stmt)
           .type(SqlCommandType.SELECT)
-          .mapperId("com.example.UserMapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+          .statementId("com.example.UserMapper.selectUsers")
           .rowBounds(rowBounds)
           .build();
       
@@ -451,7 +463,8 @@ public class LogicalPaginationCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectUsers")
         .rowBounds(rowBounds)
         .build();
     
@@ -490,7 +503,8 @@ public class LogicalPaginationCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectUsers")
         .rowBounds(rowBounds)
         .build();
     
@@ -526,7 +540,8 @@ public class LogicalPaginationCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectUsers")
         .rowBounds(null)
         .build();
     
@@ -557,7 +572,8 @@ public class LogicalPaginationCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectUsers")
         .rowBounds(rowBounds)
         .build();
     
@@ -591,7 +607,8 @@ public class LogicalPaginationCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectUsers")
         .rowBounds(rowBounds)
         .build();
     

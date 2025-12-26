@@ -174,7 +174,7 @@ public class ConsoleReportGenerator {
   private void printViolationEntry(ViolationEntry entry) {
     // File:line and mapper ID
     System.out.println("  [" + entry.getFilePath() + ":" + entry.getLineNumber() + "] " +
-                       entry.getMapperId());
+                       entry.getStatementId());
 
     // Java method signature (if available)
     if (entry.getJavaMethodSignature() != null && !entry.getJavaMethodSignature().trim().isEmpty()) {

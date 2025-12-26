@@ -120,7 +120,7 @@ class JpaAuditReportRepositoryTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("SELECT 1")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("test")
+                .statementId("test")
                 .timestamp(createdAt)
                 .build();
 

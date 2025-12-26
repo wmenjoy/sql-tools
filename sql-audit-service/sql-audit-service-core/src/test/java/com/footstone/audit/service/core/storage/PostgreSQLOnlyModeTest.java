@@ -58,7 +58,7 @@ class PostgreSQLOnlyModeTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("SELECT 1")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("test")
+                .statementId("test")
                 .timestamp(Instant.now())
                 .build();
 
@@ -73,8 +73,8 @@ class PostgreSQLOnlyModeTest {
 
     @Test
     void testPostgreSQLOnlyMode_batchInsert() {
-        AuditEvent e1 = AuditEvent.builder().sql("S1").sqlType(SqlCommandType.SELECT).mapperId("m").timestamp(Instant.now()).build();
-        AuditEvent e2 = AuditEvent.builder().sql("S2").sqlType(SqlCommandType.SELECT).mapperId("m").timestamp(Instant.now()).build();
+        AuditEvent e1 = AuditEvent.builder().sql("S1").sqlType(SqlCommandType.SELECT).statementId("m").timestamp(Instant.now()).build();
+        AuditEvent e2 = AuditEvent.builder().sql("S2").sqlType(SqlCommandType.SELECT).statementId("m").timestamp(Instant.now()).build();
 
         repository.logBatch(List.of(e1, e2));
 
@@ -85,8 +85,8 @@ class PostgreSQLOnlyModeTest {
     @Test
     void testPostgreSQLOnlyMode_shouldQueryByTimeRange() {
         Instant now = Instant.now();
-        AuditEvent e1 = AuditEvent.builder().sql("S1").sqlType(SqlCommandType.SELECT).mapperId("m").timestamp(now.minusSeconds(10)).build();
-        AuditEvent e2 = AuditEvent.builder().sql("S2").sqlType(SqlCommandType.SELECT).mapperId("m").timestamp(now.minusSeconds(30)).build();
+        AuditEvent e1 = AuditEvent.builder().sql("S1").sqlType(SqlCommandType.SELECT).statementId("m").timestamp(now.minusSeconds(10)).build();
+        AuditEvent e2 = AuditEvent.builder().sql("S2").sqlType(SqlCommandType.SELECT).statementId("m").timestamp(now.minusSeconds(30)).build();
         repository.logBatch(List.of(e1, e2));
 
         List<AuditEvent> result = repository.findByTimeRange(now.minusSeconds(20), now);
@@ -97,8 +97,8 @@ class PostgreSQLOnlyModeTest {
     @Test
     void testPostgreSQLOnlyMode_shouldSupportAggregation() {
         Instant now = Instant.now();
-        AuditEvent e1 = AuditEvent.builder().sql("S1").sqlType(SqlCommandType.SELECT).mapperId("m").timestamp(now.minusSeconds(10)).build();
-        AuditEvent e2 = AuditEvent.builder().sql("S2").sqlType(SqlCommandType.SELECT).mapperId("m").timestamp(now.minusSeconds(5)).build();
+        AuditEvent e1 = AuditEvent.builder().sql("S1").sqlType(SqlCommandType.SELECT).statementId("m").timestamp(now.minusSeconds(10)).build();
+        AuditEvent e2 = AuditEvent.builder().sql("S2").sqlType(SqlCommandType.SELECT).statementId("m").timestamp(now.minusSeconds(5)).build();
         repository.logBatch(List.of(e1, e2));
 
         long count = repository.countByTimeRange(now.minusSeconds(20), now);
@@ -108,8 +108,8 @@ class PostgreSQLOnlyModeTest {
     @Test
     void testPostgreSQLOnlyMode_retention_shouldDeleteOldData() {
         Instant now = Instant.now();
-        AuditEvent e1 = AuditEvent.builder().sql("Old").sqlType(SqlCommandType.SELECT).mapperId("m").timestamp(now.minusSeconds(100)).build();
-        AuditEvent e2 = AuditEvent.builder().sql("New").sqlType(SqlCommandType.SELECT).mapperId("m").timestamp(now).build();
+        AuditEvent e1 = AuditEvent.builder().sql("Old").sqlType(SqlCommandType.SELECT).statementId("m").timestamp(now.minusSeconds(100)).build();
+        AuditEvent e2 = AuditEvent.builder().sql("New").sqlType(SqlCommandType.SELECT).statementId("m").timestamp(now).build();
         repository.logBatch(List.of(e1, e2));
 
         repository.deleteOlderThan(now.minusSeconds(50));

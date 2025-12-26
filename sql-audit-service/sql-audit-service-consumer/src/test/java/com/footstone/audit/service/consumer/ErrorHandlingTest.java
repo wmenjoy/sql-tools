@@ -1,5 +1,6 @@
 package com.footstone.audit.service.consumer;
 
+import com.footstone.audit.service.consumer.config.KafkaConsumerProperties;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.errors.SerializationException;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,13 +9,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.KafkaHeaders;
-import org.springframework.messaging.MessageHeaders;
 
 import java.util.Collections;
-import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -24,11 +21,18 @@ class ErrorHandlingTest {
     private KafkaTemplate<String, String> kafkaTemplate;
 
     private AuditEventErrorHandler errorHandler;
+    private KafkaConsumerProperties properties;
 
     @BeforeEach
     void setUp() {
-        errorHandler = new AuditEventErrorHandler(kafkaTemplate);
-        errorHandler.setDlqTopic("sql-audit-events-dlq");
+        // 创建配置属性
+        properties = new KafkaConsumerProperties();
+        properties.setDlqTopic("sql-audit-events-dlq");
+        properties.getErrorHandler().setRetryInitialInterval(1000L);
+        properties.getErrorHandler().setRetryMultiplier(2.0);
+        properties.getErrorHandler().setMaxAttempts(3);
+
+        errorHandler = new AuditEventErrorHandler(kafkaTemplate, properties);
     }
 
     @Test

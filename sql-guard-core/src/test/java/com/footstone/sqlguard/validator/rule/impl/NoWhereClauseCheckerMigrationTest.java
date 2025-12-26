@@ -3,6 +3,7 @@ package com.footstone.sqlguard.validator.rule.impl;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -61,8 +62,9 @@ public class NoWhereClauseCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.updateNoWhere")
+                    .statementId("test.updateNoWhere")
                     .type(SqlCommandType.UPDATE)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)  // Use statement field (not parsedSql)
                     .build();
 
@@ -89,8 +91,9 @@ public class NoWhereClauseCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.updateWithWhere")
+                    .statementId("test.updateWithWhere")
                     .type(SqlCommandType.UPDATE)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -114,8 +117,9 @@ public class NoWhereClauseCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.updateDummyWhere")
+                    .statementId("test.updateDummyWhere")
                     .type(SqlCommandType.UPDATE)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -144,8 +148,9 @@ public class NoWhereClauseCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.deleteNoWhere")
+                    .statementId("test.deleteNoWhere")
                     .type(SqlCommandType.DELETE)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -172,8 +177,9 @@ public class NoWhereClauseCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.deleteWithWhere")
+                    .statementId("test.deleteWithWhere")
                     .type(SqlCommandType.DELETE)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -197,8 +203,9 @@ public class NoWhereClauseCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.deleteComplexWhere")
+                    .statementId("test.deleteComplexWhere")
                     .type(SqlCommandType.DELETE)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -227,8 +234,9 @@ public class NoWhereClauseCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.insert")
+                    .statementId("test.insert")
                     .type(SqlCommandType.INSERT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -252,8 +260,9 @@ public class NoWhereClauseCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.select")
+                    .statementId("test.select")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -287,8 +296,9 @@ public class NoWhereClauseCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.disabled")
+                    .statementId("test.disabled")
                     .type(SqlCommandType.UPDATE)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -318,8 +328,9 @@ public class NoWhereClauseCheckerMigrationTest {
             // Build context using statement field (NOT parsedSql)
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.statementField")
+                    .statementId("test.statementField")
                     .type(SqlCommandType.UPDATE)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)  // NEW field
                     .build();
 

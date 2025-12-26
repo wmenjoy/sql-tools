@@ -256,7 +256,7 @@ class SqlSafetyInterceptorTest {
 
     // Assert
     verify(validator).validate(argThat(context ->
-        context.getMapperId().equals(mapperId)
+        context.getStatementId().equals(mapperId)
     ));
   }
 

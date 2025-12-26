@@ -84,7 +84,7 @@ class SqlAuditInterceptorVersionCompatibilityTest {
         AuditEvent event = eventCaptor.getValue();
         assertEquals(sql, event.getSql());
         assertEquals(SqlCommandType.SELECT, event.getSqlType());
-        assertEquals(mapperId, event.getMapperId());
+        assertEquals(mapperId, event.getStatementId());
         assertEquals(1, event.getRowsAffected());
     }
 
@@ -335,6 +335,7 @@ class SqlAuditInterceptorVersionCompatibilityTest {
         return builder.build();
     }
 }
+
 
 
 

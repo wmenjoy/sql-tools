@@ -1,5 +1,6 @@
 package com.footstone.audit.service.consumer;
 
+import com.footstone.audit.service.consumer.config.KafkaConsumerProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -9,6 +10,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.test.context.TestPropertySource;
 
@@ -31,8 +33,25 @@ class VirtualThreadKafkaConfigTest {
         }
 
         @Bean
-        public AuditEventErrorHandler auditEventErrorHandler() {
-            return org.mockito.Mockito.mock(AuditEventErrorHandler.class);
+        public KafkaConsumerProperties kafkaConsumerProperties() {
+            KafkaConsumerProperties properties = new KafkaConsumerProperties();
+            properties.setDlqTopic("test-dlq");
+            properties.getVirtualThread().setEnabled(true);
+            properties.getVirtualThread().setNamePrefix("test-virtual-");
+            properties.getVirtualThread().setConcurrency(2);
+            return properties;
+        }
+
+        @Bean
+        public KafkaTemplate<String, String> kafkaTemplate() {
+            return org.mockito.Mockito.mock(KafkaTemplate.class);
+        }
+
+        @Bean
+        public AuditEventErrorHandler auditEventErrorHandler(
+                KafkaTemplate<String, String> kafkaTemplate,
+                KafkaConsumerProperties properties) {
+            return new AuditEventErrorHandler(kafkaTemplate, properties);
         }
     }
 

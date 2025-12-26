@@ -53,7 +53,7 @@ class AnnotationParserIntegrationTest {
         .findFirst()
         .orElse(null);
     assertNotNull(selectEntry);
-    assertEquals("com.example.SimpleMapper.getUserById", selectEntry.getMapperId());
+    assertEquals("com.example.SimpleMapper.getUserById", selectEntry.getStatementId());
     assertEquals("SELECT * FROM user WHERE id = #{id}", selectEntry.getRawSql());
 
     // Verify @Update entry
@@ -62,7 +62,7 @@ class AnnotationParserIntegrationTest {
         .findFirst()
         .orElse(null);
     assertNotNull(updateEntry);
-    assertEquals("com.example.SimpleMapper.updateUser", updateEntry.getMapperId());
+    assertEquals("com.example.SimpleMapper.updateUser", updateEntry.getStatementId());
   }
 
   @Test
@@ -122,7 +122,7 @@ class AnnotationParserIntegrationTest {
     
     // Verify at least one entry has the nested class name
     boolean hasNestedMapper = entries.stream()
-        .anyMatch(e -> e.getMapperId().contains("NestedClassMapper"));
+        .anyMatch(e -> e.getStatementId().contains("NestedClassMapper"));
     assertTrue(hasNestedMapper, "Should have entry with NestedClassMapper in mapperId");
     
     // Verify SQL content is correct
@@ -220,8 +220,8 @@ class AnnotationParserIntegrationTest {
       assertNotNull(entry.getFilePath(), "FilePath should not be null");
       assertTrue(entry.getFilePath().endsWith("ComplexMapper.java"));
       
-      assertNotNull(entry.getMapperId(), "MapperId should not be null");
-      assertTrue(entry.getMapperId().startsWith("com.example.ComplexMapper."));
+      assertNotNull(entry.getStatementId(), "MapperId should not be null");
+      assertTrue(entry.getStatementId().startsWith("com.example.ComplexMapper."));
       
       assertNotNull(entry.getSqlType(), "SqlType should not be null");
       

@@ -17,9 +17,20 @@
             <groupId>com.footstone</groupId>
             <artifactId>sql-audit-service-core</artifactId>
         </dependency>
+        <!-- Consumer模块 - Kafka消费者 -->
+        <dependency>
+            <groupId>com.footstone</groupId>
+            <artifactId>sql-audit-service-consumer</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!-- MySQL驱动 -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

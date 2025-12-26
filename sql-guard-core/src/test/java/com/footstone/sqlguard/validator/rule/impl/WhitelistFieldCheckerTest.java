@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import com.footstone.sqlguard.parser.JSqlParserFacade;
 import java.util.Arrays;
@@ -56,7 +57,8 @@ class WhitelistFieldCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.testMethod")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.testMethod")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -74,7 +76,8 @@ class WhitelistFieldCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.testMethod")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.testMethod")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -96,7 +99,8 @@ class WhitelistFieldCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.testMethod")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.testMethod")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -115,7 +119,8 @@ class WhitelistFieldCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.testMethod")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.testMethod")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -136,7 +141,8 @@ class WhitelistFieldCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.testMethod")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.testMethod")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -155,7 +161,8 @@ class WhitelistFieldCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.testMethod")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.testMethod")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -174,7 +181,8 @@ class WhitelistFieldCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.testMethod")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.testMethod")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -193,7 +201,8 @@ class WhitelistFieldCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.testMethod")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.testMethod")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -223,7 +232,8 @@ class WhitelistFieldCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.testMethod")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.testMethod")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -250,7 +260,8 @@ class WhitelistFieldCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.testMethod")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.testMethod")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -271,7 +282,8 @@ class WhitelistFieldCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.testMethod")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.testMethod")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -289,7 +301,8 @@ class WhitelistFieldCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.testMethod")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.testMethod")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -309,7 +322,8 @@ class WhitelistFieldCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.UPDATE)
-        .mapperId("test.Mapper.testMethod")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.testMethod")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -327,7 +341,8 @@ class WhitelistFieldCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.UPDATE)
-        .mapperId("test.Mapper.testMethod")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.testMethod")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -345,7 +360,8 @@ class WhitelistFieldCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.DELETE)
-        .mapperId("test.Mapper.testMethod")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.testMethod")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -363,7 +379,8 @@ class WhitelistFieldCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.DELETE)
-        .mapperId("test.Mapper.testMethod")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.testMethod")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -382,7 +399,8 @@ class WhitelistFieldCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.testMethod")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.testMethod")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -400,7 +418,8 @@ class WhitelistFieldCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.testMethod")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.testMethod")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -418,7 +437,8 @@ class WhitelistFieldCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.testMethod")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.testMethod")
         .build();
     ValidationResult result = ValidationResult.pass();
 

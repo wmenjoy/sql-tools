@@ -227,7 +227,7 @@ class ReportProcessorTest {
 
     assertEquals("/path/to/UserMapper.xml", criticalEntry.getFilePath());
     assertEquals(42, criticalEntry.getLineNumber());
-    assertEquals("com.example.UserMapper.deleteAll", criticalEntry.getMapperId());
+    assertEquals("com.example.UserMapper.deleteAll", criticalEntry.getStatementId());
     assertEquals("DELETE FROM user", criticalEntry.getSqlSnippet());
     assertEquals(RiskLevel.CRITICAL, criticalEntry.getRiskLevel());
     assertEquals("Missing WHERE clause in DELETE statement", criticalEntry.getMessage());
@@ -399,6 +399,7 @@ class ReportProcessorTest {
     assertNull(violationEntry.getSuggestion());
   }
 }
+
 
 
 

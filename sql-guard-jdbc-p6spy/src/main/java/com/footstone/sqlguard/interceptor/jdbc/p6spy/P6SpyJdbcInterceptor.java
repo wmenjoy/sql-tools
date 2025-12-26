@@ -4,6 +4,7 @@ import com.footstone.sqlguard.core.model.SqlContext;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import com.footstone.sqlguard.interceptor.jdbc.common.JdbcInterceptorBase;
 import com.footstone.sqlguard.interceptor.jdbc.common.SqlContextBuilder;
+import com.footstone.sqlguard.interceptor.jdbc.common.StatementIdGenerator;
 import com.footstone.sqlguard.interceptor.jdbc.common.ViolationStrategy;
 import com.footstone.sqlguard.parser.JSqlParserFacade;
 import com.footstone.sqlguard.validator.DefaultSqlSafetyValidator;

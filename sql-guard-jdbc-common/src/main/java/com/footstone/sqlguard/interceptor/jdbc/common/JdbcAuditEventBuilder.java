@@ -1,6 +1,7 @@
 package com.footstone.sqlguard.interceptor.jdbc.common;
 
 import com.footstone.sqlguard.audit.AuditEvent;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.SqlContext;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import java.time.Instant;
@@ -73,7 +74,8 @@ public final class JdbcAuditEventBuilder {
             .timestamp(Instant.now())
             .sql(context.getSql())
             .sqlType(context.getType())
-            .mapperId(context.getMapperId())
+            .executionLayer(context.getExecutionLayer())
+            .statementId(context.getStatementId())
             .datasource(context.getDatasource())
             .violations(result)
             .build();
@@ -103,7 +105,8 @@ public final class JdbcAuditEventBuilder {
             .timestamp(Instant.now())
             .sql(context.getSql())
             .sqlType(context.getType())
-            .mapperId(context.getMapperId())
+            .executionLayer(context.getExecutionLayer())
+            .statementId(context.getStatementId())
             .datasource(context.getDatasource())
             .violations(result)
             .executionTimeMs(executionTimeMs)
@@ -128,13 +131,15 @@ public final class JdbcAuditEventBuilder {
         if (context != null) {
             builder.sql(context.getSql())
                 .sqlType(context.getType())
-                .mapperId(context.getMapperId())
+                .executionLayer(context.getExecutionLayer())
+                .statementId(context.getStatementId())
                 .datasource(context.getDatasource());
         } else {
             // Provide defaults for required fields
             builder.sql("UNKNOWN")
                 .sqlType(com.footstone.sqlguard.core.model.SqlCommandType.UNKNOWN)
-                .mapperId("jdbc.error:unknown");
+                .executionLayer(ExecutionLayer.JDBC)
+                .statementId("jdbc.error:unknown");
         }
 
         return builder.build();
@@ -221,6 +226,7 @@ public final class JdbcAuditEventBuilder {
         }
     }
 }
+
 
 
 

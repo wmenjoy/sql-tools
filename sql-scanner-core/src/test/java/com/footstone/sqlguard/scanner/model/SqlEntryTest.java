@@ -22,18 +22,18 @@ class SqlEntryTest {
     // Given
     SourceType source = SourceType.XML;
     String filePath = "/path/to/mapper.xml";
-    String mapperId = "com.example.UserMapper.selectById";
+    String statementId = "com.example.UserMapper.selectById";
     SqlCommandType sqlType = SqlCommandType.SELECT;
     String rawSql = "SELECT * FROM user WHERE id = #{id}";
     int lineNumber = 42;
 
     // When
-    SqlEntry entry = new SqlEntry(source, filePath, mapperId, sqlType, rawSql, lineNumber);
+    SqlEntry entry = new SqlEntry(source, filePath, statementId, sqlType, rawSql, lineNumber);
 
     // Then
     assertEquals(source, entry.getSource());
     assertEquals(filePath, entry.getFilePath());
-    assertEquals(mapperId, entry.getMapperId());
+    assertEquals(statementId, entry.getStatementId());
     assertEquals(sqlType, entry.getSqlType());
     assertEquals(rawSql, entry.getRawSql());
     assertEquals(lineNumber, entry.getLineNumber());
@@ -241,14 +241,14 @@ class SqlEntryTest {
   }
 
   @Test
-  @DisplayName("Should throw exception when mapperId is null")
-  void testValidationMapperIdNull() {
+  @DisplayName("Should throw exception when statementId is null")
+  void testValidationStatementIdNull() {
     // When & Then
     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-        new SqlEntry(SourceType.XML, "/path/file.xml", null, 
+        new SqlEntry(SourceType.XML, "/path/file.xml", null,
             SqlCommandType.SELECT, "SELECT 1", 1));
 
-    assertTrue(exception.getMessage().contains("mapperId"));
+    assertTrue(exception.getMessage().contains("statementId"));
   }
 
   @Test
@@ -262,6 +262,7 @@ class SqlEntryTest {
     assertTrue(exception.getMessage().contains("sqlType"));
   }
 }
+
 
 
 

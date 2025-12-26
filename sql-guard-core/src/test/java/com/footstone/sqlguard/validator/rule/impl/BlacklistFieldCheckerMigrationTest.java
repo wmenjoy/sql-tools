@@ -3,6 +3,7 @@ package com.footstone.sqlguard.validator.rule.impl;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -65,8 +66,9 @@ public class BlacklistFieldCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.blacklistOnly")
+                    .statementId("test.blacklistOnly")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -93,8 +95,9 @@ public class BlacklistFieldCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.multipleBlacklist")
+                    .statementId("test.multipleBlacklist")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -126,8 +129,9 @@ public class BlacklistFieldCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.allowedField")
+                    .statementId("test.allowedField")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -151,8 +155,9 @@ public class BlacklistFieldCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.mixedFields")
+                    .statementId("test.mixedFields")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -188,8 +193,9 @@ public class BlacklistFieldCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.wildcardPattern")
+                    .statementId("test.wildcardPattern")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -219,8 +225,9 @@ public class BlacklistFieldCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.noWhere")
+                    .statementId("test.noWhere")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -244,8 +251,9 @@ public class BlacklistFieldCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.dummyWhere")
+                    .statementId("test.dummyWhere")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -274,8 +282,9 @@ public class BlacklistFieldCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.update")
+                    .statementId("test.update")
                     .type(SqlCommandType.UPDATE)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -299,8 +308,9 @@ public class BlacklistFieldCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.delete")
+                    .statementId("test.delete")
                     .type(SqlCommandType.DELETE)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -330,8 +340,9 @@ public class BlacklistFieldCheckerMigrationTest {
             // Build context using statement field (NOT parsedSql)
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.statementField")
+                    .statementId("test.statementField")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)  // NEW field
                     .build();
 

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,7 +40,8 @@ class DummyConditionCheckerTest {
         .sql(sql)
         .statement(stmt)
         .type(type)
-        .mapperId("test.Mapper.testMethod")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.testMethod")
         .build();
   }
 

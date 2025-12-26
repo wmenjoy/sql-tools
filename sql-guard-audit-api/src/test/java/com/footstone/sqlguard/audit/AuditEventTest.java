@@ -1,5 +1,6 @@
 package com.footstone.sqlguard.audit;
 
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,8 @@ class AuditEventTest {
         // Given: All fields including optional ones
         String sql = "SELECT * FROM users WHERE id = ?";
         SqlCommandType sqlType = SqlCommandType.SELECT;
-        String mapperId = "com.example.UserMapper.selectById";
+        ExecutionLayer executionLayer = ExecutionLayer.MYBATIS;
+        String statementId = "com.example.UserMapper.selectById";
         String datasource = "primary";
         Map<String, Object> params = new HashMap<>();
         params.put("id", 123);
@@ -37,7 +39,8 @@ class AuditEventTest {
         AuditEvent event = AuditEvent.builder()
                 .sql(sql)
                 .sqlType(sqlType)
-                .mapperId(mapperId)
+                .executionLayer(executionLayer)
+                .statementId(statementId)
                 .datasource(datasource)
                 .params(params)
                 .executionTimeMs(executionTimeMs)
@@ -52,7 +55,8 @@ class AuditEventTest {
         assertNotNull(event.getSqlId()); // sqlId should be auto-generated
         assertEquals(sql, event.getSql());
         assertEquals(sqlType, event.getSqlType());
-        assertEquals(mapperId, event.getMapperId());
+        assertEquals(executionLayer, event.getExecutionLayer());
+        assertEquals(statementId, event.getStatementId());
         assertEquals(datasource, event.getDatasource());
         assertEquals(params, event.getParams());
         assertEquals(executionTimeMs, event.getExecutionTimeMs());
@@ -64,17 +68,19 @@ class AuditEventTest {
 
     @Test
     void testBuilder_withMinimalRequiredFields_shouldConstruct() {
-        // Given: Only required fields
+        // Given: Only required fields (executionLayer is required, statementId is optional for JDBC)
         String sql = "SELECT * FROM users";
         SqlCommandType sqlType = SqlCommandType.SELECT;
-        String mapperId = "UserMapper.selectAll";
+        ExecutionLayer executionLayer = ExecutionLayer.MYBATIS;
+        String statementId = "UserMapper.selectAll";
         Instant timestamp = Instant.now();
 
         // When: Building with minimal fields
         AuditEvent event = AuditEvent.builder()
                 .sql(sql)
                 .sqlType(sqlType)
-                .mapperId(mapperId)
+                .executionLayer(executionLayer)
+                .statementId(statementId)
                 .timestamp(timestamp)
                 .build();
 
@@ -83,7 +89,8 @@ class AuditEventTest {
         assertNotNull(event.getSqlId());
         assertEquals(sql, event.getSql());
         assertEquals(sqlType, event.getSqlType());
-        assertEquals(mapperId, event.getMapperId());
+        assertEquals(executionLayer, event.getExecutionLayer());
+        assertEquals(statementId, event.getStatementId());
         assertEquals(timestamp, event.getTimestamp());
         assertNull(event.getDatasource());
         assertNull(event.getParams());
@@ -94,12 +101,39 @@ class AuditEventTest {
     }
 
     @Test
+    void testBuilder_withNullStatementId_JDBC_shouldConstruct() {
+        // Given: JDBC layer with null statementId (common when stack trace is disabled)
+        String sql = "SELECT COUNT(*) FROM orders";
+        SqlCommandType sqlType = SqlCommandType.SELECT;
+        ExecutionLayer executionLayer = ExecutionLayer.JDBC;
+        String datasource = "slave-db";
+        Instant timestamp = Instant.now();
+
+        // When: Building with null statementId
+        AuditEvent event = AuditEvent.builder()
+                .sql(sql)
+                .sqlType(sqlType)
+                .executionLayer(executionLayer)
+                .statementId(null)  // Null is allowed for JDBC
+                .datasource(datasource)
+                .timestamp(timestamp)
+                .build();
+
+        // Then: Should construct successfully
+        assertNotNull(event);
+        assertEquals(ExecutionLayer.JDBC, event.getExecutionLayer());
+        assertNull(event.getStatementId());
+        assertEquals(datasource, event.getDatasource());
+    }
+
+    @Test
     void testBuilder_withMissingRequired_shouldThrowException() {
         // When/Then: Missing 'sql' should throw
         assertThrows(IllegalArgumentException.class, () -> {
             AuditEvent.builder()
                     .sqlType(SqlCommandType.SELECT)
-                    .mapperId("UserMapper.select")
+                    .executionLayer(ExecutionLayer.MYBATIS)
+                    .statementId("UserMapper.select")
                     .timestamp(Instant.now())
                     .build();
         });
@@ -108,16 +142,18 @@ class AuditEventTest {
         assertThrows(IllegalArgumentException.class, () -> {
             AuditEvent.builder()
                     .sql("SELECT * FROM users")
-                    .mapperId("UserMapper.select")
+                    .executionLayer(ExecutionLayer.MYBATIS)
+                    .statementId("UserMapper.select")
                     .timestamp(Instant.now())
                     .build();
         });
 
-        // When/Then: Missing 'mapperId' should throw
+        // When/Then: Missing 'executionLayer' should throw
         assertThrows(IllegalArgumentException.class, () -> {
             AuditEvent.builder()
                     .sql("SELECT * FROM users")
                     .sqlType(SqlCommandType.SELECT)
+                    .statementId("UserMapper.select")
                     .timestamp(Instant.now())
                     .build();
         });
@@ -127,7 +163,22 @@ class AuditEventTest {
             AuditEvent.builder()
                     .sql("SELECT * FROM users")
                     .sqlType(SqlCommandType.SELECT)
-                    .mapperId("UserMapper.select")
+                    .executionLayer(ExecutionLayer.MYBATIS)
+                    .statementId("UserMapper.select")
+                    .build();
+        });
+    }
+
+    @Test
+    void testBuilder_withMissingStatementId_shouldAllowNull() {
+        // When/Then: Missing statementId (null) should be allowed for JDBC
+        assertDoesNotThrow(() -> {
+            AuditEvent.builder()
+                    .sql("SELECT * FROM users")
+                    .sqlType(SqlCommandType.SELECT)
+                    .executionLayer(ExecutionLayer.JDBC)
+                    // statementId not set, defaults to null
+                    .timestamp(Instant.now())
                     .build();
         });
     }
@@ -139,7 +190,8 @@ class AuditEventTest {
         AuditEvent event1 = AuditEvent.builder()
                 .sql("SELECT * FROM users WHERE id = ?")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("UserMapper.selectById")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("UserMapper.selectById")
                 .timestamp(timestamp)
                 .executionTimeMs(100L)
                 .rowsAffected(1)
@@ -148,7 +200,8 @@ class AuditEventTest {
         AuditEvent event2 = AuditEvent.builder()
                 .sql("SELECT * FROM users WHERE id = ?")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("UserMapper.selectById")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("UserMapper.selectById")
                 .timestamp(timestamp)
                 .executionTimeMs(100L)
                 .rowsAffected(1)
@@ -166,14 +219,16 @@ class AuditEventTest {
         AuditEvent event1 = AuditEvent.builder()
                 .sql("SELECT * FROM users")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("UserMapper.selectAll")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("UserMapper.selectAll")
                 .timestamp(timestamp)
                 .build();
 
         AuditEvent event2 = AuditEvent.builder()
                 .sql("SELECT * FROM orders")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("OrderMapper.selectAll")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("OrderMapper.selectAll")
                 .timestamp(timestamp)
                 .build();
 
@@ -187,7 +242,8 @@ class AuditEventTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("SELECT * FROM users WHERE id = ?")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("UserMapper.selectById")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("UserMapper.selectById")
                 .datasource("primary")
                 .timestamp(Instant.now())
                 .executionTimeMs(150L)
@@ -203,27 +259,30 @@ class AuditEventTest {
         assertTrue(result.contains("SELECT"));
         assertTrue(result.contains("UserMapper"));
         assertTrue(result.contains("primary"));
+        assertTrue(result.contains("MYBATIS"));
     }
 
     @Test
     void testSqlId_shouldBeConsistentForSameSql() {
-        // Given: Two events with identical SQL
+        // Given: Two events with identical SQL but different executionLayer and statementId
         String sql = "SELECT * FROM users WHERE id = ?";
         AuditEvent event1 = AuditEvent.builder()
                 .sql(sql)
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("UserMapper.selectById")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("UserMapper.selectById")
                 .timestamp(Instant.now())
                 .build();
 
         AuditEvent event2 = AuditEvent.builder()
                 .sql(sql)
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("UserMapper.selectById")
+                .executionLayer(ExecutionLayer.JDBC)
+                .statementId(null)  // Different statementId
                 .timestamp(Instant.now().plusSeconds(1))
                 .build();
 
-        // When/Then: sqlId should be the same (MD5 hash of SQL)
+        // When/Then: sqlId should be the same (MD5 hash of SQL only)
         assertEquals(event1.getSqlId(), event2.getSqlId());
     }
 
@@ -233,14 +292,16 @@ class AuditEventTest {
         AuditEvent event1 = AuditEvent.builder()
                 .sql("SELECT * FROM users")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("UserMapper.selectAll")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("UserMapper.selectAll")
                 .timestamp(Instant.now())
                 .build();
 
         AuditEvent event2 = AuditEvent.builder()
                 .sql("SELECT * FROM orders")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("OrderMapper.selectAll")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("OrderMapper.selectAll")
                 .timestamp(Instant.now())
                 .build();
 
@@ -255,7 +316,8 @@ class AuditEventTest {
             AuditEvent.builder()
                     .sql("SELECT * FROM users")
                     .sqlType(SqlCommandType.SELECT)
-                    .mapperId("UserMapper.select")
+                    .executionLayer(ExecutionLayer.MYBATIS)
+                    .statementId("UserMapper.select")
                     .timestamp(Instant.now())
                     .executionTimeMs(-1L)
                     .build();
@@ -269,7 +331,8 @@ class AuditEventTest {
             AuditEvent.builder()
                     .sql("SELECT * FROM users")
                     .sqlType(SqlCommandType.SELECT)
-                    .mapperId("UserMapper.select")
+                    .executionLayer(ExecutionLayer.MYBATIS)
+                    .statementId("UserMapper.select")
                     .timestamp(Instant.now())
                     .rowsAffected(-2)
                     .build();
@@ -280,7 +343,8 @@ class AuditEventTest {
             AuditEvent.builder()
                     .sql("SELECT * FROM users")
                     .sqlType(SqlCommandType.SELECT)
-                    .mapperId("UserMapper.select")
+                    .executionLayer(ExecutionLayer.MYBATIS)
+                    .statementId("UserMapper.select")
                     .timestamp(Instant.now())
                     .rowsAffected(-1)
                     .build();
@@ -297,7 +361,8 @@ class AuditEventTest {
             AuditEvent.builder()
                     .sql("SELECT * FROM users")
                     .sqlType(SqlCommandType.SELECT)
-                    .mapperId("UserMapper.select")
+                    .executionLayer(ExecutionLayer.MYBATIS)
+                    .statementId("UserMapper.select")
                     .timestamp(futureTimestamp)
                     .build();
         });
@@ -307,12 +372,14 @@ class AuditEventTest {
             AuditEvent.builder()
                     .sql("SELECT * FROM users")
                     .sqlType(SqlCommandType.SELECT)
-                    .mapperId("UserMapper.select")
+                    .executionLayer(ExecutionLayer.MYBATIS)
+                    .statementId("UserMapper.select")
                     .timestamp(Instant.now())
                     .build();
         });
     }
 }
+
 
 
 

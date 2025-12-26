@@ -60,3 +60,4 @@ public class ClickHouseHealthIndicator implements HealthIndicator {
 
 
 
+

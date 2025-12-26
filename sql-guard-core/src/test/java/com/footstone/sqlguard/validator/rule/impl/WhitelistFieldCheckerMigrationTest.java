@@ -3,6 +3,7 @@ package com.footstone.sqlguard.validator.rule.impl;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -75,8 +76,9 @@ public class WhitelistFieldCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.nonWhitelistField")
+                    .statementId("test.nonWhitelistField")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -103,8 +105,9 @@ public class WhitelistFieldCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.multipleNonWhitelist")
+                    .statementId("test.multipleNonWhitelist")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -133,8 +136,9 @@ public class WhitelistFieldCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.whitelistField")
+                    .statementId("test.whitelistField")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -158,8 +162,9 @@ public class WhitelistFieldCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.mixedFields")
+                    .statementId("test.mixedFields")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -183,8 +188,9 @@ public class WhitelistFieldCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.alternativeWhitelist")
+                    .statementId("test.alternativeWhitelist")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -216,8 +222,9 @@ public class WhitelistFieldCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.unknownTable")
+                    .statementId("test.unknownTable")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -248,8 +255,9 @@ public class WhitelistFieldCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.unknownTableGlobal")
+                    .statementId("test.unknownTableGlobal")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -278,8 +286,9 @@ public class WhitelistFieldCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.noWhere")
+                    .statementId("test.noWhere")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -304,8 +313,9 @@ public class WhitelistFieldCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.update")
+                    .statementId("test.update")
                     .type(SqlCommandType.UPDATE)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -336,8 +346,9 @@ public class WhitelistFieldCheckerMigrationTest {
             // Build context using statement field (NOT parsedSql)
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.statementField")
+                    .statementId("test.statementField")
                     .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)  // NEW field
                     .build();
 

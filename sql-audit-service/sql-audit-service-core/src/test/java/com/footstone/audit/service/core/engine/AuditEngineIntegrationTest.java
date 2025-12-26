@@ -32,7 +32,7 @@ class AuditEngineIntegrationTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("SELECT * FROM users")
                 .sqlType(com.footstone.sqlguard.core.model.SqlCommandType.SELECT)
-                .mapperId("test")
+                .statementId("test")
                 .timestamp(Instant.now())
                 .executionTimeMs(1500) // Trigger SlowChecker
                 .build();

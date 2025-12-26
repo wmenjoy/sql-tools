@@ -1,5 +1,6 @@
 package com.footstone.sqlguard.interceptor.inner.impl;
 
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
 import com.footstone.sqlguard.interceptor.inner.SqlGuardInnerInterceptor;
@@ -222,8 +223,9 @@ public class SqlGuardRewriteInnerInterceptor implements SqlGuardInnerInterceptor
         SqlContext context = SqlContext.builder()
                 .sql(originalSql)
                 .statement(currentStatement)
-                .mapperId(ms.getId())
+                .statementId(ms.getId())
                 .type(determineSqlCommandType(currentStatement))
+                .executionLayer(ExecutionLayer.MYBATIS)
                 .build();
 
         // 3. Execute rewrite chain
@@ -262,8 +264,9 @@ public class SqlGuardRewriteInnerInterceptor implements SqlGuardInnerInterceptor
                 context = SqlContext.builder()
                         .sql(newSql)
                         .statement(currentStatement)
-                        .mapperId(ms.getId())
+                        .statementId(ms.getId())
                         .type(determineSqlCommandType(currentStatement))
+                        .executionLayer(ExecutionLayer.MYBATIS)
                         .build();
 
                 // Update ThreadLocal cache for next rewriter

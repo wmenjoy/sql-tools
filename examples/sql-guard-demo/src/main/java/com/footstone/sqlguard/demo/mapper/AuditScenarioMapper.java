@@ -115,7 +115,86 @@ public interface AuditScenarioMapper {
      */
     @Select("SELECT * FROM user WHERE status = 'ACTIVE' ORDER BY id LIMIT #{limit} OFFSET #{offset}")
     List<User> selectWithProperPagination(@Param("offset") int offset, @Param("limit") int limit);
+
+    /**
+     * Scenario 7: Missing ORDER BY (pagination without ORDER BY).
+     *
+     * <p>This query uses LIMIT but has no ORDER BY clause, causing unstable result ordering.
+     * The MissingOrderByChecker should detect this and generate a LOW severity audit log.</p>
+     *
+     * @return list of users with unstable ordering
+     */
+    @Select("SELECT * FROM user WHERE id > 0 LIMIT 20")
+    List<User> paginationWithoutOrderBy();
+
+    /**
+     * Scenario 8: No condition pagination (pagination without WHERE).
+     *
+     * <p>This query uses LIMIT but has no WHERE clause, potentially returning all rows.
+     * The NoConditionPaginationChecker should detect this and generate a MEDIUM severity audit log.</p>
+     *
+     * @return list of users without filtering
+     */
+    @Select("SELECT * FROM user ORDER BY id LIMIT 50")
+    List<User> paginationWithoutCondition();
+
+    /**
+     * Scenario 9: Blacklist field only (WHERE only uses blacklisted fields).
+     *
+     * <p>This query only uses blacklisted fields (status, deleted) in WHERE clause,
+     * causing near-full-table scans. The BlacklistFieldChecker should detect this
+     * and generate a HIGH severity audit log.</p>
+     *
+     * @return list of users matching blacklist-only condition
+     */
+    @Select("SELECT * FROM user WHERE status = 'ACTIVE' AND deleted = 0 LIMIT 10")
+    List<User> selectWithBlacklistFieldOnly();
+
+    /**
+     * Scenario 10: Whitelist field violation (accessing non-whitelisted fields).
+     *
+     * <p>This query accesses all fields including status and deleted which might not be whitelisted.
+     * The WhitelistFieldChecker should detect this and generate a HIGH severity audit log.</p>
+     *
+     * @return list of users with all fields
+     */
+    @Select("SELECT * FROM user WHERE id = #{id}")
+    User selectWithNonWhitelistFields(@Param("id") Long id);
+
+    /**
+     * Scenario 11: Dummy condition (WHERE with dummy conditions like 1=1).
+     *
+     * <p>This query uses dummy condition "1=1" which makes WHERE clause useless.
+     * The DummyConditionChecker should detect this and generate a HIGH severity audit log.</p>
+     *
+     * @return list of all users due to dummy condition
+     */
+    @Select("SELECT * FROM user WHERE 1=1 AND id > 0 LIMIT 10")
+    List<User> selectWithDummyCondition();
+
+    /**
+     * Scenario 12: No WHERE clause (SELECT without WHERE).
+     *
+     * <p>This query has no WHERE clause, potentially returning all rows.
+     * The NoWhereClauseChecker should detect this and generate a HIGH severity audit log.</p>
+     *
+     * @return list of all users
+     */
+    @Select("SELECT id, username FROM user")
+    List<User> selectWithoutWhere();
+
+    /**
+     * Scenario 13: DELETE without WHERE.
+     *
+     * <p>This DELETE has no WHERE clause, affecting all rows.
+     * The NoWhereClauseChecker should detect this and generate a CRITICAL severity audit log.</p>
+     *
+     * @return number of rows deleted
+     */
+    @Update("DELETE FROM user WHERE status = 'INACTIVE'")
+    int deleteWithoutProperWhere();
 }
+
 
 
 

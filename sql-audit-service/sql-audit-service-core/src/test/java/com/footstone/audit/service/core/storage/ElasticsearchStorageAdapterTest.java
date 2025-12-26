@@ -160,7 +160,7 @@ class ElasticsearchStorageAdapterTest {
         return AuditEvent.builder()
                 .sql(sql)
                 .sqlType(SqlCommandType.SELECT) // Default to SELECT for tests
-                .mapperId("TestMapper.method")
+                .statementId("TestMapper.method")
                 .datasource("testdb")
                 .executionTimeMs(100L)
                 .rowsAffected(1)

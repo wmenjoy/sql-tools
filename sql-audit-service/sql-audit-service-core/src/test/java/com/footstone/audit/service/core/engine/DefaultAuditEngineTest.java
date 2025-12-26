@@ -156,11 +156,63 @@ class DefaultAuditEngineTest {
         assertEquals(RiskLevel.CRITICAL, processingResult.report().aggregatedRiskScore().getSeverity());
     }
 
+    @Test
+    void testAuditEngine_whenEventIsNull_shouldReturnError() {
+        // Given
+        engine = new DefaultAuditEngine(List.of(checker1), config);
+
+        // When
+        AuditProcessingResult result = engine.process(null);
+
+        // Then
+        assertNotNull(result);
+        assertFalse(result.success());
+        assertNull(result.report());
+        assertEquals("AuditEvent is null", result.error());
+    }
+
+    @Test
+    void testAuditEngine_whenExecutionResultHasDefaultValues_shouldSucceed() {
+        // Given
+        engine = new DefaultAuditEngine(List.of(checker1), config);
+        AuditEvent event = AuditEvent.builder()
+                .sql("SELECT 1")
+                .sqlType(com.footstone.sqlguard.core.model.SqlCommandType.SELECT)
+                .executionLayer(com.footstone.sqlguard.core.model.ExecutionLayer.JDBC)
+                .statementId("test")
+                .executionTimeMs(0L)   // default value - no execution time measured
+                .rowsAffected(-1)      // default value indicating N/A
+                .timestamp(Instant.now())
+                .errorMessage("Test error")
+                .build();
+
+        RiskScore score = RiskScore.builder().severity(RiskLevel.LOW).justification("Test").build();
+        AuditResult auditResult = AuditResult.builder()
+                .checkerId("checker1")
+                .sql("sql")
+                .executionResult(ExecutionResult.builder().executionTimestamp(Instant.now()).build())
+                .addRisk(score)
+                .auditTimestamp(Instant.now())
+                .build();
+
+        when(checker1.check(anyString(), any(ExecutionResult.class))).thenReturn(auditResult);
+        when(checker1.getCheckerId()).thenReturn("checker1");
+
+        // When
+        AuditProcessingResult result = engine.process(event);
+
+        // Then
+        assertTrue(result.success());
+        assertNotNull(result.report());
+        assertEquals(1, result.report().checkerResults().size());
+    }
+
     private AuditEvent createEvent() {
         return AuditEvent.builder()
                 .sql("SELECT 1")
                 .sqlType(com.footstone.sqlguard.core.model.SqlCommandType.SELECT)
-                .mapperId("test")
+                .executionLayer(com.footstone.sqlguard.core.model.ExecutionLayer.JDBC)
+                .statementId("test")
                 .timestamp(Instant.now())
                 .build();
     }

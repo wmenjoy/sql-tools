@@ -44,7 +44,7 @@ class MultiLineSqlHandlingTest {
 
     assertNotNull(updateEntry, "Should find @Update annotation");
     assertEquals("UPDATE user SET name = #{name}", updateEntry.getRawSql());
-    assertEquals("com.example.MultiLineMapper.updateUserName", updateEntry.getMapperId());
+    assertEquals("com.example.MultiLineMapper.updateUserName", updateEntry.getStatementId());
   }
 
   @Test
@@ -64,7 +64,7 @@ class MultiLineSqlHandlingTest {
     // Verify SQL is concatenated with spaces
     String expectedSql = "SELECT * FROM user WHERE name = #{name} ORDER BY id";
     assertEquals(expectedSql, selectEntry.getRawSql());
-    assertEquals("com.example.MultiLineMapper.findByName", selectEntry.getMapperId());
+    assertEquals("com.example.MultiLineMapper.findByName", selectEntry.getStatementId());
   }
 
   @Test
@@ -102,6 +102,7 @@ class MultiLineSqlHandlingTest {
     assertFalse(updateEntry.getRawSql().contains("timeout"));
   }
 }
+
 
 
 

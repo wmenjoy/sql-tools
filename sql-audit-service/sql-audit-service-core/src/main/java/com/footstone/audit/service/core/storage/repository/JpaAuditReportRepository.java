@@ -12,6 +12,7 @@ import com.footstone.sqlguard.audit.model.RiskScore;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -20,6 +21,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Repository
+@Primary  // 优先使用JPA实现（生产环境）
 @RequiredArgsConstructor
 @Slf4j
 public class JpaAuditReportRepository implements AuditReportRepository {
@@ -51,6 +53,7 @@ public class JpaAuditReportRepository implements AuditReportRepository {
             return AuditReportEntity.builder()
                     .reportId(report.reportId())
                     .sqlId(report.sqlId())
+                    .statementId(report.originalEvent().getStatementId())
                     .originalEventJson(objectMapper.writeValueAsString(report.originalEvent()))
                     .checkerResultsJson(objectMapper.writeValueAsString(report.checkerResults()))
                     .riskLevel(report.aggregatedRiskScore().getSeverity().name())

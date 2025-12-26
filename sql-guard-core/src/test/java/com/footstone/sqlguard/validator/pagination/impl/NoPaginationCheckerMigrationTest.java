@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import com.footstone.sqlguard.validator.pagination.PaginationPluginDetector;
 import com.footstone.sqlguard.validator.rule.impl.BlacklistFieldsConfig;
@@ -84,8 +85,9 @@ public class NoPaginationCheckerMigrationTest {
 
       SqlContext context = SqlContext.builder()
           .sql(sql)
-          .mapperId("test.noLimit")
+          .statementId("test.noLimit")
           .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
           .statement(stmt)  // ✅ Uses statement field
           .build();
 
@@ -112,8 +114,9 @@ public class NoPaginationCheckerMigrationTest {
 
       SqlContext context = SqlContext.builder()
           .sql(sql)
-          .mapperId("test.withLimit")
+          .statementId("test.withLimit")
           .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
           .statement(stmt)  // ✅ Uses statement field
           .build();
 
@@ -138,8 +141,9 @@ public class NoPaginationCheckerMigrationTest {
 
       SqlContext context = SqlContext.builder()
           .sql(sql)
-          .mapperId("test.withRowBounds")
+          .statementId("test.withRowBounds")
           .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
           .statement(stmt)  // ✅ Uses statement field
           .rowBounds(new RowBounds(0, 10))  // Pagination present
           .build();
@@ -170,8 +174,9 @@ public class NoPaginationCheckerMigrationTest {
 
       SqlContext context = SqlContext.builder()
           .sql(sql)
-          .mapperId("test.blacklistOnly")
+          .statementId("test.blacklistOnly")
           .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
           .statement(stmt)  // ✅ Uses statement field
           .build();
 
@@ -202,8 +207,9 @@ public class NoPaginationCheckerMigrationTest {
 
       SqlContext context = SqlContext.builder()
           .sql(sql)
-          .mapperId("test.normalWhere")
+          .statementId("test.normalWhere")
           .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
           .statement(stmt)  // ✅ Uses statement field
           .build();
 
@@ -241,8 +247,9 @@ public class NoPaginationCheckerMigrationTest {
 
       SqlContext context = SqlContext.builder()
           .sql(sql)
-          .mapperId("test.whitelistedTable")
+          .statementId("test.whitelistedTable")
           .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
           .statement(stmt)  // ✅ Uses statement field
           .build();
 
@@ -267,8 +274,9 @@ public class NoPaginationCheckerMigrationTest {
 
       SqlContext context = SqlContext.builder()
           .sql(sql)
-          .mapperId("test.uniqueKey")
+          .statementId("test.uniqueKey")
           .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
           .statement(stmt)  // ✅ Uses statement field
           .build();
 
@@ -298,8 +306,9 @@ public class NoPaginationCheckerMigrationTest {
 
       SqlContext context = SqlContext.builder()
           .sql(sql)
-          .mapperId("test.statementField")
+          .statementId("test.statementField")
           .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
           .statement(stmt)  // ✅ NEW statement field
           .build();
 

@@ -75,7 +75,9 @@ public class ReportOutputTest {
 
     String htmlContent = new String(Files.readAllBytes(outputFile));
     assertTrue(htmlContent.contains("<!DOCTYPE html"));
-    assertTrue(htmlContent.contains("SQL Safety Scan Report"));
+    // Enhanced HTML generator uses Chinese title
+    assertTrue(htmlContent.contains("SQL 安全扫描报告") || htmlContent.contains("SQL Safety Scan Report"),
+        "HTML report should contain expected title");
   }
 
   @Test
@@ -198,6 +200,7 @@ public class ReportOutputTest {
     }
   }
 }
+
 
 
 

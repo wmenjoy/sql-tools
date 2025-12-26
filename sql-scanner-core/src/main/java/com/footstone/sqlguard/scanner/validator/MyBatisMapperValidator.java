@@ -205,6 +205,11 @@ public class MyBatisMapperValidator {
             }
         }
 
+        // 可选检查：敏感表访问（默认关闭）
+        if (checkSensitiveTables) {
+            violations.addAll(checkSensitiveTables(sqlElement));
+        }
+
         logger.debug("MyBatis validation completed for {}: {} violations found", 
             mapperId, violations.size());
 

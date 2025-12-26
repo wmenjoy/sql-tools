@@ -24,7 +24,7 @@ import java.util.Objects;
 public class SqlEntry {
   private final SourceType source;
   private final String filePath;
-  private final String mapperId;
+  private final String statementId;
   private final SqlCommandType sqlType;
   private final String rawSql;
   private final int lineNumber;
@@ -49,7 +49,7 @@ public class SqlEntry {
    * @param violations list of violations detected for this SQL entry
    * @throws IllegalArgumentException if any parameter is invalid
    */
-  public SqlEntry(SourceType source, String filePath, String mapperId,
+  public SqlEntry(SourceType source, String filePath, String statementId,
                   SqlCommandType sqlType, String rawSql, int lineNumber,
                   boolean dynamic, List<ViolationInfo> violations) {
     // Validation
@@ -59,8 +59,8 @@ public class SqlEntry {
     if (filePath == null || filePath.trim().isEmpty()) {
       throw new IllegalArgumentException("filePath cannot be null or empty");
     }
-    if (mapperId == null || mapperId.trim().isEmpty()) {
-      throw new IllegalArgumentException("mapperId cannot be null or empty");
+    if (statementId == null || statementId.trim().isEmpty()) {
+      throw new IllegalArgumentException("statementId cannot be null or empty");
     }
     if (sqlType == null) {
       throw new IllegalArgumentException("sqlType cannot be null");
@@ -74,7 +74,7 @@ public class SqlEntry {
 
     this.source = source;
     this.filePath = filePath;
-    this.mapperId = mapperId;
+    this.statementId = statementId;
     this.sqlType = sqlType;
     this.rawSql = rawSql;
     this.lineNumber = lineNumber;
@@ -94,9 +94,9 @@ public class SqlEntry {
    * @param lineNumber the line number in the source file (must be > 0)
    * @throws IllegalArgumentException if any parameter is invalid
    */
-  public SqlEntry(SourceType source, String filePath, String mapperId,
+  public SqlEntry(SourceType source, String filePath, String statementId,
                   SqlCommandType sqlType, String rawSql, int lineNumber) {
-    this(source, filePath, mapperId, sqlType, rawSql, lineNumber, false, new ArrayList<>());
+    this(source, filePath, statementId, sqlType, rawSql, lineNumber, false, new ArrayList<>());
   }
 
   /**
@@ -122,8 +122,8 @@ public class SqlEntry {
    *
    * @return the mapper ID in format namespace.methodId
    */
-  public String getMapperId() {
-    return mapperId;
+  public String getStatementId() {
+    return statementId;
   }
 
   /**
@@ -323,7 +323,7 @@ public class SqlEntry {
     return "SqlEntry{" +
         "source=" + source +
         ", filePath='" + filePath + '\'' +
-        ", mapperId='" + mapperId + '\'' +
+        ", statementId='" + statementId + '\'' +
         ", sqlType=" + sqlType +
         ", lineNumber=" + lineNumber +
         ", dynamic=" + dynamic +

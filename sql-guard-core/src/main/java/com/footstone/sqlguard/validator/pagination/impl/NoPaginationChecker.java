@@ -205,7 +205,7 @@ public class NoPaginationChecker extends AbstractRuleChecker {
    */
   private boolean isWhitelisted(Select select, SqlContext context) {
     // Check mapperId whitelist
-    String mapperId = context.getMapperId();
+    String mapperId = context.getStatementId();
     if (mapperId != null && matchesWildcardPattern(mapperId, config.getWhitelistMapperIds())) {
       return true;
     }

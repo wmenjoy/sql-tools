@@ -1,5 +1,6 @@
 package com.footstone.sqlguard.validator.pagination.impl;
 
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
@@ -67,8 +68,9 @@ public class DeepPaginationCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.deepOffset")
+                    .statementId("test.deepOffset")
                     .type(SqlCommandType.SELECT)
+                    .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -95,8 +97,9 @@ public class DeepPaginationCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.normalOffset")
+                    .statementId("test.normalOffset")
                     .type(SqlCommandType.SELECT)
+                    .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -120,8 +123,9 @@ public class DeepPaginationCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.noOffset")
+                    .statementId("test.noOffset")
                     .type(SqlCommandType.SELECT)
+                    .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -150,8 +154,9 @@ public class DeepPaginationCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.earlyReturn")
+                    .statementId("test.earlyReturn")
                     .type(SqlCommandType.SELECT)
+                    .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -184,8 +189,9 @@ public class DeepPaginationCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.logical")
+                    .statementId("test.logical")
                     .type(SqlCommandType.SELECT)
+                    .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 
@@ -217,8 +223,9 @@ public class DeepPaginationCheckerMigrationTest {
 
             SqlContext context = SqlContext.builder()
                     .sql(sql)
-                    .mapperId("test.disabled")
+                    .statementId("test.disabled")
                     .type(SqlCommandType.SELECT)
+                    .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(stmt)
                     .build();
 

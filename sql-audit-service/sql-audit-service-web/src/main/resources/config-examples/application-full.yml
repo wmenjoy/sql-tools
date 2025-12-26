@@ -1,0 +1,263 @@
+# ============================================================================
+# SQL审计服务配置 - PostgreSQL + ClickHouse 大规模模式
+# ============================================================================
+#
+# 适用场景:
+#   - 大型企业、超大规模部署
+#   - 海量数据分析需求（日均SQL审计量 > 1000万）
+#   - 需要快速的OLAP分析
+#   - 长期数据归档和分析
+#
+# 架构说明:
+#   - PostgreSQL: 存储元数据（审计报告、检查器配置）
+#   - ClickHouse: 存储时序日志（执行日志、SQL语句）
+#   - 优点:
+#     - ClickHouse列式存储，压缩比高（节省90%空间）
+#     - 查询性能极快，支持PB级数据分析
+#     - 水平扩展能力强
+#   - 缺点:
+#     - 架构复杂，运维成本高
+#     - 需要专业团队维护
+#
+# ============================================================================
+
+spring:
+  application:
+    name: sql-audit-service
+
+  # 虚拟线程配置 (JDK 21+)
+  threads:
+    virtual:
+      enabled: true
+
+  # PostgreSQL数据源配置 - 存储元数据
+  datasource:
+    url: jdbc:postgresql://localhost:5432/sql_audit?currentSchema=public
+    username: audit_user
+    password: your_password_here
+    driver-class-name: org.postgresql.Driver
+
+    # 连接池配置 (HikariCP)
+    hikari:
+      minimum-idle: 10
+      maximum-pool-size: 50
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: AuditServiceHikariCP
+      data-source-properties:
+        reWriteBatchedInserts: true
+        stringtype: unspecified
+
+  # JPA配置
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          batch_size: 50
+          lob.non_contextual_creation: true
+        order_inserts: true
+        order_updates: true
+
+  # Kafka配置
+  kafka:
+    bootstrap-servers: kafka-1:9092,kafka-2:9092,kafka-3:9092  # 生产环境集群
+    consumer:
+      bootstrap-servers: kafka-1:9092,kafka-2:9092,kafka-3:9092
+      group-id: sql-audit-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        session.timeout.ms: 30000
+        heartbeat.interval.ms: 10000
+        max.poll.records: 5000  # ClickHouse批量插入性能极好
+        max.poll.interval.ms: 600000  # 增加处理时间
+        fetch.min.bytes: 1048576  # 1MB
+        fetch.max.wait.ms: 500
+    producer:
+      bootstrap-servers: kafka-1:9092,kafka-2:9092,kafka-3:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 3
+      batch-size: 32768
+      linger-ms: 10
+      compression-type: lz4
+
+# ============================================================================
+# SQL审计服务核心配置
+# ============================================================================
+audit:
+  # Kafka消费者配置
+  kafka:
+    topic: sql-audit-events
+    consumer:
+      group-id: audit-service
+      dlq-topic: sql-audit-events-dlq
+
+      # 错误处理器配置
+      error-handler:
+        retry-initial-interval: 1000
+        retry-multiplier: 2.0
+        max-attempts: 3
+
+      # 背压控制配置
+      backpressure:
+        enabled: true
+        latency-threshold-ms: 500  # ClickHouse批量插入可能较慢，提高阈值
+        failure-threshold: 10
+        check-interval-ms: 5000
+
+      # 虚拟线程配置
+      virtual-thread:
+        enabled: true
+        name-prefix: kafka-virtual-
+        concurrency: 16  # 大规模场景，提高并发
+
+  # 审计引擎配置
+  engine:
+    checker-timeout-ms: 200
+    whitelist-rules: []
+
+  # 存储配置 - PostgreSQL + ClickHouse 模式
+  storage:
+    # 存储模式: 完整模式
+    mode: full
+
+    # ClickHouse配置 - 存储时序日志
+    clickhouse:
+      # ClickHouse连接URL
+      url: jdbc:clickhouse://clickhouse-1:8123/audit?socket_timeout=300000&connection_timeout=10000
+
+      # 认证配置
+      username: default
+      password: your_clickhouse_password
+
+      # ClickHouse特定配置
+      properties:
+        # 批量插入优化
+        insert_quorum: 2  # 至少2个副本确认
+        insert_quorum_timeout: 60000
+
+        # 查询优化
+        max_execution_time: 300  # 最大查询时间300秒
+        max_memory_usage: 10000000000  # 10GB
+
+        # 压缩配置
+        compression: lz4
+
+    # 数据保留配置
+    retention:
+      enabled: true
+      retention-days: 365  # ClickHouse压缩比高，可以保留1年
+      cron: "0 0 1 * * *"  # 每天凌晨1点执行清理
+
+# ============================================================================
+# 监控配置
+# ============================================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info,metrics
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+      environment: ${environment.name}
+
+# ============================================================================
+# 日志配置
+# ============================================================================
+logging:
+  level:
+    root: INFO
+    com.footstone.audit: INFO  # 生产环境降低日志级别
+    org.springframework.kafka: WARN
+    org.hibernate.SQL: WARN
+    ru.yandex.clickhouse: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# ============================================================================
+# 环境标识
+# ============================================================================
+environment:
+  name: full-mode-production
+
+# ============================================================================
+# ClickHouse优化建议
+# ============================================================================
+# 1. 表结构设计:
+#    CREATE TABLE execution_logs (
+#      timestamp DateTime,
+#      sql_text String,
+#      sql_type String,
+#      mapper_id String,
+#      execution_time_ms UInt32,
+#      risk_level String,
+#      metadata String,  -- JSON格式
+#      date Date MATERIALIZED toDate(timestamp)
+#    ) ENGINE = MergeTree()
+#    PARTITION BY toYYYYMM(timestamp)  -- 按月分区
+#    ORDER BY (timestamp, mapper_id)
+#    TTL date + INTERVAL 365 DAY  -- 自动清理1年前数据
+#    SETTINGS index_granularity = 8192;
+#
+# 2. 物化视图（预聚合）:
+#    -- 每日统计
+#    CREATE MATERIALIZED VIEW daily_stats
+#    ENGINE = SummingMergeTree()
+#    PARTITION BY toYYYYMM(date)
+#    ORDER BY (date, sql_type)
+#    AS SELECT
+#      toDate(timestamp) as date,
+#      sql_type,
+#      count() as total_count,
+#      avg(execution_time_ms) as avg_time,
+#      quantile(0.95)(execution_time_ms) as p95_time
+#    FROM execution_logs
+#    GROUP BY date, sql_type;
+#
+# 3. 分布式表（集群部署）:
+#    CREATE TABLE execution_logs_distributed AS execution_logs
+#    ENGINE = Distributed(audit_cluster, default, execution_logs, rand());
+#
+# 4. 性能优化:
+#    - 使用MergeTree引擎家族
+#    - 合理设置ORDER BY（查询最常用的字段）
+#    - 使用PARTITION BY按时间分区
+#    - 启用TTL自动清理过期数据
+#    - 使用物化视图预聚合
+#
+# 5. 集群配置:
+#    - 至少3个ClickHouse节点
+#    - 使用ZooKeeper做协调（至少3个节点）
+#    - 配置副本数至少为2
+#    - 使用Distributed表进行分布式查询
+#
+# 6. 监控指标:
+#    - 查询性能（system.query_log）
+#    - 磁盘使用率（system.disks）
+#    - 副本延迟（system.replicas）
+#    - Merge性能（system.merges）
+#
+# 7. 数据压缩:
+#    - LZ4: 速度快，压缩比4-5倍
+#    - ZSTD: 压缩比高（10倍），但速度较慢
+#    - 建议: 热数据用LZ4，冷数据用ZSTD

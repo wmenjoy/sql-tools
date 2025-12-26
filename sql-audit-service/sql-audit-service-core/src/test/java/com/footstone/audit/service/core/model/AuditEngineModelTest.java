@@ -24,7 +24,7 @@ class AuditEngineModelTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("SELECT 1")
                 .sqlType(com.footstone.sqlguard.core.model.SqlCommandType.SELECT)
-                .mapperId("test")
+                .statementId("test")
                 .timestamp(Instant.now())
                 .build();
         List<CheckerResult> checkerResults = Collections.emptyList();

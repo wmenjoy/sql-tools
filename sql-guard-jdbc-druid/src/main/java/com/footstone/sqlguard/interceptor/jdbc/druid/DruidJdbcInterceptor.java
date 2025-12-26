@@ -1,5 +1,6 @@
 package com.footstone.sqlguard.interceptor.jdbc.druid;
 
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
 import com.footstone.sqlguard.core.model.ValidationResult;
@@ -129,7 +130,8 @@ public class DruidJdbcInterceptor extends JdbcInterceptorBase {
             return SqlContext.builder()
                 .sql("")
                 .type(SqlCommandType.UNKNOWN)
-                .mapperId("jdbc.druid:unknown")
+                .executionLayer(ExecutionLayer.JDBC)
+                .statementId("jdbc.druid:unknown")
                 .datasource("unknown")
                 .build();
         }
@@ -140,7 +142,8 @@ public class DruidJdbcInterceptor extends JdbcInterceptorBase {
         return SqlContext.builder()
             .sql(sql)
             .type(type)
-            .mapperId("jdbc.druid:" + datasourceName)
+            .executionLayer(ExecutionLayer.JDBC)
+            .statementId("jdbc.druid:" + datasourceName)
             .datasource(datasourceName)
             .build();
     }
@@ -341,6 +344,7 @@ public class DruidJdbcInterceptor extends JdbcInterceptorBase {
         return sb.toString();
     }
 }
+
 
 
 

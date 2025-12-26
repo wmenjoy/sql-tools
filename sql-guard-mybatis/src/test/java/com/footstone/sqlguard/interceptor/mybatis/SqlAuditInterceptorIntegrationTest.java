@@ -94,7 +94,7 @@ class SqlAuditInterceptorIntegrationTest {
             assertTrue(event.getSql().contains("UPDATE"));
             assertTrue(event.getSql().contains("users"));
             assertEquals(SqlCommandType.UPDATE, event.getSqlType());
-            assertTrue(event.getMapperId().contains("updateUser"));
+            assertTrue(event.getStatementId().contains("updateUser"));
             assertEquals(1, event.getRowsAffected());
             assertNull(event.getErrorMessage());
             assertTrue(event.getExecutionTimeMs() >= 0);

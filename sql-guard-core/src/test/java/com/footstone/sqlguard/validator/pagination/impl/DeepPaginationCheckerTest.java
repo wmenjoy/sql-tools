@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
@@ -58,7 +59,8 @@ class DeepPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectBelowThreshold")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectBelowThreshold")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -78,7 +80,8 @@ class DeepPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectAboveThreshold")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectAboveThreshold")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -102,7 +105,8 @@ class DeepPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectEqualsThreshold")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectEqualsThreshold")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -122,7 +126,8 @@ class DeepPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectMaxMinusOne")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectMaxMinusOne")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -142,7 +147,8 @@ class DeepPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectMaxPlusOne")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectMaxPlusOne")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -164,7 +170,8 @@ class DeepPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectLimitOffset")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectLimitOffset")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -184,7 +191,8 @@ class DeepPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectMySQLSyntax")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectMySQLSyntax")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -204,7 +212,8 @@ class DeepPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectLimitOnly")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectLimitOnly")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -226,7 +235,8 @@ class DeepPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectWithRowBounds")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectWithRowBounds")
         .rowBounds(new RowBounds(0, 10))
         .build();
     ValidationResult result = ValidationResult.pass();
@@ -247,7 +257,8 @@ class DeepPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectById")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -270,7 +281,8 @@ class DeepPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectDeepOffsetNoWhere")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectDeepOffsetNoWhere")
         .build();
     ValidationResult result = ValidationResult.pass();
     
@@ -294,7 +306,8 @@ class DeepPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectDeepOffset")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectDeepOffset")
         .build();
     ValidationResult result = ValidationResult.pass();
     // No earlyReturn flag set
@@ -321,7 +334,8 @@ class DeepPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectCustomThreshold")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectCustomThreshold")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -348,7 +362,8 @@ class DeepPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectDeepOffset")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectDeepOffset")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -373,7 +388,8 @@ class DeepPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectOffset15000")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectOffset15000")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -398,7 +414,8 @@ class DeepPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectDeepOffset")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectDeepOffset")
         .build();
     ValidationResult result = ValidationResult.pass();
 
@@ -423,7 +440,8 @@ class DeepPaginationCheckerTest {
         .sql(sql)
         .statement(parser.parse(sql))
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectMySQLDeepOffset")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectMySQLDeepOffset")
         .build();
     ValidationResult result = ValidationResult.pass();
 

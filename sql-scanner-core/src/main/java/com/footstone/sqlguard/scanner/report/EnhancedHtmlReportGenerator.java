@@ -497,13 +497,13 @@ public class EnhancedHtmlReportGenerator {
         html.append("data-risk=\"").append(entry.getRiskLevel().name()).append("\" ");
         html.append("data-type=\"").append(escapeHtml(violationType)).append("\" ");
         html.append("data-file=\"").append(escapeHtml(entry.getFilePath())).append("\" ");
-        html.append("data-mapper=\"").append(escapeHtml(entry.getMapperId())).append("\" ");
+        html.append("data-mapper=\"").append(escapeHtml(entry.getStatementId())).append("\" ");
         html.append("data-message=\"").append(escapeHtml(entry.getMessage())).append("\">\n");
 
         // Header
         html.append("                <div class=\"violation-header\">\n");
         html.append("                    <div class=\"violation-title\">\n");
-        html.append("                        <h3>").append(escapeHtml(entry.getMapperId())).append("</h3>\n");
+        html.append("                        <h3>").append(escapeHtml(entry.getStatementId())).append("</h3>\n");
         html.append("                        <div class=\"violation-meta file-path\">");
         html.append(escapeHtml(entry.getFilePath())).append(":").append(entry.getLineNumber());
         html.append("</div>\n");

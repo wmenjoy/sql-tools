@@ -1,12 +1,15 @@
 package com.footstone.sqlguard.core.model;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.Select;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +34,8 @@ class AdditionalValidationTest {
     SqlContext context = SqlContext.builder()
         .sql("SELECT * FROM users WHERE id = ?")
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectById")
         .params(params)
         .build();
 
@@ -55,14 +59,15 @@ class AdditionalValidationTest {
         .sql("SELECT * FROM users")
         .statement(parsedSql)
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectAll")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectAll")
         .build();
 
     // Assert - Fields should be final (verified by getter consistency)
     assertEquals("SELECT * FROM users", context.getSql());
     assertEquals(parsedSql, context.getStatement());
     assertEquals(SqlCommandType.SELECT, context.getType());
-    assertEquals("com.example.UserMapper.selectAll", context.getMapperId());
+    assertEquals("com.example.UserMapper.selectAll", context.getStatementId());
 
     // Multiple calls to getters should return same values
     assertEquals("SELECT * FROM users", context.getSql());
@@ -76,7 +81,8 @@ class AdditionalValidationTest {
     SqlContext.SqlContextBuilder builder = SqlContext.builder()
         .sql("SELECT * FROM users")
         .type(SqlCommandType.SELECT)
-        .mapperId("com.example.UserMapper.selectAll");
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectAll");
 
     // Act
     SqlContext context1 = builder.build();
@@ -153,7 +159,8 @@ class AdditionalValidationTest {
         IllegalArgumentException.class,
         () -> SqlContext.builder()
             .type(SqlCommandType.SELECT)
-            .mapperId("com.example.UserMapper.selectAll")
+            .executionLayer(ExecutionLayer.MYBATIS)
+            .statementId("com.example.UserMapper.selectAll")
             .build()
     );
 
@@ -170,7 +177,8 @@ class AdditionalValidationTest {
         IllegalArgumentException.class,
         () -> SqlContext.builder()
             .sql("SELECT * FROM users")
-            .mapperId("com.example.UserMapper.selectAll")
+            .executionLayer(ExecutionLayer.MYBATIS)
+            .statementId("com.example.UserMapper.selectAll")
             .build()
     );
 
@@ -179,20 +187,33 @@ class AdditionalValidationTest {
   }
 
   @Test
-  @DisplayName("Fail-fast: SqlContext.builder().build() without mapperId throws clear exception")
-  void testFailFastSqlContextWithoutMapperId() {
-    // Act & Assert
-    IllegalArgumentException exception = assertThrows(
-        IllegalArgumentException.class,
+  @DisplayName("SqlContext.builder().build() allows null statementId for JDBC")
+  void testSqlContextAllowsNullStatementIdForJdbc() {
+    // Act & Assert - null statementId should work for JDBC
+    SqlContext context = assertDoesNotThrow(
         () -> SqlContext.builder()
             .sql("SELECT * FROM users")
             .type(SqlCommandType.SELECT)
+            .executionLayer(ExecutionLayer.JDBC)
             .build()
     );
 
-    assertTrue(exception.getMessage().contains("mapperId"));
-    assertTrue(exception.getMessage().toLowerCase().contains("null")
-        || exception.getMessage().toLowerCase().contains("empty"));
+    assertNull(context.getStatementId(), "statementId should be null for JDBC scenarios");
+  }
+
+  @Test
+  @DisplayName("SqlContext.builder().build() allows null statementId for MYBATIS")
+  void testSqlContextAllowsNullStatementIdForMybatis() {
+    // Act & Assert - null statementId is now allowed (optional field)
+    SqlContext context = assertDoesNotThrow(
+        () -> SqlContext.builder()
+            .sql("SELECT * FROM users")
+            .type(SqlCommandType.SELECT)
+            .executionLayer(ExecutionLayer.MYBATIS)
+            .build()
+    );
+
+    assertNull(context.getStatementId(), "statementId can be null (optional field)");
   }
 
   @Test
@@ -204,7 +225,8 @@ class AdditionalValidationTest {
         () -> SqlContext.builder()
             .sql("   ")
             .type(SqlCommandType.SELECT)
-            .mapperId("com.example.UserMapper.selectAll")
+            .executionLayer(ExecutionLayer.MYBATIS)
+            .statementId("com.example.UserMapper.selectAll")
             .build()
     );
 
@@ -213,21 +235,29 @@ class AdditionalValidationTest {
   }
 
   @Test
-  @DisplayName("Fail-fast: SqlContext with invalid mapperId format throws clear exception")
-  void testFailFastSqlContextWithInvalidMapperIdFormat() {
-    // Act & Assert
-    IllegalArgumentException exception = assertThrows(
-        IllegalArgumentException.class,
+  @DisplayName("SqlContext accepts various statementId formats (no format validation)")
+  void testSqlContextAcceptsVariousStatementIdFormats() {
+    // Act & Assert - any format should work (no format validation enforced)
+    SqlContext simpleFormat = assertDoesNotThrow(
         () -> SqlContext.builder()
             .sql("SELECT * FROM users")
             .type(SqlCommandType.SELECT)
-            .mapperId("InvalidFormatNoNamespace")
+            .executionLayer(ExecutionLayer.MYBATIS)
+            .statementId("SimpleId")
             .build()
     );
+    assertEquals("SimpleId", simpleFormat.getStatementId());
 
-    assertTrue(exception.getMessage().contains("mapperId"));
-    assertTrue(exception.getMessage().toLowerCase().contains("format")
-        || exception.getMessage().contains("namespace.methodId"));
+    // Full qualified format
+    SqlContext qualifiedFormat = assertDoesNotThrow(
+        () -> SqlContext.builder()
+            .sql("SELECT * FROM users")
+            .type(SqlCommandType.SELECT)
+            .executionLayer(ExecutionLayer.MYBATIS)
+            .statementId("com.example.UserMapper.selectAll")
+            .build()
+    );
+    assertEquals("com.example.UserMapper.selectAll", qualifiedFormat.getStatementId());
   }
 
   @Test

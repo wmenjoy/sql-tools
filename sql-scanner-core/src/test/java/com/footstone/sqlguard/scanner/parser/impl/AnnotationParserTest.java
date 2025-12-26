@@ -49,7 +49,7 @@ class AnnotationParserTest {
 
     assertNotNull(selectEntry, "Should find @Select annotation");
     assertEquals(SourceType.ANNOTATION, selectEntry.getSource());
-    assertEquals("com.example.SimpleMapper.getUserById", selectEntry.getMapperId());
+    assertEquals("com.example.SimpleMapper.getUserById", selectEntry.getStatementId());
     assertEquals(SqlCommandType.SELECT, selectEntry.getSqlType());
     assertEquals("SELECT * FROM user WHERE id = #{id}", selectEntry.getRawSql());
     assertTrue(selectEntry.getLineNumber() > 0, "Line number should be positive");
@@ -73,7 +73,7 @@ class AnnotationParserTest {
         .findFirst()
         .orElse(null);
     assertNotNull(selectEntry);
-    assertEquals("com.example.SimpleMapper.getUserById", selectEntry.getMapperId());
+    assertEquals("com.example.SimpleMapper.getUserById", selectEntry.getStatementId());
 
     // Verify @Update entry
     SqlEntry updateEntry = entries.stream()
@@ -81,7 +81,7 @@ class AnnotationParserTest {
         .findFirst()
         .orElse(null);
     assertNotNull(updateEntry);
-    assertEquals("com.example.SimpleMapper.updateUser", updateEntry.getMapperId());
+    assertEquals("com.example.SimpleMapper.updateUser", updateEntry.getStatementId());
     assertEquals("UPDATE user SET name = #{name} WHERE id = #{id}", updateEntry.getRawSql());
   }
 
@@ -94,7 +94,7 @@ class AnnotationParserTest {
     // Then
     assertFalse(entries.isEmpty());
     for (SqlEntry entry : entries) {
-      assertTrue(entry.getMapperId().startsWith("com.example.SimpleMapper."),
+      assertTrue(entry.getStatementId().startsWith("com.example.SimpleMapper."),
           "MapperId should start with fully qualified class name");
     }
   }
@@ -127,6 +127,7 @@ class AnnotationParserTest {
         "@Update annotation should be on line 9");
   }
 }
+
 
 
 

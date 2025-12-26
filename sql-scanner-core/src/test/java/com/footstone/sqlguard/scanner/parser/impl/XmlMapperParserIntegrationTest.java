@@ -51,14 +51,14 @@ class XmlMapperParserIntegrationTest {
         .filter(e -> e.getSqlType() == SqlCommandType.SELECT)
         .findFirst()
         .orElseThrow(() -> new AssertionError("SELECT not found"));
-    assertEquals("com.example.UserMapper.getUserById", selectEntry.getMapperId());
+    assertEquals("com.example.UserMapper.getUserById", selectEntry.getStatementId());
     
     // Verify UPDATE entry
     SqlEntry updateEntry = entries.stream()
         .filter(e -> e.getSqlType() == SqlCommandType.UPDATE)
         .findFirst()
         .orElseThrow(() -> new AssertionError("UPDATE not found"));
-    assertEquals("com.example.UserMapper.updateUser", updateEntry.getMapperId());
+    assertEquals("com.example.UserMapper.updateUser", updateEntry.getStatementId());
   }
 
   @Test
@@ -161,8 +161,8 @@ class XmlMapperParserIntegrationTest {
     
     // Verify mapperIds are correct
     for (SqlEntry entry : entries) {
-      assertTrue(entry.getMapperId().startsWith("com.example.OrderMapper."),
-          "MapperId should start with namespace: " + entry.getMapperId());
+      assertTrue(entry.getStatementId().startsWith("com.example.OrderMapper."),
+          "MapperId should start with namespace: " + entry.getStatementId());
     }
   }
 
@@ -200,7 +200,7 @@ class XmlMapperParserIntegrationTest {
     
     // Comments should not affect parsing
     assertTrue(entry.getRawSql().contains("SELECT"), "Should extract SQL");
-    assertEquals("com.example.UserMapper.findUsers", entry.getMapperId());
+    assertEquals("com.example.UserMapper.findUsers", entry.getStatementId());
   }
 
   @Test
@@ -312,6 +312,7 @@ class XmlMapperParserIntegrationTest {
     return new File(resource.getFile());
   }
 }
+
 
 
 

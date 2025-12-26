@@ -8,6 +8,7 @@ import ch.qos.logback.core.FileAppender;
 import ch.qos.logback.core.read.ListAppender;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import com.footstone.sqlguard.core.model.SqlCommandType;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -246,7 +247,8 @@ class LogbackAuditAppenderTest {
         return AuditEvent.builder()
                 .sql(sql)
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("TestMapper.select")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("TestMapper.select")
                 .datasource("test")
                 .timestamp(Instant.now())
                 .executionTimeMs(10L)

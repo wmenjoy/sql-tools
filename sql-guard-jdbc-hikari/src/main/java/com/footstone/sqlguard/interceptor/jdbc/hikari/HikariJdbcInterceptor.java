@@ -1,10 +1,12 @@
 package com.footstone.sqlguard.interceptor.jdbc.hikari;
 
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import com.footstone.sqlguard.core.model.ViolationInfo;
 import com.footstone.sqlguard.interceptor.jdbc.common.JdbcInterceptorBase;
+import com.footstone.sqlguard.interceptor.jdbc.common.StatementIdGenerator;
 import com.footstone.sqlguard.interceptor.jdbc.common.ViolationStrategy;
 import com.footstone.sqlguard.validator.DefaultSqlSafetyValidator;
 
@@ -166,16 +168,19 @@ public class HikariJdbcInterceptor extends JdbcInterceptorBase {
     protected SqlContext buildSqlContext(String sql, Object... params) {
         // Handle null SQL gracefully
         String safeSql = sql != null ? sql : "";
-        
+
         // Detect SQL type
         SqlCommandType type = detectSqlType(safeSql);
 
-        // Build HikariCP-specific context
-        // mapperId format: "jdbc.hikari:{datasourceName}"
+        // Generate unique statementId using StatementIdGenerator
+        // Format: jdbc.hikari:{datasourceName}:{sqlHash}
+        String statementId = StatementIdGenerator.generate("hikari", datasourceName, safeSql);
+
         return SqlContext.builder()
                 .sql(safeSql)
                 .type(type)
-                .mapperId("jdbc.hikari:" + datasourceName)
+                .executionLayer(ExecutionLayer.JDBC)
+                .statementId(statementId)
                 .datasource(datasourceName)
                 .build();
     }
@@ -303,6 +308,7 @@ public class HikariJdbcInterceptor extends JdbcInterceptorBase {
         return sql.substring(0, 200) + "...";
     }
 }
+
 
 
 

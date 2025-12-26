@@ -49,7 +49,7 @@ class XmlMapperParserTest {
         .orElseThrow(() -> new AssertionError("SELECT entry not found"));
 
     assertEquals(SourceType.XML, selectEntry.getSource());
-    assertEquals("com.example.UserMapper.getUserById", selectEntry.getMapperId());
+    assertEquals("com.example.UserMapper.getUserById", selectEntry.getStatementId());
     assertEquals(SqlCommandType.SELECT, selectEntry.getSqlType());
     assertTrue(selectEntry.getRawSql().contains("SELECT * FROM user WHERE id = #{id}"));
     assertTrue(selectEntry.getLineNumber() > 0);
@@ -74,14 +74,14 @@ class XmlMapperParserTest {
         .filter(e -> e.getSqlType() == SqlCommandType.SELECT)
         .findFirst()
         .orElseThrow(() -> new AssertionError("SELECT entry not found"));
-    assertEquals("com.example.UserMapper.getUserById", selectEntry.getMapperId());
+    assertEquals("com.example.UserMapper.getUserById", selectEntry.getStatementId());
 
     // Verify UPDATE entry
     SqlEntry updateEntry = entries.stream()
         .filter(e -> e.getSqlType() == SqlCommandType.UPDATE)
         .findFirst()
         .orElseThrow(() -> new AssertionError("UPDATE entry not found"));
-    assertEquals("com.example.UserMapper.updateUser", updateEntry.getMapperId());
+    assertEquals("com.example.UserMapper.updateUser", updateEntry.getStatementId());
     assertTrue(updateEntry.getRawSql().contains("UPDATE user SET name = #{name}"));
   }
 
@@ -96,8 +96,8 @@ class XmlMapperParserTest {
 
     // Then
     for (SqlEntry entry : entries) {
-      assertTrue(entry.getMapperId().startsWith("com.example.UserMapper."),
-          "MapperId should start with namespace: " + entry.getMapperId());
+      assertTrue(entry.getStatementId().startsWith("com.example.UserMapper."),
+          "MapperId should start with namespace: " + entry.getStatementId());
     }
   }
 
@@ -153,8 +153,8 @@ class XmlMapperParserTest {
     // Then
     assertFalse(entries.isEmpty());
     SqlEntry entry = entries.get(0);
-    assertTrue(entry.getMapperId().startsWith("unknown."),
-        "MapperId should use 'unknown' prefix when namespace is missing: " + entry.getMapperId());
+    assertTrue(entry.getStatementId().startsWith("unknown."),
+        "MapperId should use 'unknown' prefix when namespace is missing: " + entry.getStatementId());
   }
 
   @Test

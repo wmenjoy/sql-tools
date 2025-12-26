@@ -105,7 +105,7 @@ class MpSqlAuditInnerInterceptorTest {
         AuditEvent event = eventCaptor.getValue();
         assertEquals(sql, event.getSql());
         assertEquals(SqlCommandType.UPDATE, event.getSqlType());
-        assertEquals(mapperId, event.getMapperId());
+        assertEquals(mapperId, event.getStatementId());
         assertEquals(rowsAffected, event.getRowsAffected());
         assertNull(event.getErrorMessage());
         assertTrue(event.getExecutionTimeMs() >= 0);
@@ -139,7 +139,7 @@ class MpSqlAuditInnerInterceptorTest {
         AuditEvent event = eventCaptor.getValue();
         assertEquals(sql, event.getSql());
         assertEquals(SqlCommandType.SELECT, event.getSqlType());
-        assertEquals(mapperId, event.getMapperId());
+        assertEquals(mapperId, event.getStatementId());
         assertEquals(2, event.getRowsAffected());
         assertNull(event.getErrorMessage());
     }

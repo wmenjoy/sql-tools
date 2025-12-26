@@ -1,6 +1,8 @@
 package com.footstone.audit.service.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.footstone.audit.service.consumer.config.KafkaConsumerProperties;
+import com.footstone.audit.service.core.processor.AuditEventProcessor;
 import com.footstone.sqlguard.audit.AuditEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,8 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.support.Acknowledgment;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -26,7 +27,7 @@ class KafkaPerformanceTest {
     private AuditEventProcessor auditEventProcessor;
     private AuditEventErrorHandler errorHandler;
     private BackpressureHandler backpressureHandler;
-    private KafkaConsumerMetrics metrics;
+    private SqlAuditConsumerMetrics metrics;
     private Acknowledgment acknowledgment;
 
     private KafkaAuditEventConsumer consumer;
@@ -37,13 +38,19 @@ class KafkaPerformanceTest {
     void setUp() {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
-        
-        // Stubs
-        auditEventProcessor = event -> {};
+
+        // Stubs - 需要返回 AuditProcessingResult
+        auditEventProcessor = event -> new com.footstone.audit.service.core.model.AuditProcessingResult(
+            true, null, null
+        );
         errorHandler = mock(AuditEventErrorHandler.class); // Error handler not called in happy path
-        
-        // Lightweight stubs
-        backpressureHandler = new BackpressureHandler(null) {
+
+        // Lightweight stubs - 创建配置属性
+        KafkaConsumerProperties properties = new KafkaConsumerProperties();
+        properties.getBackpressure().setLatencyThresholdMs(200);
+        properties.getBackpressure().setFailureThreshold(5);
+
+        backpressureHandler = new BackpressureHandler(null, properties) {
             @Override
             public void recordLatency(String serviceName, long latencyMs) {}
             @Override
@@ -52,7 +59,7 @@ class KafkaPerformanceTest {
             public void recordFailure(String serviceName) {}
         };
         
-        metrics = new KafkaConsumerMetrics(new io.micrometer.core.instrument.simple.SimpleMeterRegistry()) {
+        metrics = new SqlAuditConsumerMetrics(new io.micrometer.core.instrument.simple.SimpleMeterRegistry()) {
             @Override
             public void incrementThroughput() {}
             @Override

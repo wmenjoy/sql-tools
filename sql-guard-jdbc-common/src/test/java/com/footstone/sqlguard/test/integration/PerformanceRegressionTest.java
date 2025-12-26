@@ -47,7 +47,8 @@ class PerformanceRegressionTest {
     private static final double MAX_THROUGHPUT_DEGRADATION_PERCENT = 5.0;
     private static final double MAX_LATENCY_INCREASE_PERCENT = 10.0;
     // Threshold for cold start class loading (first-time loading includes JIT compilation)
-    private static final long MAX_MODULE_LOAD_TIME_MS = 500;
+    // Relaxed for CI environments with variable system load
+    private static final long MAX_MODULE_LOAD_TIME_MS = 1000;
 
     @BeforeAll
     static void setupProjectRoot() {

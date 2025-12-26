@@ -2,6 +2,7 @@ package com.footstone.sqlguard.audit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.footstone.sqlguard.core.model.SqlCommandType;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -43,7 +44,8 @@ class LogbackAuditWriterTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("SELECT * FROM users WHERE id = ?")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("UserMapper.selectById")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("UserMapper.selectById")
                 .datasource("primary")
                 .timestamp(Instant.now())
                 .executionTimeMs(150L)
@@ -63,7 +65,8 @@ class LogbackAuditWriterTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("DELETE FROM temp_table")
                 .sqlType(SqlCommandType.DELETE)
-                .mapperId("TempMapper.delete")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("TempMapper.delete")
                 .timestamp(Instant.now())
                 .build();
 
@@ -97,7 +100,8 @@ class LogbackAuditWriterTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("UPDATE users SET name = ? WHERE id = ?")
                 .sqlType(SqlCommandType.UPDATE)
-                .mapperId("UserMapper.update")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("UserMapper.update")
                 .datasource("primary")
                 .params(params)
                 .timestamp(Instant.now())
@@ -118,7 +122,8 @@ class LogbackAuditWriterTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("INSERT INTO users (id, name) VALUES (?, ?)")
                 .sqlType(SqlCommandType.INSERT)
-                .mapperId("UserMapper.insert")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("UserMapper.insert")
                 .datasource("primary")
                 .timestamp(Instant.now())
                 .errorMessage("Duplicate key violation: id=123")
@@ -138,7 +143,8 @@ class LogbackAuditWriterTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("SELECT * FROM test")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("TestMapper.select")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("TestMapper.select")
                 .timestamp(timestamp)
                 .build();
 
@@ -178,7 +184,8 @@ class LogbackAuditWriterTest {
                         AuditEvent event = AuditEvent.builder()
                                 .sql("SELECT * FROM test WHERE id = " + (threadId * 1000 + j))
                                 .sqlType(SqlCommandType.SELECT)
-                                .mapperId("TestMapper.select")
+                                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("TestMapper.select")
                                 .datasource("test")
                                 .timestamp(Instant.now())
                                 .build();
@@ -224,7 +231,8 @@ class LogbackAuditWriterTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("SELECT * FROM test")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("TestMapper.select")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("TestMapper.select")
                 .timestamp(Instant.now())
                 .build();
 
@@ -259,7 +267,8 @@ class LogbackAuditWriterTest {
         AuditEvent event = AuditEvent.builder()
                 .sql(largeSql.toString())
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("UserMapper.selectByIds")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("UserMapper.selectByIds")
                 .timestamp(Instant.now())
                 .build();
 
@@ -276,7 +285,8 @@ class LogbackAuditWriterTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("SELECT * FROM users WHERE name = 'O''Brien' AND comment LIKE '%test\\n\\t%'")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("UserMapper.selectByName")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("UserMapper.selectByName")
                 .datasource("primary")
                 .timestamp(Instant.now())
                 .build();
@@ -299,7 +309,8 @@ class LogbackAuditWriterTest {
             AuditEvent event = AuditEvent.builder()
                     .sql("SELECT * FROM test WHERE id = " + i)
                     .sqlType(SqlCommandType.SELECT)
-                    .mapperId("TestMapper.select")
+                    .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("TestMapper.select")
                     .timestamp(Instant.now())
                     .build();
 
@@ -318,6 +329,7 @@ class LogbackAuditWriterTest {
                 "Average write time should be <5ms per event, got: " + avgTimePerEvent + "ms");
     }
 }
+
 
 
 

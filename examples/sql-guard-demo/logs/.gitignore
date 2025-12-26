@@ -1,0 +1,7 @@
+# Ignore all log files
+*.log
+*.log.*
+*.gz
+
+# But keep the directory structure
+!.gitkeep

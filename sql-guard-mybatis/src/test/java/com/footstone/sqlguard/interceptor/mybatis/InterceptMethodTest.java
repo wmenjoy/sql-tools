@@ -88,7 +88,7 @@ class InterceptMethodTest {
     verify(validator).validate(contextCaptor.capture());
     SqlContext context = contextCaptor.getValue();
     assertNotNull(context);
-    assertEquals(mapperId, context.getMapperId());
+    assertEquals(mapperId, context.getStatementId());
   }
 
   @Test
@@ -299,8 +299,8 @@ class InterceptMethodTest {
     assertNotNull(context.getType());
     assertEquals(SqlCommandType.SELECT, context.getType());
 
-    assertNotNull(context.getMapperId());
-    assertEquals(mapperId, context.getMapperId());
+    assertNotNull(context.getStatementId());
+    assertEquals(mapperId, context.getStatementId());
 
     assertNotNull(context.getRowBounds());
     assertEquals(rowBounds, context.getRowBounds());
@@ -392,7 +392,7 @@ class InterceptMethodTest {
     ArgumentCaptor<SqlContext> contextCaptor = ArgumentCaptor.forClass(SqlContext.class);
     verify(validator).validate(contextCaptor.capture());
     SqlContext context = contextCaptor.getValue();
-    assertEquals(expectedMapperId, context.getMapperId());
+    assertEquals(expectedMapperId, context.getStatementId());
   }
 
   /**
@@ -438,6 +438,7 @@ class InterceptMethodTest {
     }
   }
 }
+
 
 
 

@@ -17,7 +17,7 @@ import java.util.Objects;
 public class ViolationEntry {
   private final String filePath;
   private final int lineNumber;
-  private final String mapperId;
+  private final String statementId;
   private final String sqlSnippet;
   private final RiskLevel riskLevel;
   private final String message;
@@ -36,10 +36,10 @@ public class ViolationEntry {
    * @param message the violation message
    * @param suggestion the suggested fix (may be null)
    */
-  public ViolationEntry(String filePath, int lineNumber, String mapperId,
+  public ViolationEntry(String filePath, int lineNumber, String statementId,
                         String sqlSnippet, RiskLevel riskLevel,
                         String message, String suggestion) {
-    this(filePath, lineNumber, mapperId, sqlSnippet, riskLevel, message, suggestion, null, null);
+    this(filePath, lineNumber, statementId, sqlSnippet, riskLevel, message, suggestion, null, null);
   }
 
   /**
@@ -55,13 +55,13 @@ public class ViolationEntry {
    * @param xmlSnippet the complete XML snippet (may be null)
    * @param javaMethodSignature the Java method signature (may be null)
    */
-  public ViolationEntry(String filePath, int lineNumber, String mapperId,
+  public ViolationEntry(String filePath, int lineNumber, String statementId,
                         String sqlSnippet, RiskLevel riskLevel,
                         String message, String suggestion,
                         String xmlSnippet, String javaMethodSignature) {
     this.filePath = filePath;
     this.lineNumber = lineNumber;
-    this.mapperId = mapperId;
+    this.statementId = statementId;
     this.sqlSnippet = sqlSnippet;
     this.riskLevel = riskLevel;
     this.message = message;
@@ -93,8 +93,8 @@ public class ViolationEntry {
    *
    * @return the mapper ID
    */
-  public String getMapperId() {
-    return mapperId;
+  public String getStatementId() {
+    return statementId;
   }
 
   /**
@@ -162,7 +162,7 @@ public class ViolationEntry {
     ViolationEntry that = (ViolationEntry) o;
     return lineNumber == that.lineNumber &&
         Objects.equals(filePath, that.filePath) &&
-        Objects.equals(mapperId, that.mapperId) &&
+        Objects.equals(statementId, that.statementId) &&
         Objects.equals(sqlSnippet, that.sqlSnippet) &&
         riskLevel == that.riskLevel &&
         Objects.equals(message, that.message) &&
@@ -171,7 +171,7 @@ public class ViolationEntry {
 
   @Override
   public int hashCode() {
-    return Objects.hash(filePath, lineNumber, mapperId, sqlSnippet,
+    return Objects.hash(filePath, lineNumber, statementId, sqlSnippet,
         riskLevel, message, suggestion);
   }
 
@@ -180,7 +180,7 @@ public class ViolationEntry {
     return "ViolationEntry{" +
         "filePath='" + filePath + '\'' +
         ", lineNumber=" + lineNumber +
-        ", mapperId='" + mapperId + '\'' +
+        ", statementId='" + statementId + '\'' +
         ", riskLevel=" + riskLevel +
         ", message='" + message + '\'' +
         '}';

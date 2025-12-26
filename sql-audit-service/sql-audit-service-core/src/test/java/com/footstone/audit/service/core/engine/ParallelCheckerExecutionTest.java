@@ -164,7 +164,7 @@ class ParallelCheckerExecutionTest {
         return AuditEvent.builder()
                 .sql("SELECT 1")
                 .sqlType(com.footstone.sqlguard.core.model.SqlCommandType.SELECT)
-                .mapperId("test")
+                .statementId("test")
                 .timestamp(Instant.now())
                 .build();
     }

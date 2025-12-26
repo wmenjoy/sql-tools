@@ -3,6 +3,7 @@ package com.footstone.sqlguard.interceptor.jdbc.common;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
 import com.footstone.sqlguard.core.model.ValidationResult;
@@ -318,7 +319,8 @@ class CommonModuleExtractionTest {
             SqlContext context = SqlContext.builder()
                 .sql("SELECT * FROM users")
                 .type(SqlCommandType.SELECT)
-                .mapperId("jdbc.test:default")
+                .executionLayer(ExecutionLayer.JDBC)
+                .statementId("jdbc.test:default")
                 .datasource("default")
                 .build();
 
@@ -330,7 +332,7 @@ class CommonModuleExtractionTest {
             // Then: Event should be correctly populated
             assertThat(event).isNotNull();
             assertThat(event.getSql()).isEqualTo(context.getSql());
-            assertThat(event.getMapperId()).isEqualTo(context.getMapperId());
+            assertThat(event.getStatementId()).isEqualTo(context.getStatementId());
             assertThat(event.getDatasource()).isEqualTo(context.getDatasource());
             assertThat(event.getTimestamp()).isNotNull();
             assertThat(event.getSqlType()).isEqualTo(SqlCommandType.SELECT);
@@ -398,14 +400,16 @@ class CommonModuleExtractionTest {
                 lastSqlContext = SqlContext.builder()
                     .sql("UNKNOWN")
                     .type(SqlCommandType.UNKNOWN)
-                    .mapperId("test.method")
+                    .executionLayer(ExecutionLayer.JDBC)
+                    .statementId("test.method")
                     .datasource("testdb")
                     .build();
             } else {
                 lastSqlContext = SqlContext.builder()
                     .sql(sql)
                     .type(SqlCommandType.SELECT)
-                    .mapperId("test.method")
+                    .executionLayer(ExecutionLayer.JDBC)
+                    .statementId("test.method")
                     .datasource("testdb")
                     .build();
             }

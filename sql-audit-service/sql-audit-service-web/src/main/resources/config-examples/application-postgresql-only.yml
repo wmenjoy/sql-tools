@@ -1,0 +1,212 @@
+# ============================================================================
+# SQL审计服务配置 - PostgreSQL单数据库模式
+# ============================================================================
+#
+# 适用场景:
+#   - 中型企业
+#   - 需要更好的JSON支持和全文搜索
+#   - 数据量中等（日均SQL审计量 100万-500万）
+#   - 已有PostgreSQL基础设施
+#
+# 架构说明:
+#   - PostgreSQL: 存储所有数据（元数据 + 时序日志）
+#   - 优点:
+#     - 原生JSON支持，查询性能好
+#     - 内置全文搜索功能
+#     - 分区表性能优秀
+#   - 缺点:
+#     - 单库模式，超大规模需要分库分表
+#
+# ============================================================================
+
+spring:
+  application:
+    name: sql-audit-service
+
+  # 虚拟线程配置 (JDK 21+)
+  threads:
+    virtual:
+      enabled: true
+
+  # PostgreSQL数据源配置
+  datasource:
+    url: jdbc:postgresql://localhost:5432/sql_audit?currentSchema=public
+    username: audit_user
+    password: your_password_here
+    driver-class-name: org.postgresql.Driver
+
+    # 连接池配置 (HikariCP)
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: AuditServiceHikariCP
+      # PostgreSQL特定配置
+      data-source-properties:
+        reWriteBatchedInserts: true
+        stringtype: unspecified
+
+  # JPA配置
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          batch_size: 50  # PostgreSQL支持更大的批量插入
+          lob.non_contextual_creation: true
+        order_inserts: true
+        order_updates: true
+        # PostgreSQL特定优化
+        temp:
+          use_jdbc_metadata_defaults: false
+
+  # Kafka配置
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      bootstrap-servers: localhost:9092
+      group-id: sql-audit-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        session.timeout.ms: 30000
+        heartbeat.interval.ms: 10000
+        max.poll.records: 1000  # PostgreSQL批量插入性能好，可以增加
+        max.poll.interval.ms: 300000
+    producer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 3
+
+# ============================================================================
+# SQL审计服务核心配置
+# ============================================================================
+audit:
+  # Kafka消费者配置
+  kafka:
+    topic: sql-audit-events
+    consumer:
+      group-id: audit-service
+      dlq-topic: sql-audit-events-dlq
+
+      # 错误处理器配置
+      error-handler:
+        retry-initial-interval: 1000
+        retry-multiplier: 2.0
+        max-attempts: 3
+
+      # 背压控制配置
+      backpressure:
+        enabled: true
+        latency-threshold-ms: 200
+        failure-threshold: 5
+        check-interval-ms: 5000
+
+      # 虚拟线程配置
+      virtual-thread:
+        enabled: true
+        name-prefix: kafka-virtual-
+        concurrency: 4  # PostgreSQL性能好，可以适当提高并发
+
+  # 审计引擎配置
+  engine:
+    checker-timeout-ms: 200
+    whitelist-rules: []
+
+  # 存储配置 - PostgreSQL单库模式
+  storage:
+    # 存储模式: 仅使用PostgreSQL
+    mode: postgresql-only
+
+    # 数据保留配置
+    retention:
+      enabled: true
+      retention-days: 60  # PostgreSQL性能好，可以保留更久
+      cron: "0 0 2 * * *"  # 每天凌晨2点执行清理
+
+# ============================================================================
+# 监控配置
+# ============================================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info,metrics
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# ============================================================================
+# 日志配置
+# ============================================================================
+logging:
+  level:
+    root: INFO
+    com.footstone.audit: DEBUG
+    org.springframework.kafka: WARN
+    org.hibernate.SQL: WARN
+    org.postgresql: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# ============================================================================
+# 环境标识
+# ============================================================================
+environment:
+  name: postgresql-only-mode
+
+# ============================================================================
+# PostgreSQL优化建议
+# ============================================================================
+# 1. 表分区策略:
+#    CREATE TABLE execution_logs (
+#      id BIGSERIAL,
+#      timestamp TIMESTAMP NOT NULL,
+#      sql_text TEXT,
+#      ...
+#    ) PARTITION BY RANGE (timestamp);
+#
+#    -- 创建月度分区
+#    CREATE TABLE execution_logs_2024_01 PARTITION OF execution_logs
+#      FOR VALUES FROM ('2024-01-01') TO ('2024-02-01');
+#
+# 2. JSON字段优化:
+#    - 使用JSONB类型存储SQL元数据
+#    - 为常用JSON字段创建GIN索引
+#    CREATE INDEX idx_metadata_gin ON execution_logs USING GIN (metadata);
+#
+# 3. 全文搜索:
+#    - 使用PostgreSQL内置全文搜索
+#    ALTER TABLE execution_logs ADD COLUMN sql_text_tsv tsvector;
+#    CREATE INDEX idx_sql_text_tsv ON execution_logs USING GIN (sql_text_tsv);
+#
+# 4. 定期维护:
+#    - VACUUM ANALYZE execution_logs;  # 每周执行
+#    - REINDEX TABLE execution_logs;   # 每月执行
+#
+# 5. 连接池配置:
+#    - max_connections = 200 (postgresql.conf)
+#    - shared_buffers = 4GB (根据内存调整)
+#    - effective_cache_size = 12GB
+#
+# 6. 扩展方案:
+#    - TimescaleDB扩展: 更好的时序数据支持
+#    - Citus扩展: 分布式PostgreSQL
+#    - 迁移到full模式: PostgreSQL + ClickHouse

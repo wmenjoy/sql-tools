@@ -59,7 +59,7 @@ public class MySQLStorageAdapter implements ExecutionLogRepository {
                     event.getSqlId(),
                     truncateSql(event.getSql()),
                     event.getSqlType().name(),
-                    event.getMapperId(),
+                    event.getStatementId(),
                     event.getDatasource(),
                     event.getExecutionTimeMs(),
                     event.getRowsAffected(),
@@ -84,7 +84,7 @@ public class MySQLStorageAdapter implements ExecutionLogRepository {
                 ps.setString(2, event.getSqlId());
                 ps.setString(3, truncateSql(event.getSql()));
                 ps.setString(4, event.getSqlType().name());
-                ps.setString(5, event.getMapperId());
+                ps.setString(5, event.getStatementId());
                 ps.setString(6, event.getDatasource());
                 ps.setLong(7, event.getExecutionTimeMs());
                 ps.setInt(8, event.getRowsAffected());
@@ -104,7 +104,7 @@ public class MySQLStorageAdapter implements ExecutionLogRepository {
         return jdbcTemplate.query(sql, (rs, rowNum) -> AuditEvent.builder()
                 .sql(rs.getString("sql_text"))
                 .sqlType(SqlCommandType.valueOf(rs.getString("sql_type")))
-                .mapperId(rs.getString("mapper_id"))
+                .statementId(rs.getString("mapper_id"))
                 .datasource(rs.getString("datasource"))
                 .executionTimeMs(rs.getLong("execution_time_ms"))
                 .rowsAffected(rs.getInt("rows_affected"))
@@ -145,4 +145,5 @@ public class MySQLStorageAdapter implements ExecutionLogRepository {
         return sql;
     }
 }
+
 

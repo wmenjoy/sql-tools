@@ -16,12 +16,12 @@ import static org.junit.jupiter.api.Assertions.*;
 class KafkaMetricsTest {
 
     private MeterRegistry meterRegistry;
-    private KafkaConsumerMetrics metrics;
+    private SqlAuditConsumerMetrics metrics;
 
     @BeforeEach
     void setUp() {
         meterRegistry = new SimpleMeterRegistry();
-        metrics = new KafkaConsumerMetrics(meterRegistry);
+        metrics = new SqlAuditConsumerMetrics(meterRegistry);
     }
 
     @Test

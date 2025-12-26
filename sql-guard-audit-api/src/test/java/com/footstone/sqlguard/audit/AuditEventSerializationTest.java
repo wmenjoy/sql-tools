@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.ValidationResult;
@@ -36,7 +37,7 @@ class AuditEventSerializationTest {
 
     @Test
     void testJsonSerialization_shouldProduceExpectedFormat() throws JsonProcessingException {
-        // Given: A complete audit event
+        // Given: A complete audit event with new fields
         Map<String, Object> params = new HashMap<>();
         params.put("id", 123);
         params.put("name", "John");
@@ -49,7 +50,8 @@ class AuditEventSerializationTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("SELECT * FROM users WHERE id = ?")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("com.example.UserMapper.selectById")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("com.example.UserMapper.selectById")
                 .datasource("primary")
                 .params(params)
                 .executionTimeMs(150L)
@@ -67,7 +69,8 @@ class AuditEventSerializationTest {
         assertTrue(json.contains("\"sqlId\""));
         assertTrue(json.contains("\"sql\":\"SELECT * FROM users WHERE id = ?\""));
         assertTrue(json.contains("\"sqlType\":\"SELECT\""));
-        assertTrue(json.contains("\"mapperId\":\"com.example.UserMapper.selectById\""));
+        assertTrue(json.contains("\"executionLayer\":\"MYBATIS\""));
+        assertTrue(json.contains("\"statementId\":\"com.example.UserMapper.selectById\""));
         assertTrue(json.contains("\"datasource\":\"primary\""));
         assertTrue(json.contains("\"params\""));
         assertTrue(json.contains("\"id\":123"));
@@ -81,12 +84,13 @@ class AuditEventSerializationTest {
 
     @Test
     void testJsonDeserialization_shouldRecreateEvent() throws JsonProcessingException {
-        // Given: A JSON string representing an audit event
+        // Given: A JSON string representing an audit event with new format
         String json = "{"
                 + "\"sqlId\":\"abc123\","
                 + "\"sql\":\"SELECT * FROM users WHERE id = ?\","
                 + "\"sqlType\":\"SELECT\","
-                + "\"mapperId\":\"UserMapper.selectById\","
+                + "\"executionLayer\":\"MYBATIS\","
+                + "\"statementId\":\"UserMapper.selectById\","
                 + "\"datasource\":\"primary\","
                 + "\"params\":{\"id\":123},"
                 + "\"executionTimeMs\":150,"
@@ -103,7 +107,8 @@ class AuditEventSerializationTest {
         assertNotNull(event);
         assertEquals("SELECT * FROM users WHERE id = ?", event.getSql());
         assertEquals(SqlCommandType.SELECT, event.getSqlType());
-        assertEquals("UserMapper.selectById", event.getMapperId());
+        assertEquals(ExecutionLayer.MYBATIS, event.getExecutionLayer());
+        assertEquals("UserMapper.selectById", event.getStatementId());
         assertEquals("primary", event.getDatasource());
         assertNotNull(event.getParams());
         assertEquals(123, event.getParams().get("id"));
@@ -115,13 +120,65 @@ class AuditEventSerializationTest {
     }
 
     @Test
+    void testBackwardCompatibility_shouldReadOldMapperIdField() throws JsonProcessingException {
+        // Given: Old JSON format using 'mapperId' instead of 'statementId' (backward compatibility)
+        String oldJson = "{"
+                + "\"sqlId\":\"abc123\","
+                + "\"sql\":\"SELECT * FROM users WHERE id = ?\","
+                + "\"sqlType\":\"SELECT\","
+                + "\"executionLayer\":\"MYBATIS\","
+                + "\"mapperId\":\"UserMapper.selectById\","  // Old field name
+                + "\"datasource\":\"primary\","
+                + "\"params\":{\"id\":123},"
+                + "\"executionTimeMs\":150,"
+                + "\"rowsAffected\":1,"
+                + "\"errorMessage\":null,"
+                + "\"timestamp\":\"2024-01-15T10:30:45.123Z\","
+                + "\"violations\":null"
+                + "}";
+
+        // When: Deserializing old format
+        AuditEvent event = objectMapper.readValue(oldJson, AuditEvent.class);
+
+        // Then: Should read mapperId as statementId
+        assertNotNull(event);
+        assertEquals("UserMapper.selectById", event.getStatementId());
+        // Deprecated method should also work
+        assertEquals("UserMapper.selectById", event.getStatementId());
+    }
+
+    @Test
+    void testNullStatementId_JDBC_shouldSerializeAndDeserialize() throws JsonProcessingException {
+        // Given: JDBC event with null statementId (stack trace disabled)
+        AuditEvent event = AuditEvent.builder()
+                .sql("SELECT COUNT(*) FROM orders")
+                .sqlType(SqlCommandType.SELECT)
+                .executionLayer(ExecutionLayer.JDBC)
+                .statementId(null)  // Null for JDBC without stack trace
+                .datasource("slave-db")
+                .timestamp(Instant.parse("2024-01-15T10:30:45.123Z"))
+                .build();
+
+        // When: Serializing and deserializing
+        String json = objectMapper.writeValueAsString(event);
+        AuditEvent deserialized = objectMapper.readValue(json, AuditEvent.class);
+
+        // Then: Should preserve null statementId
+        assertTrue(json.contains("\"statementId\":null"));
+        assertNull(deserialized.getStatementId());
+        assertEquals(ExecutionLayer.JDBC, deserialized.getExecutionLayer());
+        assertEquals("slave-db", deserialized.getDatasource());
+    }
+
+    @Test
     void testDateTimeSerialization_shouldUseIso8601() throws JsonProcessingException {
         // Given: An event with a specific timestamp
         Instant timestamp = Instant.parse("2024-01-15T10:30:45.123Z");
         AuditEvent event = AuditEvent.builder()
                 .sql("SELECT 1")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("TestMapper.test")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("TestMapper.test")
                 .timestamp(timestamp)
                 .build();
 
@@ -139,7 +196,8 @@ class AuditEventSerializationTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("SELECT * FROM users")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("UserMapper.selectAll")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("UserMapper.selectAll")
                 .timestamp(Instant.now())
                 .datasource(null)
                 .params(null)
@@ -172,7 +230,8 @@ class AuditEventSerializationTest {
         AuditEvent original = AuditEvent.builder()
                 .sql("UPDATE users SET status = ? WHERE id = ?")
                 .sqlType(SqlCommandType.UPDATE)
-                .mapperId("UserMapper.updateStatus")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("UserMapper.updateStatus")
                 .datasource("secondary")
                 .params(params)
                 .executionTimeMs(250L)
@@ -189,14 +248,15 @@ class AuditEventSerializationTest {
         // Then: Should preserve all data (except sqlId which is regenerated)
         assertEquals(original.getSql(), deserialized.getSql());
         assertEquals(original.getSqlType(), deserialized.getSqlType());
-        assertEquals(original.getMapperId(), deserialized.getMapperId());
+        assertEquals(original.getExecutionLayer(), deserialized.getExecutionLayer());
+        assertEquals(original.getStatementId(), deserialized.getStatementId());
         assertEquals(original.getDatasource(), deserialized.getDatasource());
         assertEquals(original.getParams(), deserialized.getParams());
         assertEquals(original.getExecutionTimeMs(), deserialized.getExecutionTimeMs());
         assertEquals(original.getRowsAffected(), deserialized.getRowsAffected());
         assertEquals(original.getErrorMessage(), deserialized.getErrorMessage());
         assertEquals(original.getTimestamp(), deserialized.getTimestamp());
-        
+
         // sqlId should be the same since SQL is the same
         assertEquals(original.getSqlId(), deserialized.getSqlId());
     }
@@ -207,7 +267,8 @@ class AuditEventSerializationTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("DELETE FROM users WHERE id = ?")
                 .sqlType(SqlCommandType.DELETE)
-                .mapperId("UserMapper.deleteById")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("UserMapper.deleteById")
                 .timestamp(Instant.now())
                 .executionTimeMs(50L)
                 .rowsAffected(-1)
@@ -228,14 +289,17 @@ class AuditEventSerializationTest {
         AuditEvent event1 = AuditEvent.builder()
                 .sql("SELECT * FROM users")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("UserMapper.selectAll")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("UserMapper.selectAll")
                 .timestamp(Instant.now())
                 .build();
 
         AuditEvent event2 = AuditEvent.builder()
                 .sql("SELECT * FROM orders")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("OrderMapper.selectAll")
+                .executionLayer(ExecutionLayer.JDBC)
+                .statementId(null)
+                .datasource("secondary")
                 .timestamp(Instant.now())
                 .build();
 
@@ -247,6 +311,8 @@ class AuditEventSerializationTest {
         assertNotNull(json1);
         assertNotNull(json2);
         assertTrue(json1.contains("users"));
+        assertTrue(json1.contains("MYBATIS"));
         assertTrue(json2.contains("orders"));
+        assertTrue(json2.contains("JDBC"));
     }
 }

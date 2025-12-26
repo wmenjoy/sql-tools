@@ -1,5 +1,6 @@
 package com.footstone.sqlguard.interceptor.mybatis;
 
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
 import com.footstone.sqlguard.core.model.ValidationResult;
@@ -177,7 +178,8 @@ public class SqlSafetyInterceptor implements Interceptor {
     return SqlContext.builder()
         .sql(sql)
         .type(type)
-        .mapperId(ms.getId())
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId(ms.getId())
         .rowBounds(rowBounds)
         .params(params)
         .build();

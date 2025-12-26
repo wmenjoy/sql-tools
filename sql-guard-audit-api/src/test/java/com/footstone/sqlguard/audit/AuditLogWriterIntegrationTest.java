@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,7 +48,8 @@ class AuditLogWriterIntegrationTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("SELECT id, name, email FROM users WHERE id = ?")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("com.example.UserMapper.selectById")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("com.example.UserMapper.selectById")
                 .datasource("primary")
                 .params(params)
                 .executionTimeMs(85L)
@@ -84,7 +86,8 @@ class AuditLogWriterIntegrationTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("UPDATE users SET status = ? WHERE id = ?")
                 .sqlType(SqlCommandType.UPDATE)
-                .mapperId("com.example.UserMapper.updateStatus")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("com.example.UserMapper.updateStatus")
                 .datasource("primary")
                 .params(params)
                 .executionTimeMs(120L)
@@ -118,7 +121,8 @@ class AuditLogWriterIntegrationTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("DELETE FROM orders WHERE id = ?")
                 .sqlType(SqlCommandType.DELETE)
-                .mapperId("com.example.OrderMapper.deleteById")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("com.example.OrderMapper.deleteById")
                 .datasource("primary")
                 .params(params)
                 .executionTimeMs(45L)
@@ -163,7 +167,8 @@ class AuditLogWriterIntegrationTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("UPDATE users SET last_login = NOW()")
                 .sqlType(SqlCommandType.UPDATE)
-                .mapperId("com.example.UserMapper.updateLastLogin")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("com.example.UserMapper.updateLastLogin")
                 .datasource("primary")
                 .executionTimeMs(350L)
                 .rowsAffected(1500) // Updated many rows
@@ -196,7 +201,8 @@ class AuditLogWriterIntegrationTest {
         AuditEvent selectEvent = AuditEvent.builder()
                 .sql("SELECT * FROM products WHERE category = ?")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("ProductMapper.selectByCategory")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("ProductMapper.selectByCategory")
                 .datasource("primary")
                 .executionTimeMs(95L)
                 .rowsAffected(0)
@@ -206,7 +212,8 @@ class AuditLogWriterIntegrationTest {
         AuditEvent insertEvent = AuditEvent.builder()
                 .sql("INSERT INTO orders (user_id, total) VALUES (?, ?)")
                 .sqlType(SqlCommandType.INSERT)
-                .mapperId("OrderMapper.insert")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("OrderMapper.insert")
                 .datasource("primary")
                 .executionTimeMs(75L)
                 .rowsAffected(1)
@@ -216,7 +223,8 @@ class AuditLogWriterIntegrationTest {
         AuditEvent deleteEvent = AuditEvent.builder()
                 .sql("DELETE FROM temp_data WHERE created_at < ?")
                 .sqlType(SqlCommandType.DELETE)
-                .mapperId("TempDataMapper.cleanup")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("TempDataMapper.cleanup")
                 .datasource("secondary")
                 .executionTimeMs(200L)
                 .rowsAffected(150)
@@ -243,7 +251,8 @@ class AuditLogWriterIntegrationTest {
         AuditEvent event1 = AuditEvent.builder()
                 .sql(sql)
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("UserMapper.selectById")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("UserMapper.selectById")
                 .timestamp(Instant.now())
                 .executionTimeMs(100L)
                 .build();
@@ -251,7 +260,8 @@ class AuditLogWriterIntegrationTest {
         AuditEvent event2 = AuditEvent.builder()
                 .sql(sql)
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("UserMapper.selectById")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("UserMapper.selectById")
                 .timestamp(Instant.now().plusSeconds(5))
                 .executionTimeMs(150L)
                 .build();
@@ -286,7 +296,8 @@ class AuditLogWriterIntegrationTest {
         AuditEvent event = AuditEvent.builder()
                 .sql("SELECT * FROM users WHERE status = ? LIMIT ?")
                 .sqlType(SqlCommandType.SELECT)
-                .mapperId("com.example.UserMapper.selectByStatus")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("com.example.UserMapper.selectByStatus")
                 .datasource("analytics")
                 .params(params)
                 .executionTimeMs(275L)
@@ -304,7 +315,7 @@ class AuditLogWriterIntegrationTest {
         assertTrue(json.contains("\"sqlId\""));
         assertTrue(json.contains("\"sql\""));
         assertTrue(json.contains("\"sqlType\""));
-        assertTrue(json.contains("\"mapperId\""));
+        assertTrue(json.contains("\"statementId\""));
         assertTrue(json.contains("\"datasource\""));
         assertTrue(json.contains("\"params\""));
         assertTrue(json.contains("\"executionTimeMs\""));
@@ -317,7 +328,7 @@ class AuditLogWriterIntegrationTest {
         AuditEvent deserialized = objectMapper.readValue(json, AuditEvent.class);
         assertEquals(event.getSql(), deserialized.getSql());
         assertEquals(event.getSqlType(), deserialized.getSqlType());
-        assertEquals(event.getMapperId(), deserialized.getMapperId());
+        assertEquals(event.getStatementId(), deserialized.getStatementId());
         assertEquals(event.getDatasource(), deserialized.getDatasource());
         assertEquals(event.getExecutionTimeMs(), deserialized.getExecutionTimeMs());
         assertEquals(event.getRowsAffected(), deserialized.getRowsAffected());
@@ -340,7 +351,7 @@ class AuditLogWriterIntegrationTest {
             if (event.getSqlType() == null) {
                 throw new IllegalArgumentException("sqlType field is required");
             }
-            if (event.getMapperId() == null) {
+            if (event.getStatementId() == null) {
                 throw new IllegalArgumentException("mapperId field is required");
             }
             if (event.getTimestamp() == null) {

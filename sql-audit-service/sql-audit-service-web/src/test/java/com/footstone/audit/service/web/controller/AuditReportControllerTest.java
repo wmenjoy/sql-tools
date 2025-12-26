@@ -215,7 +215,7 @@ class AuditReportControllerTest {
         
         for (int i = 0; i < count; i++) {
             AuditEvent event = AuditEvent.builder()
-                .mapperId("UserMapper.selectById")
+                .statementId("UserMapper.selectById")
                 .sql("SELECT * FROM users WHERE id = ?")
                 .sqlType(com.footstone.sqlguard.core.model.SqlCommandType.SELECT)
                 .executionTimeMs(50L + i)

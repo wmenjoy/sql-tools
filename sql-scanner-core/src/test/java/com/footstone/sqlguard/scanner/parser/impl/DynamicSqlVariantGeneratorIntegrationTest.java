@@ -165,7 +165,7 @@ class DynamicSqlVariantGeneratorIntegrationTest {
 
     // Then - find the emptyWhere statement
     SqlEntry emptyWhereEntry = entries.stream()
-        .filter(e -> e.getMapperId().contains("emptyWhere"))
+        .filter(e -> e.getStatementId().contains("emptyWhere"))
         .findFirst()
         .orElse(null);
     
@@ -197,7 +197,7 @@ class DynamicSqlVariantGeneratorIntegrationTest {
 
     // Then - find the emptyForeach statement
     SqlEntry emptyForeachEntry = entries.stream()
-        .filter(e -> e.getMapperId().contains("emptyForeach"))
+        .filter(e -> e.getStatementId().contains("emptyForeach"))
         .findFirst()
         .orElse(null);
     

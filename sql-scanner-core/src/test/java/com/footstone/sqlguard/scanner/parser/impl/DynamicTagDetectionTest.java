@@ -100,7 +100,7 @@ class DynamicTagDetectionTest {
     assertFalse(entries.isEmpty());
     for (SqlEntry entry : entries) {
       assertFalse(entry.isDynamic(), 
-          "Static SQL should not be marked as dynamic: " + entry.getMapperId());
+          "Static SQL should not be marked as dynamic: " + entry.getStatementId());
     }
   }
 
@@ -165,6 +165,7 @@ class DynamicTagDetectionTest {
     return new File(resource.getFile());
   }
 }
+
 
 
 

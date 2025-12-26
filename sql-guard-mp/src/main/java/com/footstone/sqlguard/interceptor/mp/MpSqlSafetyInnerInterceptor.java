@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.AbstractWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.PluginUtils;
 import com.baomidou.mybatisplus.extension.plugins.inner.InnerInterceptor;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
 import com.footstone.sqlguard.core.model.ValidationResult;
@@ -205,7 +206,8 @@ public class MpSqlSafetyInnerInterceptor implements InnerInterceptor {
     SqlContext.SqlContextBuilder contextBuilder = SqlContext.builder()
         .sql(sql)
         .type(convertSqlCommandType(ms.getSqlCommandType()))
-        .mapperId(ms.getId())
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId(ms.getId())
         .params(extractParameters(parameter))
         .rowBounds(rowBounds);
 
@@ -435,6 +437,7 @@ public class MpSqlSafetyInnerInterceptor implements InnerInterceptor {
     return sql.substring(0, 100) + "...";
   }
 }
+
 
 
 

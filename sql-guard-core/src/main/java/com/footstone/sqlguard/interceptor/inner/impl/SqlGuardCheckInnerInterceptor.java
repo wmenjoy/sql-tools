@@ -2,6 +2,7 @@ package com.footstone.sqlguard.interceptor.inner.impl;
 
 import com.footstone.sqlguard.config.SqlGuardConfig;
 import com.footstone.sqlguard.config.ViolationStrategy;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
 import com.footstone.sqlguard.core.model.ValidationResult;
@@ -208,8 +209,9 @@ public class SqlGuardCheckInnerInterceptor implements SqlGuardInnerInterceptor {
         SqlContext context = SqlContext.builder()
                 .sql(sql)
                 .statement(stmt)
-                .mapperId(statementId)
+                .statementId(statementId)
                 .type(determineSqlCommandType(stmt))
+                .executionLayer(ExecutionLayer.MYBATIS)
                 .build();
 
         // 4. Prepare ValidationResult

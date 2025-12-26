@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -128,7 +129,8 @@ class RuleCheckerIntegrationTest {
     testContext = SqlContext.builder()
         .sql(sql)
         .type(SqlCommandType.UPDATE)
-        .mapperId("test.Mapper.updateById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.updateById")
         .statement(stmt)
         .build();
   }
@@ -300,6 +302,7 @@ class RuleCheckerIntegrationTest {
     assertEquals(0, result.getViolations().size(), "No violations should be present");
   }
 }
+
 
 
 

@@ -76,7 +76,7 @@ class BeforeQueryUpdateTest {
     SqlContext context = validator.getLastContext();
     assertNotNull(context, "SqlContext should be captured");
     assertEquals("SELECT * FROM user WHERE id = ?", context.getSql());
-    assertEquals("com.example.UserMapper.testMethod", context.getMapperId());
+    assertEquals("com.example.UserMapper.testMethod", context.getStatementId());
   }
 
   /**
@@ -453,6 +453,7 @@ class BeforeQueryUpdateTest {
     }
   }
 }
+
 
 
 

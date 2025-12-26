@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
 import com.footstone.sqlguard.core.model.ValidationResult;
@@ -65,7 +66,8 @@ public class ParsingCountVerificationTest {
             SqlContext context = SqlContext.builder()
                 .sql(sql)
                 .type(SqlCommandType.SELECT)
-                .mapperId("com.example.UserMapper.selectByAge")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("com.example.UserMapper.selectByAge")
                 .build();
 
             ValidationResult result = validator.validate(context);
@@ -96,7 +98,8 @@ public class ParsingCountVerificationTest {
             SqlContext context = SqlContext.builder()
                 .sql(sql)
                 .type(SqlCommandType.SELECT)
-                .mapperId("com.example.UserMapper.selectUsers")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("com.example.UserMapper.selectUsers")
                 .build();
 
             validator.validate(context);
@@ -145,7 +148,8 @@ public class ParsingCountVerificationTest {
                 .sql(sql)
                 .statement(parsedStatement)  // ✅ Statement already cached
                 .type(SqlCommandType.SELECT)
-                .mapperId("com.example.UserMapper.selectByAge")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("com.example.UserMapper.selectByAge")
                 .build();
 
             // Assert - SqlContext should return the cached statement
@@ -230,7 +234,8 @@ public class ParsingCountVerificationTest {
             SqlContext context = SqlContext.builder()
                 .sql(sql)
                 .type(SqlCommandType.SELECT)
-                .mapperId("com.example.UserMapper.selectActive")
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId("com.example.UserMapper.selectActive")
                 .build();
 
             // Act
@@ -298,7 +303,8 @@ public class ParsingCountVerificationTest {
         return SqlContext.builder()
             .sql(sql)
             .type(SqlCommandType.SELECT)
-            .mapperId("com.example.TestMapper.method")
+            .executionLayer(ExecutionLayer.MYBATIS)
+            .statementId("com.example.TestMapper.method")
             .build();
     }
 }

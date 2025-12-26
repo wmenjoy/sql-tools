@@ -117,7 +117,7 @@ class VariantGenerationTest {
     for (SqlEntry entry : entries) {
       assertFalse(entry.isDynamic(), "Static SQL should not be dynamic");
       assertTrue(entry.getSqlVariants().isEmpty(), 
-          "Static SQL should have empty variants list: " + entry.getMapperId());
+          "Static SQL should have empty variants list: " + entry.getStatementId());
     }
   }
 
@@ -201,6 +201,7 @@ class VariantGenerationTest {
     return new File(resource.getFile());
   }
 }
+
 
 
 

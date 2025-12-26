@@ -2,6 +2,7 @@ package com.footstone.sqlguard.validator;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
@@ -64,7 +65,8 @@ class DefaultSqlSafetyValidatorTest {
     SqlContext context = SqlContext.builder()
         .sql("SELECT * FROM users WHERE id = ?")
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.selectById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.selectById")
         .build();
 
     // Execute validation
@@ -108,7 +110,8 @@ class DefaultSqlSafetyValidatorTest {
     SqlContext context = SqlContext.builder()
         .sql("SELECT * FROM users WHERE id = ?")
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.selectById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.selectById")
         .build();
 
     // Execute validation
@@ -165,7 +168,8 @@ class DefaultSqlSafetyValidatorTest {
     SqlContext context = SqlContext.builder()
         .sql("SELECT * FROM users WHERE id = ?")
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.selectById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.selectById")
         .build();
 
     // Execute validation
@@ -211,7 +215,8 @@ class DefaultSqlSafetyValidatorTest {
     SqlContext context = SqlContext.builder()
         .sql("SELECT * FROM users WHERE id = ?")
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.selectById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.selectById")
         .build();
 
     // Execute validation

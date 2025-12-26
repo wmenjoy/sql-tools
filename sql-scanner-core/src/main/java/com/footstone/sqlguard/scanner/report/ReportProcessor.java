@@ -75,7 +75,7 @@ public class ReportProcessor {
           ViolationEntry violationEntry = new ViolationEntry(
               entry.getFilePath(),
               entry.getLineNumber(),
-              entry.getMapperId(),
+              entry.getStatementId(),
               truncateSql(entry.getRawSql()),
               violation.getRiskLevel(),
               violation.getMessage(),

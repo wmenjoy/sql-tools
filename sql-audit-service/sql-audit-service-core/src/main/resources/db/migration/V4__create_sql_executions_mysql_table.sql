@@ -71,3 +71,4 @@ CREATE TABLE IF NOT EXISTS audit_reports_mysql (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci 
 COMMENT='Audit analysis reports for MySQL storage mode';
 
+

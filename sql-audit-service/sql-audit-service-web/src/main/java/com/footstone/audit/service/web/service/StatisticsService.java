@@ -101,7 +101,7 @@ public class StatisticsService {
                     first.originalEvent().getSql(),
                     sqlReports.size(),
                     maxRisk,
-                    first.originalEvent().getMapperId()
+                    first.originalEvent().getStatementId()
                 );
             })
             .filter(dto -> dto.maxRiskLevel() != RiskLevel.SAFE)
@@ -237,6 +237,7 @@ public class StatisticsService {
         return groupByTimeBucket(reports, Granularity.HOURLY);
     }
 }
+
 
 
 

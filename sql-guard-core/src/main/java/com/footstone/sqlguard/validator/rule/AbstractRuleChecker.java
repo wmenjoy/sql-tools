@@ -137,7 +137,7 @@ public abstract class AbstractRuleChecker implements RuleChecker {
             // Degradation: log error but don't fail validation
             logger.warn("Checker {} encountered error while processing {}: {}",
                     getClass().getSimpleName(),
-                    context.getMapperId(),
+                    context.getStatementId(),
                     e.getMessage(),
                     e);
         } finally {
@@ -330,6 +330,7 @@ public abstract class AbstractRuleChecker implements RuleChecker {
     // 3. Easier debugging (direct JSqlParser stack traces)
     // 4. Less maintenance (no intermediate layer to maintain)
 }
+
 
 
 

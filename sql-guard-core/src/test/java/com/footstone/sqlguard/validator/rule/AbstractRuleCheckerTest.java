@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import com.footstone.sqlguard.parser.JSqlParserFacade;
 import net.sf.jsqlparser.expression.Expression;
@@ -124,7 +125,8 @@ class AbstractRuleCheckerTest {
       SqlContext context = SqlContext.builder()
           .sql(sql)
           .type(SqlCommandType.SELECT)
-          .mapperId("test.selectById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+          .statementId("test.selectById")
           .statement(stmt)
           .build();
 
@@ -148,7 +150,8 @@ class AbstractRuleCheckerTest {
       SqlContext context = SqlContext.builder()
           .sql(sql)
           .type(SqlCommandType.UPDATE)
-          .mapperId("test.updateById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+          .statementId("test.updateById")
           .statement(stmt)
           .build();
 
@@ -171,7 +174,8 @@ class AbstractRuleCheckerTest {
       SqlContext context = SqlContext.builder()
           .sql(sql)
           .type(SqlCommandType.DELETE)
-          .mapperId("test.deleteById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+          .statementId("test.deleteById")
           .statement(stmt)
           .build();
 
@@ -200,7 +204,8 @@ class AbstractRuleCheckerTest {
       SqlContext context = SqlContext.builder()
           .sql(sql)
           .type(SqlCommandType.UPDATE)
-          .mapperId("test.updateWithWhere")
+        .executionLayer(ExecutionLayer.MYBATIS)
+          .statementId("test.updateWithWhere")
           .statement(stmt)
           .build();
 
@@ -221,7 +226,8 @@ class AbstractRuleCheckerTest {
       SqlContext context = SqlContext.builder()
           .sql(sql)
           .type(SqlCommandType.UPDATE)
-          .mapperId("test.updateNoWhere")
+        .executionLayer(ExecutionLayer.MYBATIS)
+          .statementId("test.updateNoWhere")
           .statement(stmt)
           .build();
 
@@ -243,7 +249,8 @@ class AbstractRuleCheckerTest {
       SqlContext context = SqlContext.builder()
           .sql(sql)
           .type(SqlCommandType.DELETE)
-          .mapperId("test.deleteWithWhere")
+        .executionLayer(ExecutionLayer.MYBATIS)
+          .statementId("test.deleteWithWhere")
           .statement(stmt)
           .build();
 
@@ -264,7 +271,8 @@ class AbstractRuleCheckerTest {
       SqlContext context = SqlContext.builder()
           .sql(sql)
           .type(SqlCommandType.DELETE)
-          .mapperId("test.deleteNoWhere")
+        .executionLayer(ExecutionLayer.MYBATIS)
+          .statementId("test.deleteNoWhere")
           .statement(stmt)
           .build();
 
@@ -311,7 +319,8 @@ class AbstractRuleCheckerTest {
       SqlContext context = SqlContext.builder()
           .sql(sql)
           .type(SqlCommandType.UPDATE)
-          .mapperId("test.updateNoWhere")
+        .executionLayer(ExecutionLayer.MYBATIS)
+          .statementId("test.updateNoWhere")
           .statement(stmt)
           .build();
 
@@ -353,7 +362,8 @@ class AbstractRuleCheckerTest {
       SqlContext context = SqlContext.builder()
           .sql("SELECT * FROM users")
           .type(SqlCommandType.SELECT)
-          .mapperId("test.select")
+        .executionLayer(ExecutionLayer.MYBATIS)
+          .statementId("test.select")
           // No statement set - will be null
           .build();
 

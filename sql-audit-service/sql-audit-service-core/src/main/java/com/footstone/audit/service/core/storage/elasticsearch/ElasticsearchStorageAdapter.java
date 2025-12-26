@@ -2,6 +2,7 @@ package com.footstone.audit.service.core.storage.elasticsearch;
 
 import com.footstone.audit.service.core.storage.repository.ExecutionLogRepository;
 import com.footstone.sqlguard.audit.AuditEvent;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -162,7 +163,7 @@ public class ElasticsearchStorageAdapter implements ExecutionLogRepository {
                 "sql_id", event.getSqlId(),
                 "sql_text", event.getSql(),
                 "sql_type", event.getSqlType().name(),
-                "mapper_id", event.getMapperId() != null ? event.getMapperId() : "",
+                "mapper_id", event.getStatementId() != null ? event.getStatementId() : "",
                 "datasource", event.getDatasource() != null ? event.getDatasource() : "",
                 "execution_time_ms", event.getExecutionTimeMs(),
                 "rows_affected", event.getRowsAffected(),
@@ -178,7 +179,8 @@ public class ElasticsearchStorageAdapter implements ExecutionLogRepository {
         return AuditEvent.builder()
                 .sql((String) doc.get("sql_text"))
                 .sqlType(SqlCommandType.valueOf((String) doc.get("sql_type")))
-                .mapperId((String) doc.get("mapper_id"))
+                .executionLayer(ExecutionLayer.UNKNOWN)  // Default for legacy data
+                .statementId((String) doc.get("mapper_id"))
                 .datasource((String) doc.get("datasource"))
                 .executionTimeMs(((Number) doc.get("execution_time_ms")).longValue())
                 .rowsAffected(((Number) doc.get("rows_affected")).intValue())

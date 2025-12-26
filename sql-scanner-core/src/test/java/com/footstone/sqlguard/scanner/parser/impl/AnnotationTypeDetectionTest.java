@@ -45,7 +45,7 @@ class AnnotationTypeDetectionTest {
     assertNotNull(selectEntry, "Should detect @Select annotation");
     assertEquals(SqlCommandType.SELECT, selectEntry.getSqlType());
     assertEquals("SELECT * FROM user WHERE id = #{id}", selectEntry.getRawSql());
-    assertEquals("com.example.ComplexMapper.getUserById", selectEntry.getMapperId());
+    assertEquals("com.example.ComplexMapper.getUserById", selectEntry.getStatementId());
   }
 
   @Test
@@ -82,7 +82,7 @@ class AnnotationTypeDetectionTest {
     assertNotNull(deleteEntry, "Should detect @Delete annotation");
     assertEquals(SqlCommandType.DELETE, deleteEntry.getSqlType());
     assertEquals("DELETE FROM user WHERE id = #{id}", deleteEntry.getRawSql());
-    assertEquals("com.example.ComplexMapper.deleteUser", deleteEntry.getMapperId());
+    assertEquals("com.example.ComplexMapper.deleteUser", deleteEntry.getStatementId());
   }
 
   @Test
@@ -100,7 +100,7 @@ class AnnotationTypeDetectionTest {
     assertNotNull(insertEntry, "Should detect @Insert annotation");
     assertEquals(SqlCommandType.INSERT, insertEntry.getSqlType());
     assertEquals("INSERT INTO user (name, email) VALUES (#{name}, #{email})", insertEntry.getRawSql());
-    assertEquals("com.example.ComplexMapper.insertUser", insertEntry.getMapperId());
+    assertEquals("com.example.ComplexMapper.insertUser", insertEntry.getStatementId());
   }
 
   @Test
@@ -130,7 +130,7 @@ class AnnotationTypeDetectionTest {
     // Then - getUserById has both @Select and @ResultMap
     // Should extract only @Select
     long selectCount = entries.stream()
-        .filter(e -> e.getMapperId().equals("com.example.ComplexMapper.getUserById"))
+        .filter(e -> e.getStatementId().equals("com.example.ComplexMapper.getUserById"))
         .count();
     
     assertEquals(1, selectCount, "Should extract only SQL annotation from method with multiple annotations");
@@ -138,12 +138,13 @@ class AnnotationTypeDetectionTest {
     // insertUser has both @Insert and @Options
     // Should extract only @Insert
     long insertCount = entries.stream()
-        .filter(e -> e.getMapperId().equals("com.example.ComplexMapper.insertUser"))
+        .filter(e -> e.getStatementId().equals("com.example.ComplexMapper.insertUser"))
         .count();
     
     assertEquals(1, insertCount, "Should extract only SQL annotation from method with multiple annotations");
   }
 }
+
 
 
 

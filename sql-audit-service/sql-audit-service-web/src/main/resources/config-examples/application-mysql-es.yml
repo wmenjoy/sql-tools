@@ -1,0 +1,175 @@
+# ============================================================================
+# SQL审计服务配置 - MySQL + Elasticsearch 模式 [推荐]
+# ============================================================================
+#
+# 适用场景:
+#   - 中大型企业
+#   - 已有MySQL和Elasticsearch基础设施
+#   - 需要全文搜索SQL语句
+#   - 需要Kibana可视化分析
+#
+# 架构说明:
+#   - MySQL: 存储审计报告、检查器配置等元数据
+#   - Elasticsearch: 存储执行日志、SQL语句等时序数据
+#
+# ============================================================================
+
+spring:
+  application:
+    name: sql-audit-service
+
+  # 虚拟线程配置 (JDK 21+)
+  threads:
+    virtual:
+      enabled: true
+
+  # MySQL数据源配置 - 用于存储元数据
+  datasource:
+    url: jdbc:mysql://localhost:3306/sql_audit?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: audit_user
+    password: your_password_here
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    # 连接池配置 (HikariCP)
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: AuditServiceHikariCP
+
+  # JPA配置
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+  # Kafka配置
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      bootstrap-servers: localhost:9092
+      group-id: sql-audit-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        session.timeout.ms: 30000
+        heartbeat.interval.ms: 10000
+        max.poll.records: 500
+        max.poll.interval.ms: 300000
+    producer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 3
+
+# ============================================================================
+# SQL审计服务核心配置
+# ============================================================================
+audit:
+  # Kafka消费者配置
+  kafka:
+    topic: sql-audit-events
+    consumer:
+      group-id: audit-service
+      dlq-topic: sql-audit-events-dlq
+
+      # 错误处理器配置
+      error-handler:
+        retry-initial-interval: 1000
+        retry-multiplier: 2.0
+        max-attempts: 3
+
+      # 背压控制配置
+      backpressure:
+        enabled: true
+        latency-threshold-ms: 200
+        failure-threshold: 5
+        check-interval-ms: 5000
+
+      # 虚拟线程配置
+      virtual-thread:
+        enabled: true
+        name-prefix: kafka-virtual-
+        concurrency: 4  # 根据Kafka分区数调整
+
+  # 审计引擎配置
+  engine:
+    checker-timeout-ms: 200
+    whitelist-rules: []
+
+  # 存储配置 - MySQL + Elasticsearch 模式
+  storage:
+    # 存储模式
+    mode: mysql-es
+
+    # Elasticsearch配置 - 用于存储时序日志
+    elasticsearch:
+      # ES集群地址，多个地址用逗号分隔
+      hosts: localhost:9200
+
+      # 认证配置
+      username: elastic
+      password: your_es_password_here
+
+      # SSL配置
+      ssl-enabled: false
+
+      # 连接超时配置
+      connect-timeout: 5000
+      socket-timeout: 60000
+
+    # 数据保留配置
+    retention:
+      enabled: true
+      retention-days: 90  # 保留90天数据
+      cron: "0 0 2 * * *"  # 每天凌晨2点执行清理
+
+# ============================================================================
+# 监控配置
+# ============================================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info,metrics
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# ============================================================================
+# 日志配置
+# ============================================================================
+logging:
+  level:
+    root: INFO
+    com.footstone.audit: DEBUG
+    org.springframework.kafka: WARN
+    org.elasticsearch.client: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# ============================================================================
+# 环境标识
+# ============================================================================
+environment:
+  name: mysql-es-mode

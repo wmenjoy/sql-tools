@@ -114,10 +114,10 @@ public class MyBatisSemanticAnalysisService {
                 try {
                     List<SecurityRisk> risks = analyzeStatement(entry, statements, interfaceInfo);
                     if (!risks.isEmpty()) {
-                        allRisks.put(entry.getMapperId(), risks);
+                        allRisks.put(entry.getStatementId(), risks);
                     }
                 } catch (Exception e) {
-                    logger.warn("Failed to analyze statement {}: {}", entry.getMapperId(), e.getMessage());
+                    logger.warn("Failed to analyze statement {}: {}", entry.getStatementId(), e.getMessage());
                     // Continue with next statement
                 }
             }
@@ -137,7 +137,7 @@ public class MyBatisSemanticAnalysisService {
                                                  MapperInterfaceInfo interfaceInfo) {
         List<SecurityRisk> risks = new ArrayList<>();
 
-        String statementId = entry.getMapperId();
+        String statementId = entry.getStatementId();
         MappedStatement statement = statements.get(statementId);
 
         if (statement == null) {

@@ -1,5 +1,6 @@
 package com.footstone.sqlguard.visitor;
 
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
 import net.sf.jsqlparser.JSQLParserException;
@@ -62,29 +63,33 @@ public class StatementVisitorInterfaceTest {
         // Create contexts for each statement type
         selectContext = SqlContext.builder()
                 .sql("SELECT * FROM users WHERE id = 1")
-                .mapperId("test.selectMapper")
+                .statementId("test.selectMapper")
                 .type(SqlCommandType.SELECT)
+                .executionLayer(ExecutionLayer.MYBATIS)
                 .statement(selectStatement)
                 .build();
         
         updateContext = SqlContext.builder()
                 .sql("UPDATE users SET name = 'foo' WHERE id = 1")
-                .mapperId("test.updateMapper")
+                .statementId("test.updateMapper")
                 .type(SqlCommandType.UPDATE)
+                .executionLayer(ExecutionLayer.MYBATIS)
                 .statement(updateStatement)
                 .build();
         
         deleteContext = SqlContext.builder()
                 .sql("DELETE FROM users WHERE id = 1")
-                .mapperId("test.deleteMapper")
+                .statementId("test.deleteMapper")
                 .type(SqlCommandType.DELETE)
+                .executionLayer(ExecutionLayer.MYBATIS)
                 .statement(deleteStatement)
                 .build();
         
         insertContext = SqlContext.builder()
                 .sql("INSERT INTO users (id, name) VALUES (1, 'test')")
-                .mapperId("test.insertMapper")
+                .statementId("test.insertMapper")
                 .type(SqlCommandType.INSERT)
+                .executionLayer(ExecutionLayer.MYBATIS)
                 .statement(insertStatement)
                 .build();
     }
@@ -501,22 +506,22 @@ public class StatementVisitorInterfaceTest {
             StatementVisitor customVisitor = new StatementVisitor() {
                 @Override
                 public void visitSelect(Select select, SqlContext context) {
-                    visited.add("SELECT:" + context.getMapperId());
+                    visited.add("SELECT:" + context.getStatementId());
                 }
 
                 @Override
                 public void visitUpdate(Update update, SqlContext context) {
-                    visited.add("UPDATE:" + context.getMapperId());
+                    visited.add("UPDATE:" + context.getStatementId());
                 }
 
                 @Override
                 public void visitDelete(Delete delete, SqlContext context) {
-                    visited.add("DELETE:" + context.getMapperId());
+                    visited.add("DELETE:" + context.getStatementId());
                 }
 
                 @Override
                 public void visitInsert(Insert insert, SqlContext context) {
-                    visited.add("INSERT:" + context.getMapperId());
+                    visited.add("INSERT:" + context.getStatementId());
                 }
             };
 
@@ -550,7 +555,7 @@ public class StatementVisitorInterfaceTest {
             StatementVisitor contextAccessingVisitor = new StatementVisitor() {
                 @Override
                 public void visitSelect(Select select, SqlContext context) {
-                    capturedMapperId.set(context.getMapperId());
+                    capturedMapperId.set(context.getStatementId());
                     capturedCommandType.set(context.getType());
                     capturedSql.set(context.getSql());
                 }
@@ -644,14 +649,14 @@ public class StatementVisitorInterfaceTest {
                 @Override
                 public void visitUpdate(Update update, SqlContext context) {
                     if (update.getWhere() == null) {
-                        violations.add("UPDATE without WHERE clause: " + context.getMapperId());
+                        violations.add("UPDATE without WHERE clause: " + context.getStatementId());
                     }
                 }
 
                 @Override
                 public void visitDelete(Delete delete, SqlContext context) {
                     if (delete.getWhere() == null) {
-                        violations.add("DELETE without WHERE clause: " + context.getMapperId());
+                        violations.add("DELETE without WHERE clause: " + context.getStatementId());
                     }
                 }
             };
@@ -660,8 +665,9 @@ public class StatementVisitorInterfaceTest {
             Update updateNoWhere = (Update) CCJSqlParserUtil.parse("UPDATE users SET name = 'foo'");
             SqlContext updateNoWhereCtx = SqlContext.builder()
                     .sql("UPDATE users SET name = 'foo'")
-                    .mapperId("test.dangerousUpdate")
+                    .statementId("test.dangerousUpdate")
                     .type(SqlCommandType.UPDATE)
+                    .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(updateNoWhere)
                     .build();
 
@@ -738,8 +744,9 @@ public class StatementVisitorInterfaceTest {
             Delete deleteNoWhere = (Delete) CCJSqlParserUtil.parse("DELETE FROM users");
             SqlContext deleteNoWhereCtx = SqlContext.builder()
                     .sql("DELETE FROM users")
-                    .mapperId("test.dangerousDelete")
+                    .statementId("test.dangerousDelete")
                     .type(SqlCommandType.DELETE)
+                    .executionLayer(ExecutionLayer.MYBATIS)
                     .statement(deleteNoWhere)
                     .build();
 

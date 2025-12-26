@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.AbstractWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.footstone.sqlguard.audit.AuditEvent;
 import com.footstone.sqlguard.audit.AuditLogWriter;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import org.apache.ibatis.executor.Executor;
@@ -180,7 +181,8 @@ public class MpSqlAuditInnerInterceptor implements Interceptor {
             AuditEvent.Builder eventBuilder = AuditEvent.builder()
                 .sql(sql)
                 .sqlType(sqlType)
-                .mapperId(ms.getId())
+                .executionLayer(ExecutionLayer.MYBATIS)
+                .statementId(ms.getId())
                 .timestamp(Instant.now())
                 .executionTimeMs(durationMs)
                 .rowsAffected(rowsAffected);

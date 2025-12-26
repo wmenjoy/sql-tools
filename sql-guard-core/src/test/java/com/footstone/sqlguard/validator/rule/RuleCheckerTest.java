@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,7 +36,8 @@ class RuleCheckerTest {
     testContext = SqlContext.builder()
         .sql("SELECT * FROM users WHERE id = 1")
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.selectById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.selectById")
         .build();
 
     testResult = ValidationResult.pass();

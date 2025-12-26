@@ -2,6 +2,7 @@ package com.footstone.sqlguard.validator;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
@@ -95,7 +96,8 @@ class SqlSafetyValidatorIntegrationTest {
     SqlContext context = SqlContext.builder()
         .sql(sql)
         .type(SqlCommandType.UPDATE)
-        .mapperId("test.Mapper.updateUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.updateUsers")
         .build();
 
     ValidationResult result = validator.validate(context);
@@ -118,7 +120,8 @@ class SqlSafetyValidatorIntegrationTest {
     SqlContext context = SqlContext.builder()
         .sql(sql)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.selectUsers")
         .build();
 
     ValidationResult result = validator.validate(context);
@@ -137,7 +140,8 @@ class SqlSafetyValidatorIntegrationTest {
     SqlContext context = SqlContext.builder()
         .sql(invalidSql)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.selectUsers")
         .build();
 
     assertThrows(SqlParseException.class, () -> {
@@ -161,7 +165,8 @@ class SqlSafetyValidatorIntegrationTest {
     SqlContext context = SqlContext.builder()
         .sql(invalidSql)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.selectUsers")
         .build();
 
     ValidationResult result = lenientValidator.validate(context);
@@ -178,7 +183,8 @@ class SqlSafetyValidatorIntegrationTest {
     SqlContext context = SqlContext.builder()
         .sql(sql)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.selectUsers")
         .build();
 
     // First validation
@@ -201,7 +207,8 @@ class SqlSafetyValidatorIntegrationTest {
     SqlContext dummyContext = SqlContext.builder()
         .sql("SELECT * FROM users WHERE 1=1")
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.selectUsers")
         .build();
     
     ValidationResult dummyResult = validator.validate(dummyContext);
@@ -215,7 +222,8 @@ class SqlSafetyValidatorIntegrationTest {
     SqlContext blacklistContext = SqlContext.builder()
         .sql("SELECT * FROM users WHERE deleted = 0")
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.selectUsers")
         .build();
     
     ValidationResult blacklistResult = validator.validate(blacklistContext);
@@ -228,7 +236,8 @@ class SqlSafetyValidatorIntegrationTest {
     SqlContext validContext = SqlContext.builder()
         .sql("SELECT * FROM users WHERE name = ?")
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.selectUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.selectUsers")
         .build();
     
     ValidationResult validResult = validator.validate(validContext);
@@ -244,7 +253,8 @@ class SqlSafetyValidatorIntegrationTest {
     SqlContext context = SqlContext.builder()
         .sql(sql)
         .type(SqlCommandType.UPDATE)
-        .mapperId("test.Mapper.updateUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.updateUsers")
         .build();
 
     ValidationResult result = validator.validate(context);
@@ -263,7 +273,8 @@ class SqlSafetyValidatorIntegrationTest {
     SqlContext context = SqlContext.builder()
         .sql(sql)
         .type(SqlCommandType.DELETE)
-        .mapperId("test.Mapper.deleteUsers")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.deleteUsers")
         .build();
 
     ValidationResult result = validator.validate(context);
@@ -285,7 +296,8 @@ class SqlSafetyValidatorIntegrationTest {
     SqlContext context = SqlContext.builder()
         .sql(sql)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.selectUsersWithOrders")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.selectUsersWithOrders")
         .build();
 
     ValidationResult result = validator.validate(context);
@@ -309,7 +321,8 @@ class SqlSafetyValidatorIntegrationTest {
         SqlContext context = SqlContext.builder()
             .sql(sql)
             .type(SqlCommandType.SELECT)
-            .mapperId("test.Mapper.selectUsers")
+            .executionLayer(ExecutionLayer.MYBATIS)
+            .statementId("test.Mapper.selectUsers")
             .build();
         
         ValidationResult result = validator.validate(context);

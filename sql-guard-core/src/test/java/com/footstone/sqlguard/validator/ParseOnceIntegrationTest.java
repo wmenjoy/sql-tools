@@ -2,6 +2,7 @@ package com.footstone.sqlguard.validator;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
@@ -59,7 +60,8 @@ class ParseOnceIntegrationTest {
     SqlContext context = SqlContext.builder()
         .sql("SELECT * FROM users WHERE id = ?")
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.selectById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.selectById")
         .build();
 
     assertNull(context.getStatement(), "Initial context should have null parsedSql");
@@ -115,7 +117,8 @@ class ParseOnceIntegrationTest {
         .sql(sql)
         .statement(preParsedStmt)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.selectById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.selectById")
         .build();
 
     assertNotNull(context.getStatement(), "Context should have pre-parsed SQL");
@@ -185,7 +188,8 @@ class ParseOnceIntegrationTest {
     SqlContext context = SqlContext.builder()
         .sql("SELECT * FROM users WHERE id = ?")
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.selectById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.selectById")
         .build();
 
     // Execute validation
@@ -224,7 +228,8 @@ class ParseOnceIntegrationTest {
     SqlContext context = SqlContext.builder()
         .sql("SELECT * FORM users") // Typo: FORM instead of FROM
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.selectById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.selectById")
         .build();
 
     // Execute validation - should throw SqlParseException
@@ -258,7 +263,8 @@ class ParseOnceIntegrationTest {
     SqlContext context = SqlContext.builder()
         .sql("SELECT * FORM users") // Typo: FORM instead of FROM
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.selectById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.selectById")
         .build();
 
     // Execute validation - should return pass (not throw)
@@ -297,7 +303,8 @@ class ParseOnceIntegrationTest {
     SqlContext context = SqlContext.builder()
         .sql(sql)
         .type(SqlCommandType.SELECT)
-        .mapperId("test.Mapper.selectById")
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("test.Mapper.selectById")
         .build();
 
     // First validation

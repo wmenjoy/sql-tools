@@ -2,8 +2,8 @@ package com.footstone.audit.service.consumer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.footstone.audit.service.core.processor.AuditEventProcessor;
 import com.footstone.sqlguard.audit.AuditEvent;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,7 +11,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.support.Acknowledgment;
-import org.springframework.kafka.support.KafkaHeaders;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -39,7 +38,7 @@ class KafkaAuditEventConsumerTest {
     private BackpressureHandler backpressureHandler;
 
     @Mock
-    private KafkaConsumerMetrics metrics;
+    private SqlAuditConsumerMetrics metrics;
 
     private KafkaAuditEventConsumer consumer;
     private ObjectMapper objectMapper;
