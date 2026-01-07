@@ -189,6 +189,11 @@ public class DruidSqlAuditFilter extends FilterAdapter {
             Exception exception) {
 
         try {
+            // Skip audit for Druid internal validation queries to prevent infinite loop
+            if (isValidationQuery(sql)) {
+                return;
+            }
+
             ConnectionProxy connection = statement.getConnectionProxy();
             String datasourceName = extractDatasourceName(connection);
             ValidationResult validationResult = DruidJdbcInterceptor.getValidationResult();
@@ -300,6 +305,30 @@ public class DruidSqlAuditFilter extends FilterAdapter {
             logger.debug("Failed to get rows affected from StatementProxy", e);
             return -1;  // Indicates unavailable
         }
+    }
+
+    /**
+     * Checks if the SQL is a Druid internal validation query.
+     *
+     * <p>Validation queries are used by connection pools to test connection health.
+     * We skip auditing these to prevent infinite loops during connection creation.</p>
+     *
+     * @param sql the SQL to check
+     * @return true if this is a validation query, false otherwise
+     */
+    private boolean isValidationQuery(String sql) {
+        if (sql == null) {
+            return false;
+        }
+
+        String trimmed = sql.trim().toUpperCase();
+
+        // Common validation queries used by Druid and other pools
+        return trimmed.equals("SELECT 1") ||
+               trimmed.equals("SELECT 1 FROM DUAL") ||
+               trimmed.equals("SELECT 'X'") ||
+               trimmed.startsWith("/* ping */") ||
+               trimmed.startsWith("/* HEALTH CHECK */");
     }
 
     /**

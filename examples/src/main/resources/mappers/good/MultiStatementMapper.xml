@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CORRECTED VERSION: MultiStatement Fixed
+  FIX APPLIED: Single statement per query, parameterized inputs
+  
+  KEY IMPROVEMENTS:
+  - Each query contains exactly one SQL statement
+  - All user inputs use MyBatis parameter placeholders (#{})
+  - No semicolons that could enable stacked queries
+  - Proper input validation at application layer
+  
+  SAFETY GUARANTEE: No multi-statement injection possible
+-->
+<mapper namespace="com.footstone.sqlguard.examples.good.MultiStatementMapper">
+
+    <!-- GOOD: Single SELECT statement with parameterized input -->
+    <!-- Safe: Uses #{id} placeholder, no semicolons -->
+    <select id="selectUserById" resultType="map">
+        SELECT * FROM users WHERE id = #{id}
+    </select>
+
+    <!-- GOOD: Separate INSERT operation with proper parameters -->
+    <!-- Safe: Each operation is a separate mapper method -->
+    <insert id="insertAuditLog">
+        INSERT INTO audit_log (user_id, action, timestamp) 
+        VALUES (#{userId}, #{action}, NOW())
+    </insert>
+
+    <!-- GOOD: Safe SELECT with multiple conditions -->
+    <!-- Safe: Complex WHERE clause without stacked queries -->
+    <select id="selectUserWithConditions" resultType="map">
+        SELECT id, username, email, created_at 
+        FROM users 
+        WHERE id = #{id} 
+          AND status = #{status}
+          AND role IN 
+          <foreach item="role" collection="roles" open="(" separator="," close=")">
+            #{role}
+          </foreach>
+    </select>
+
+</mapper>

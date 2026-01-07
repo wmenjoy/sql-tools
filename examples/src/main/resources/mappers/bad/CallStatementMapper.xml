@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: CallStatement (HIGH)
+  PATTERN: Stored procedure calls (CALL/EXECUTE/EXEC)
+  
+  WHY DANGEROUS:
+  - Stored procedures can contain arbitrary logic not visible in application code
+  - Procedures may have elevated privileges (DEFINER security)
+  - Difficult to audit and review procedure contents
+  - Can bypass application-level security controls
+  - May execute DDL, file operations, or OS commands internally
+  
+  REAL-WORLD IMPACT:
+  - Hidden business logic bypassing code review
+  - Privilege escalation via DEFINER procedures
+  - Unauditable data modifications
+  - Security control bypass
+  
+  EXPECTED VIOLATION MESSAGE: Contains "CALL", "EXECUTE", or "EXEC" and procedure name
+  EXPECTED RISK LEVEL: HIGH
+  
+  MULTI-DIALECT COVERAGE:
+  - MySQL: CALL procedure_name(params)
+  - Oracle: EXECUTE procedure_name(params)
+  - SQL Server: EXEC procedure_name params
+  
+  FIX RECOMMENDATION: Use direct SQL statements, implement logic in application layer
+  
+  DESIGN REFERENCE: Phase 1, Task 1.7 - CallStatementChecker Implementation
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.CallStatementMapper">
+
+    <!-- BAD: MySQL CALL without parameters -->
+    <!-- Risk: Procedure logic is hidden, may contain dangerous operations -->
+    <update id="callCleanupProcedure">
+        CALL sp_cleanup_old_data
+    </update>
+
+    <!-- BAD: MySQL CALL with parameters -->
+    <!-- Risk: User input passed to stored procedure with unknown internal logic -->
+    <update id="callUserCreate">
+        CALL sp_user_create(#{userId}, #{username}, #{email})
+    </update>
+
+    <!-- BAD: Oracle EXECUTE syntax -->
+    <!-- Risk: Oracle procedures may have elevated DEFINER privileges -->
+    <update id="executeProcessBatch">
+        EXECUTE sp_process_batch
+    </update>
+
+    <!-- BAD: Oracle EXECUTE with parameters -->
+    <!-- Risk: Complex procedure with multiple parameters, hard to audit -->
+    <update id="executeUpdateInventory">
+        EXECUTE sp_update_inventory(#{quantity}, #{skuCode})
+    </update>
+
+    <!-- BAD: SQL Server EXEC syntax -->
+    <!-- Risk: SQL Server procedures can execute dynamic SQL internally -->
+    <update id="execSendNotification">
+        EXEC sp_send_notification @user_id = #{userId}, @message = #{message}, @priority = 'HIGH'
+    </update>
+
+    <!-- BAD: Schema-qualified procedure call -->
+    <!-- Risk: Cross-schema procedure may have different security context -->
+    <update id="callSchemaQualifiedProcedure">
+        CALL schema_name.sp_process_orders(#{orderId})
+    </update>
+
+</mapper>

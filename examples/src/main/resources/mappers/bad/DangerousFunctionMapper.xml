@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: DangerousFunction (CRITICAL)
+  PATTERN: Dangerous database functions (load_file, sys_exec, sleep, benchmark, etc.)
+  
+  WHY DANGEROUS:
+  - load_file: Reads arbitrary files from database server filesystem
+  - sys_exec/sys_eval: Execute OS commands on database server
+  - sleep/pg_sleep: DoS attacks, timing-based SQL injection
+  - benchmark: CPU exhaustion, timing attacks
+  
+  REAL-WORLD IMPACT:
+  - File disclosure (/etc/passwd, configuration files)
+  - Remote code execution via OS command injection
+  - Denial of service attacks
+  - Blind SQL injection via timing channels
+  
+  EXPECTED VIOLATION MESSAGE: Contains function name (load_file, sleep, etc.)
+  EXPECTED RISK LEVEL: CRITICAL
+  
+  KEY FEATURE: Nested function detection - dangerous functions hidden inside safe functions
+  
+  FIX RECOMMENDATION: Use application-level file operations, implement query timeouts
+  
+  DESIGN REFERENCE: Phase 1, Task 1.6 - DangerousFunctionChecker Implementation
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.DangerousFunctionMapper">
+
+    <!-- BAD: load_file reading system files -->
+    <!-- Attack: Attacker reads /etc/passwd to enumerate system users -->
+    <select id="readSystemFile" resultType="string">
+        SELECT load_file('/etc/passwd')
+    </select>
+
+    <!-- BAD: sleep function for DoS attack -->
+    <!-- Attack: Time-based blind SQL injection or resource exhaustion -->
+    <select id="timingAttack" resultType="map">
+        SELECT * FROM users WHERE sleep(5) = 0 AND id = #{id}
+    </select>
+
+    <!-- BAD: benchmark function for CPU exhaustion -->
+    <!-- Attack: DoS via CPU-intensive operations -->
+    <select id="cpuExhaustion" resultType="string">
+        SELECT benchmark(10000000, SHA1('test'))
+    </select>
+
+    <!-- BAD: Nested dangerous function inside CONCAT (KEY FEATURE) -->
+    <!-- Attack: Obfuscated file read hidden in string concatenation -->
+    <select id="nestedLoadFile" resultType="string">
+        SELECT CONCAT(load_file('/etc/passwd'), 'suffix')
+    </select>
+
+    <!-- BAD: Deeply nested dangerous function (KEY FEATURE) -->
+    <!-- Attack: Multi-level nesting to evade simple pattern matching -->
+    <select id="deeplyNestedFunction" resultType="string">
+        SELECT UPPER(LOWER(CONCAT(load_file('/etc/shadow'), 'x')))
+    </select>
+
+    <!-- BAD: sys_exec for OS command execution -->
+    <!-- Attack: Remote code execution on database server -->
+    <select id="osCommandExecution" resultType="string">
+        SELECT sys_exec('whoami')
+    </select>
+
+    <!-- BAD: PostgreSQL pg_sleep for timing attack -->
+    <!-- Attack: Cross-database timing-based attack -->
+    <select id="pgSleepAttack" resultType="map">
+        SELECT * FROM products WHERE pg_sleep(10) IS NOT NULL AND id = #{id}
+    </select>
+
+</mapper>

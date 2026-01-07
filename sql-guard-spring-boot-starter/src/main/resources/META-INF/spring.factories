@@ -1,0 +1,8 @@
+# SQL Guard Auto Configuration
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.footstone.sqlguard.spring.autoconfigure.SqlGuardAutoConfiguration,\
+com.footstone.sqlguard.spring.autoconfigure.interceptor.MyBatisInterceptorAutoConfiguration,\
+com.footstone.sqlguard.spring.autoconfigure.interceptor.MyBatisPlusInterceptorAutoConfiguration,\
+com.footstone.sqlguard.spring.autoconfigure.interceptor.DruidInterceptorAutoConfiguration,\
+com.footstone.sqlguard.spring.autoconfigure.interceptor.HikariInterceptorAutoConfiguration,\
+com.footstone.sqlguard.spring.autoconfigure.interceptor.P6SpyInterceptorAutoConfiguration

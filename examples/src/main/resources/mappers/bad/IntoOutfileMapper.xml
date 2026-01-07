@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: IntoOutfile (CRITICAL)
+  PATTERN: MySQL INTO OUTFILE/DUMPFILE file write operations
+  
+  WHY DANGEROUS:
+  - Arbitrary file write on database server
+  - Web shell upload via SELECT INTO OUTFILE
+  - System file overwrite attacks
+  - Data exfiltration to attacker-controlled paths
+  
+  REAL-WORLD IMPACT:
+  - Remote code execution via web shell
+  - Server compromise
+  - Sensitive data export to external files
+  - Privilege escalation
+  
+  EXPECTED VIOLATION MESSAGE: "检测到MySQL文件写入操作(INTO OUTFILE/DUMPFILE)"
+  EXPECTED RISK LEVEL: CRITICAL
+  
+  FIX RECOMMENDATION: Disable FILE privilege, use application-level export
+  
+  DESIGN REFERENCE: Phase 1, Task 1.4 - IntoOutfileChecker Implementation
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.IntoOutfileMapper">
+
+    <!-- BAD: INTO OUTFILE to export credentials to file -->
+    <!-- Attack: Attacker exports user credentials to accessible file -->
+    <select id="credentialExport" resultType="map">
+        SELECT id, username, password INTO OUTFILE '/tmp/credentials.txt' FROM users
+    </select>
+
+    <!-- BAD: INTO OUTFILE for web shell upload -->
+    <!-- Attack: Attacker writes PHP web shell to web directory -->
+    <select id="webShellUpload" resultType="map">
+        SELECT '&lt;?php system($_GET["cmd"]); ?&gt;' INTO OUTFILE '/var/www/html/shell.php'
+    </select>
+
+    <!-- BAD: INTO DUMPFILE for binary file write -->
+    <!-- Attack: Attacker writes binary payload using DUMPFILE -->
+    <select id="binaryFileWrite" resultType="map">
+        SELECT UNHEX('4D5A90') INTO DUMPFILE '/tmp/malware.exe'
+    </select>
+
+</mapper>

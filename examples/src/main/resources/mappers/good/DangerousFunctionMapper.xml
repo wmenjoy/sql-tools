@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CORRECTED VERSION: DangerousFunction Fixed
+  FIX APPLIED: Replaced dangerous functions with safe alternatives
+  
+  KEY IMPROVEMENTS:
+  - No file system access functions (load_file)
+  - No OS command execution functions (sys_exec, sys_eval)
+  - No timing/DoS functions (sleep, benchmark, pg_sleep)
+  - Use safe aggregate and string functions (MAX, SUM, CONCAT, UPPER, etc.)
+  
+  SAFE FUNCTIONS USED:
+  - Aggregate: COUNT, SUM, AVG, MAX, MIN
+  - String: CONCAT, UPPER, LOWER, SUBSTRING, TRIM
+  - Date: NOW, DATE_FORMAT, DATEDIFF
+  - Math: ROUND, ABS, CEILING, FLOOR
+  
+  SAFETY GUARANTEE: No file access, no OS commands, no timing attacks possible
+-->
+<mapper namespace="com.footstone.sqlguard.examples.good.DangerousFunctionMapper">
+
+    <!-- GOOD: Read file content from database BLOB instead of filesystem -->
+    <!-- Safe: File content stored in database, not read from OS -->
+    <select id="readFileContent" parameterType="int" resultType="string">
+        SELECT file_content 
+        FROM uploaded_files 
+        WHERE id = #{fileId} 
+          AND status = 'active'
+    </select>
+
+    <!-- GOOD: Standard query without timing functions -->
+    <!-- Safe: Direct condition check, no sleep or timing manipulation -->
+    <select id="selectUserById" parameterType="int" resultType="map">
+        SELECT id, username, email, created_at 
+        FROM users 
+        WHERE id = #{id} 
+          AND status = 'active'
+    </select>
+
+    <!-- GOOD: Safe aggregate function instead of benchmark -->
+    <!-- Safe: COUNT is a standard aggregate, doesn't cause CPU exhaustion -->
+    <select id="countActiveUsers" resultType="int">
+        SELECT COUNT(*) 
+        FROM users 
+        WHERE status = 'active'
+    </select>
+
+    <!-- GOOD: Safe CONCAT without dangerous nested functions -->
+    <!-- Safe: Only safe string functions used -->
+    <select id="formatUserDisplay" parameterType="int" resultType="string">
+        SELECT CONCAT(first_name, ' ', last_name) AS full_name
+        FROM users 
+        WHERE id = #{id}
+    </select>
+
+    <!-- GOOD: Safe nested string functions -->
+    <!-- Safe: UPPER, LOWER, CONCAT are all safe functions -->
+    <select id="normalizeUserName" parameterType="int" resultType="string">
+        SELECT UPPER(LOWER(CONCAT(first_name, ' ', last_name))) AS normalized_name
+        FROM users 
+        WHERE id = #{id}
+    </select>
+
+    <!-- GOOD: Application-level command execution instead of sys_exec -->
+    <!-- Safe: Query returns data, command execution handled by application -->
+    <select id="selectCommandQueue" resultType="map">
+        SELECT id, command_type, parameters, status 
+        FROM command_queue 
+        WHERE status = 'pending'
+        ORDER BY created_at ASC
+        LIMIT 10
+    </select>
+
+    <!-- GOOD: Standard query with safe math functions -->
+    <!-- Safe: ROUND, SUM are safe aggregate/math functions -->
+    <select id="calculateOrderTotal" parameterType="int" resultType="map">
+        SELECT 
+            order_id,
+            ROUND(SUM(price * quantity), 2) AS total_amount,
+            COUNT(*) AS item_count
+        FROM order_items 
+        WHERE order_id = #{orderId}
+        GROUP BY order_id
+    </select>
+
+</mapper>

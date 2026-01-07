@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: SetOperation (CRITICAL)
+  PATTERN: UNION, UNION ALL, MINUS, EXCEPT, INTERSECT operations
+  
+  WHY DANGEROUS:
+  - UNION-based SQL Injection for data exfiltration
+  - Attackers can combine legitimate query with malicious SELECT
+  - Extract sensitive data from other tables (passwords, credentials)
+  - Bypass authentication and access controls
+  
+  REAL-WORLD IMPACT:
+  - Credential theft from admin/user tables
+  - Database schema enumeration via information_schema
+  - Extraction of sensitive business data
+  - Complete data breach
+  
+  EXPECTED VIOLATION MESSAGE: "检测到集合操作(UNION/MINUS/EXCEPT/INTERSECT)"
+  EXPECTED RISK LEVEL: CRITICAL
+  
+  FIX RECOMMENDATION: Use parameterized queries, whitelist allowed operations
+  
+  DESIGN REFERENCE: Phase 1, Task 1.2 - SetOperationChecker Implementation
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.SetOperationMapper">
+
+    <!-- BAD: UNION injection to extract admin credentials -->
+    <!-- Attack: Attacker injects UNION SELECT to steal passwords -->
+    <select id="unionCredentialTheft" resultType="map">
+        SELECT id, username, email FROM users WHERE id = 1 
+        UNION SELECT id, username, password FROM admin_users
+    </select>
+
+    <!-- BAD: UNION ALL injection for database schema enumeration -->
+    <!-- Attack: Attacker extracts table/column names from information_schema -->
+    <select id="unionSchemaEnumeration" resultType="map">
+        SELECT username, email FROM users WHERE id = 1 
+        UNION ALL SELECT table_name, column_name FROM information_schema.columns
+    </select>
+
+    <!-- BAD: EXCEPT/MINUS injection for data comparison attacks -->
+    <!-- Attack: Attacker uses EXCEPT to identify blocked users -->
+    <select id="exceptDataComparison" resultType="map">
+        SELECT email FROM users 
+        EXCEPT SELECT email FROM blocked_users
+    </select>
+
+</mapper>

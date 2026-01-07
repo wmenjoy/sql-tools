@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CORRECTED VERSION: DdlOperation Fixed
+  FIX APPLIED: Replaced DDL operations with safe DML operations
+  
+  KEY IMPROVEMENTS:
+  - No CREATE/ALTER/DROP/TRUNCATE operations
+  - Use standard DML (SELECT/INSERT/UPDATE/DELETE) for data operations
+  - Schema changes managed via migration tools (Flyway/Liquibase)
+  - Application code only performs data manipulation
+  
+  SAFETY GUARANTEE: No schema modification possible through application SQL
+-->
+<mapper namespace="com.footstone.sqlguard.examples.good.DdlOperationMapper">
+
+    <!-- GOOD: INSERT instead of CREATE TABLE -->
+    <!-- Safe: Inserts data into existing table, schema managed by migrations -->
+    <insert id="insertUser" parameterType="map">
+        INSERT INTO users (id, name, email)
+        VALUES (#{id}, #{name}, #{email})
+    </insert>
+
+    <!-- GOOD: UPDATE instead of ALTER TABLE -->
+    <!-- Safe: Updates existing data, doesn't modify schema -->
+    <update id="updateUserPhone" parameterType="map">
+        UPDATE users 
+        SET phone = #{phone}
+        WHERE id = #{id}
+    </update>
+
+    <!-- GOOD: Soft delete instead of DROP TABLE -->
+    <!-- Safe: Marks records as deleted, preserves data for audit -->
+    <update id="softDeleteOldUsers" parameterType="map">
+        UPDATE users 
+        SET status = 'deleted', deleted_at = NOW()
+        WHERE created_at &lt; #{cutoffDate}
+    </update>
+
+    <!-- GOOD: DELETE with WHERE instead of TRUNCATE -->
+    <!-- Safe: Controlled deletion with transaction support and rollback capability -->
+    <delete id="deleteOldLogs" parameterType="map">
+        DELETE FROM audit_logs 
+        WHERE created_at &lt; #{retentionDate}
+        LIMIT #{batchSize}
+    </delete>
+
+    <!-- GOOD: SELECT to check index usage instead of CREATE INDEX -->
+    <!-- Safe: Query existing data, index management done via DBA tools -->
+    <select id="selectUsersByEmail" parameterType="string" resultType="map">
+        SELECT id, name, email, created_at 
+        FROM users 
+        WHERE email = #{email}
+    </select>
+
+</mapper>

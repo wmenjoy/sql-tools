@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CORRECTED VERSION: SetOperation Fixed
+  FIX APPLIED: Replaced UNION with JOINs and subqueries
+  
+  KEY IMPROVEMENTS:
+  - No UNION/UNION ALL/MINUS/EXCEPT/INTERSECT operations
+  - Use JOINs for combining data from multiple tables
+  - Use subqueries in WHERE clause for filtering
+  - All user inputs properly parameterized
+  
+  SAFETY GUARANTEE: No set operation injection possible
+-->
+<mapper namespace="com.footstone.sqlguard.examples.good.SetOperationMapper">
+
+    <!-- GOOD: Use JOIN instead of UNION for combining user data -->
+    <!-- Safe: JOIN combines tables without UNION injection risk -->
+    <select id="selectUsersWithAdminInfo" resultType="map">
+        SELECT u.id, u.username, u.email, a.admin_level
+        FROM users u
+        LEFT JOIN admin_users a ON u.id = a.user_id
+        WHERE u.id = #{id}
+    </select>
+
+    <!-- GOOD: Use subquery instead of UNION ALL for schema info -->
+    <!-- Safe: Application-level schema access, not dynamic SQL -->
+    <select id="selectUserMetadata" resultType="map">
+        SELECT 
+            u.username,
+            u.email,
+            (SELECT COUNT(*) FROM orders WHERE user_id = u.id) as order_count
+        FROM users u
+        WHERE u.id = #{id}
+    </select>
+
+    <!-- GOOD: Use NOT EXISTS instead of EXCEPT for filtering -->
+    <!-- Safe: NOT EXISTS provides same logic without set operations -->
+    <select id="selectActiveNonBlockedUsers" resultType="map">
+        SELECT u.email 
+        FROM users u 
+        WHERE u.status = 'active'
+          AND NOT EXISTS (
+            SELECT 1 FROM blocked_users b WHERE b.email = u.email
+          )
+    </select>
+
+</mapper>

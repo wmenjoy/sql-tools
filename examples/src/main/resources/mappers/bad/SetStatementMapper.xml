@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: SetStatement (HIGH)
+  PATTERN: Session variable modification (SET statements)
+  WHY DANGEROUS: Attackers can modify session settings to bypass security controls or cause DoS.
+  REAL-WORLD IMPACT: Disable security features, change character encoding for injection, modify timeouts.
+  EXPECTED VIOLATION MESSAGE: "检测到SET语句: [variable]..."
+  EXPECTED RISK LEVEL: HIGH
+  FIX RECOMMENDATION: Remove SET statements from application code; use database configuration instead.
+  
+  CRITICAL: This checker correctly differentiates between:
+  - SET statements (session variables) - BLOCKED
+  - UPDATE...SET column assignments - ALLOWED
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.SetStatementMapper">
+
+    <!-- BAD: SET autocommit=0 can be used to keep transactions open for locking attacks -->
+    <!-- Attack: Attacker disables autocommit to hold locks on critical tables -->
+    <update id="disableAutocommit">
+        SET autocommit = 0
+    </update>
+
+    <!-- BAD: SET sql_mode can disable SQL security features -->
+    <!-- Attack: Attacker sets permissive sql_mode to bypass data validation -->
+    <update id="modifySqlMode">
+        SET sql_mode = ''
+    </update>
+
+    <!-- BAD: SET @variable can inject malicious data into session variables -->
+    <!-- Attack: Attacker sets session variable used in subsequent queries -->
+    <update id="setSessionVariable">
+        SET @malicious_data = 'DROP TABLE users'
+    </update>
+
+</mapper>

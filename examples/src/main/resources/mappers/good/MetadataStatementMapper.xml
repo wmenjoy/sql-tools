@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CORRECTED VERSION: MetadataStatement Fixed
+  FIX APPLIED: Replaced SHOW/DESCRIBE/USE commands with INFORMATION_SCHEMA queries
+  
+  KEY IMPROVEMENTS:
+  - Use SELECT from INFORMATION_SCHEMA.TABLES instead of SHOW TABLES
+  - Use SELECT from INFORMATION_SCHEMA.COLUMNS instead of DESCRIBE
+  - Use SELECT from INFORMATION_SCHEMA.SCHEMATA instead of SHOW DATABASES
+  
+  SAFETY GUARANTEE: INFORMATION_SCHEMA queries via SELECT are allowed and provide
+  the same metadata information through proper SQL channels.
+  
+  WHY SAFE: INFORMATION_SCHEMA is the standard SQL way to query metadata.
+  The MetadataStatementChecker allows SELECT from INFORMATION_SCHEMA because it's
+  a proper SQL query, not a direct metadata command that bypasses normal access control.
+-->
+<mapper namespace="com.footstone.sqlguard.examples.good.MetadataStatementMapper">
+
+    <!-- GOOD: Query table names via INFORMATION_SCHEMA instead of SHOW TABLES -->
+    <!-- This is the proper way to discover tables without using metadata commands -->
+    <select id="selectAllTables" resultType="map">
+        SELECT TABLE_NAME, TABLE_TYPE, ENGINE, TABLE_ROWS
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE TABLE_SCHEMA = DATABASE()
+    </select>
+
+    <!-- GOOD: Query column information via INFORMATION_SCHEMA instead of DESCRIBE -->
+    <!-- This provides the same information as DESCRIBE but through proper SQL -->
+    <select id="selectUsersTableColumns" resultType="map">
+        SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE, COLUMN_KEY, COLUMN_DEFAULT
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users'
+    </select>
+
+    <!-- GOOD: Query database names via INFORMATION_SCHEMA instead of SHOW DATABASES -->
+    <!-- This is the standard SQL way to enumerate databases -->
+    <select id="selectAllDatabases" resultType="map">
+        SELECT SCHEMA_NAME, DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME
+        FROM INFORMATION_SCHEMA.SCHEMATA
+    </select>
+
+</mapper>

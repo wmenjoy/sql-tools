@@ -132,6 +132,9 @@ public abstract class AbstractRuleChecker implements RuleChecker {
                 visitInsert((Insert) stmt, context);
             } else if (stmt != null) {
                 logger.warn("Unknown Statement type: {}", stmt.getClass().getName());
+            } else {
+                // Statement is null (parse failed) - call visitRawSql for raw SQL checkers
+                visitRawSql(context);
             }
         } catch (Exception e) {
             // Degradation: log error but don't fail validation
@@ -225,6 +228,25 @@ public abstract class AbstractRuleChecker implements RuleChecker {
      */
     @Override
     public void visitInsert(Insert insert, SqlContext context) {
+        // Default: no-op (subclasses override if needed)
+    }
+
+    /**
+     * Visit raw SQL when parsing fails.
+     * <p>
+     * Override this method to validate raw SQL strings when JSqlParser
+     * cannot parse the statement (e.g., CALL, EXECUTE, EXEC statements,
+     * or database-specific syntax).
+     * </p>
+     * <p>
+     * This method is called when the Statement is null, allowing raw SQL
+     * checkers to still detect violations based on pattern matching.
+     * </p>
+     *
+     * @param context the SQL execution context (with null Statement)
+     * @since 1.2.0
+     */
+    protected void visitRawSql(SqlContext context) {
         // Default: no-op (subclasses override if needed)
     }
 
@@ -330,6 +352,7 @@ public abstract class AbstractRuleChecker implements RuleChecker {
     // 3. Easier debugging (direct JSqlParser stack traces)
     // 4. Less maintenance (no intermediate layer to maintain)
 }
+
 
 
 

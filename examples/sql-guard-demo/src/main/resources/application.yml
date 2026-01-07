@@ -1,156 +1,100 @@
-spring:
-  application:
-    name: sql-guard-demo
-  
-  datasource:
-    url: jdbc:mysql://192.168.220.202:3307/sqlguard_demo?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: root
-    password: root123
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  
-  # MyBatis Configuration
-  mybatis:
-    mapper-locations: classpath:mapper/*.xml
-    type-aliases-package: com.footstone.sqlguard.demo.entity
-    configuration:
-      map-underscore-to-camel-case: true
-      log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
-
-# SQL Guard Configuration
-sql-guard:
-  # Enable SQL Safety Guard
-  enabled: true
-  
-  # Active violation strategy: LOG (observation mode for safe demo)
-  # Options: LOG (log only), WARN (log error + continue), BLOCK (throw exception)
-  active-strategy: LOG
-  
-  # Interceptor Configuration
-  interceptors:
-    mybatis:
-      enabled: true
-    mybatis-plus:
-      enabled: true
-    jdbc:
-      enabled: false
-  
-  # Deduplication Configuration
-  deduplication:
-    enabled: true
-    cache-size: 1000
-    ttl-ms: 100
-  
-  # Parser Configuration
-  parser:
-    lenient-mode: false
-  
-  # Rule Configuration
-  rules:
-    # NoWhereClauseChecker - CRITICAL
-    no-where-clause:
-      enabled: true
-      risk-level: CRITICAL
-    
-    # DummyConditionChecker - HIGH
-    dummy-condition:
-      enabled: true
-      risk-level: HIGH
-      patterns:
-        - "1=1"
-        - "true"
-        - "'a'='a'"
-    
-    # BlacklistFieldChecker - HIGH
-    blacklist-fields:
-      enabled: true
-      risk-level: HIGH
-      blacklist-fields:
-        - deleted
-        - status
-        - enabled
-    
-    # WhitelistFieldChecker - HIGH
-    whitelist-fields:
-      enabled: true
-      risk-level: HIGH
-      whitelist-fields:
-        user:
-          - id
-          - email
-        order:
-          - id
-          - user_id
-    
-    # LogicalPaginationChecker - CRITICAL
-    logical-pagination:
-      enabled: true
-      risk-level: CRITICAL
-    
-    # NoConditionPaginationChecker - CRITICAL
-    no-condition-pagination:
-      enabled: true
-      risk-level: CRITICAL
-    
-    # DeepPaginationChecker - MEDIUM
-    deep-pagination:
-      enabled: true
-      risk-level: MEDIUM
-      max-offset: 10000
-    
-    # LargePageSizeChecker - MEDIUM
-    large-page-size:
-      enabled: true
-      risk-level: MEDIUM
-      max-page-size: 1000
-    
-    # MissingOrderByChecker - LOW
-    missing-orderby:
-      enabled: true
-      risk-level: LOW
-    
-    # NoPaginationChecker - Variable
-    no-pagination:
-      enabled: true
-      risk-level: MEDIUM
-      estimated-rows-threshold: 10000
-
-# Logging Configuration
-logging:
-  # Log file location
-  file:
-    path: logs
-
-  # Log levels
-  level:
-    root: INFO
-    com.footstone.sqlguard: DEBUG
-    com.footstone.sqlguard.demo: DEBUG
-    com.footstone.sqlguard.demo.mapper: DEBUG  # MyBatis SQL logging
-    org.apache.ibatis: DEBUG                   # MyBatis internal SQL logging
-    com.baomidou.mybatisplus: DEBUG            # MyBatis-Plus SQL logging
-    com.zaxxer.hikari: INFO                    # HikariCP connection pool
-    org.springframework: INFO
-    org.springframework.web: INFO
-    org.apache.kafka: WARN
-
-  # Pattern for console (overridden by logback-spring.xml)
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg%n"
-
 # Server Configuration
 server:
   port: 8081
 
+# Spring Configuration
+spring:
+  application:
+    name: sql-guard-demo
+  
+  # DataSource Configuration (using Druid)
+  datasource:
+    url: jdbc:mysql://192.168.220.202:3307/sqlguard_demo?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC
+    username: root
+    password: root123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
 
+    # Druid Configuration
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 60000
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      validation-query: SELECT 1
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+      pool-prepared-statements: false
 
+      # Enable Druid monitoring and filters (removed wall filter to test SQL Guard filters)
+      filters: stat
 
+      # Web monitoring configuration (optional)
+      web-stat-filter:
+        enabled: true
+        url-pattern: /*
+        exclusions: "*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*"
 
+      stat-view-servlet:
+        enabled: true
+        url-pattern: /druid/*
+        login-username: admin
+        login-password: admin
 
+  # Kafka Configuration (disabled by default)
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: sql-guard-demo
+      auto-offset-reset: earliest
+      enable-auto-commit: true
 
+# MyBatis Configuration
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
 
+# MyBatis-Plus Configuration
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
 
+# SQL Guard Configuration - Audit Only Mode
+# All validation rules are disabled by default (enabled=false)
+# Only audit logging is enabled
+sql-guard:
+  audit:
+    enabled: true
+    log-writer: logback
 
+# Actuator Endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
 
-
-
+# Logging Configuration
+logging:
+  config: classpath:logback-spring.xml
+  # Log levels
+  level:
+    root: INFO
+    com.footstone.sqlguard: INFO  # Only INFO level, no DEBUG logs
+    com.footstone.sqlguard.audit: INFO  # Audit logs
+    com.footstone.sqlguard.demo: INFO
+    com.footstone.sqlguard.demo.mapper: DEBUG  # MyBatis SQL logging
+    org.apache.ibatis: DEBUG  # MyBatis internal SQL logging
+    com.baomidou.mybatisplus: DEBUG  # MyBatis-Plus SQL logging
+    com.zaxxer.hikari: INFO  # HikariCP connection pool
+    org.springframework: INFO
+    org.springframework.web: INFO
+    org.apache.kafka: WARN
 

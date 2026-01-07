@@ -16,14 +16,36 @@ import com.footstone.sqlguard.validator.rule.RuleChecker;
 import com.footstone.sqlguard.validator.rule.RuleCheckerOrchestrator;
 import com.footstone.sqlguard.validator.rule.impl.BlacklistFieldChecker;
 import com.footstone.sqlguard.validator.rule.impl.BlacklistFieldsConfig;
+import com.footstone.sqlguard.validator.rule.impl.CallStatementChecker;
+import com.footstone.sqlguard.validator.rule.impl.CallStatementConfig;
+import com.footstone.sqlguard.validator.rule.impl.DangerousFunctionChecker;
+import com.footstone.sqlguard.validator.rule.impl.DangerousFunctionConfig;
+import com.footstone.sqlguard.validator.rule.impl.DdlOperationChecker;
+import com.footstone.sqlguard.validator.rule.impl.DdlOperationConfig;
+import com.footstone.sqlguard.validator.rule.impl.DeniedTableChecker;
+import com.footstone.sqlguard.validator.rule.impl.DeniedTableConfig;
 import com.footstone.sqlguard.validator.rule.impl.DummyConditionChecker;
 import com.footstone.sqlguard.validator.rule.impl.DummyConditionConfig;
+import com.footstone.sqlguard.validator.rule.impl.IntoOutfileChecker;
+import com.footstone.sqlguard.validator.rule.impl.IntoOutfileConfig;
 import com.footstone.sqlguard.validator.rule.impl.LogicalPaginationConfig;
+import com.footstone.sqlguard.validator.rule.impl.MetadataStatementChecker;
+import com.footstone.sqlguard.validator.rule.impl.MetadataStatementConfig;
 import com.footstone.sqlguard.validator.rule.impl.MissingOrderByConfig;
+import com.footstone.sqlguard.validator.rule.impl.MultiStatementChecker;
+import com.footstone.sqlguard.validator.rule.impl.MultiStatementConfig;
 import com.footstone.sqlguard.validator.rule.impl.NoPaginationConfig;
 import com.footstone.sqlguard.validator.rule.impl.NoWhereClauseChecker;
 import com.footstone.sqlguard.validator.rule.impl.NoWhereClauseConfig;
 import com.footstone.sqlguard.validator.rule.impl.PaginationAbuseConfig;
+import com.footstone.sqlguard.validator.rule.impl.ReadOnlyTableChecker;
+import com.footstone.sqlguard.validator.rule.impl.ReadOnlyTableConfig;
+import com.footstone.sqlguard.validator.rule.impl.SetOperationChecker;
+import com.footstone.sqlguard.validator.rule.impl.SetOperationConfig;
+import com.footstone.sqlguard.validator.rule.impl.SetStatementChecker;
+import com.footstone.sqlguard.validator.rule.impl.SetStatementConfig;
+import com.footstone.sqlguard.validator.rule.impl.SqlCommentChecker;
+import com.footstone.sqlguard.validator.rule.impl.SqlCommentConfig;
 import com.footstone.sqlguard.validator.rule.impl.WhitelistFieldChecker;
 import com.footstone.sqlguard.validator.rule.impl.WhitelistFieldsConfig;
 import com.footstone.sqlguard.validator.pagination.impl.NoConditionPaginationConfig;
@@ -226,6 +248,179 @@ public class SqlGuardAutoConfiguration {
     WhitelistFieldsConfig config = new WhitelistFieldsConfig();
     config.setEnabled(properties.getRules().getWhitelistFields().isEnabled());
     return new WhitelistFieldChecker(config);
+  }
+
+  // ==================== SQL Injection Checker Beans ====================
+
+  /**
+   * Creates MultiStatementChecker bean.
+   *
+   * <p>Detects multi-statement SQL injection (e.g., "SELECT...; DROP TABLE...").</p>
+   *
+   * @return MultiStatementChecker instance
+   */
+  @Bean
+  @ConditionalOnMissingBean
+  public MultiStatementChecker multiStatementChecker() {
+    MultiStatementConfig config = new MultiStatementConfig();
+    config.setEnabled(properties.getRules().getMultiStatement().isEnabled());
+    return new MultiStatementChecker(config);
+  }
+
+  /**
+   * Creates SetOperationChecker bean.
+   *
+   * <p>Detects UNION/MINUS/EXCEPT/INTERSECT injection attacks.</p>
+   *
+   * @return SetOperationChecker instance
+   */
+  @Bean
+  @ConditionalOnMissingBean
+  public SetOperationChecker setOperationChecker() {
+    SetOperationConfig config = new SetOperationConfig();
+    config.setEnabled(properties.getRules().getSetOperation().isEnabled());
+    return new SetOperationChecker(config);
+  }
+
+  /**
+   * Creates SqlCommentChecker bean.
+   *
+   * <p>Detects comment-based SQL injection (e.g., "--" or block comments).</p>
+   *
+   * @return SqlCommentChecker instance
+   */
+  @Bean
+  @ConditionalOnMissingBean
+  public SqlCommentChecker sqlCommentChecker() {
+    SqlCommentConfig config = new SqlCommentConfig();
+    config.setEnabled(properties.getRules().getSqlComment().isEnabled());
+    return new SqlCommentChecker(config);
+  }
+
+  /**
+   * Creates IntoOutfileChecker bean.
+   *
+   * <p>Detects MySQL INTO OUTFILE file write operations.</p>
+   *
+   * @return IntoOutfileChecker instance
+   */
+  @Bean
+  @ConditionalOnMissingBean
+  public IntoOutfileChecker intoOutfileChecker() {
+    IntoOutfileConfig config = new IntoOutfileConfig();
+    config.setEnabled(properties.getRules().getIntoOutfile().isEnabled());
+    return new IntoOutfileChecker(config);
+  }
+
+  // ==================== Dangerous Operations Checker Beans ====================
+
+  /**
+   * Creates DdlOperationChecker bean.
+   *
+   * <p>Detects DDL operations (CREATE/ALTER/DROP/TRUNCATE).</p>
+   *
+   * @return DdlOperationChecker instance
+   */
+  @Bean
+  @ConditionalOnMissingBean
+  public DdlOperationChecker ddlOperationChecker() {
+    DdlOperationConfig config = new DdlOperationConfig();
+    config.setEnabled(properties.getRules().getDdlOperation().isEnabled());
+    return new DdlOperationChecker(config);
+  }
+
+  /**
+   * Creates DangerousFunctionChecker bean.
+   *
+   * <p>Detects dangerous functions (load_file, sys_exec, sleep, etc.).</p>
+   *
+   * @return DangerousFunctionChecker instance
+   */
+  @Bean
+  @ConditionalOnMissingBean
+  public DangerousFunctionChecker dangerousFunctionChecker() {
+    DangerousFunctionConfig config = new DangerousFunctionConfig();
+    config.setEnabled(properties.getRules().getDangerousFunction().isEnabled());
+    return new DangerousFunctionChecker(config);
+  }
+
+  /**
+   * Creates CallStatementChecker bean.
+   *
+   * <p>Detects stored procedure calls (CALL/EXECUTE/EXEC).</p>
+   *
+   * @return CallStatementChecker instance
+   */
+  @Bean
+  @ConditionalOnMissingBean
+  public CallStatementChecker callStatementChecker() {
+    CallStatementConfig config = new CallStatementConfig();
+    config.setEnabled(properties.getRules().getCallStatement().isEnabled());
+    return new CallStatementChecker(config);
+  }
+
+  // ==================== Access Control Checker Beans ====================
+
+  /**
+   * Creates MetadataStatementChecker bean.
+   *
+   * <p>Detects metadata disclosure (SHOW/DESCRIBE/USE).</p>
+   *
+   * @return MetadataStatementChecker instance
+   */
+  @Bean
+  @ConditionalOnMissingBean
+  public MetadataStatementChecker metadataStatementChecker() {
+    MetadataStatementConfig config = new MetadataStatementConfig();
+    config.setEnabled(properties.getRules().getMetadataStatement().isEnabled());
+    return new MetadataStatementChecker(config);
+  }
+
+  /**
+   * Creates SetStatementChecker bean.
+   *
+   * <p>Detects session variable modification (SET statements).</p>
+   *
+   * @return SetStatementChecker instance
+   */
+  @Bean
+  @ConditionalOnMissingBean
+  public SetStatementChecker setStatementChecker() {
+    SetStatementConfig config = new SetStatementConfig();
+    config.setEnabled(properties.getRules().getSetStatement().isEnabled());
+    return new SetStatementChecker(config);
+  }
+
+  /**
+   * Creates DeniedTableChecker bean.
+   *
+   * <p>Enforces table-level access control blacklist.</p>
+   *
+   * @return DeniedTableChecker instance
+   */
+  @Bean
+  @ConditionalOnMissingBean
+  public DeniedTableChecker deniedTableChecker() {
+    DeniedTableConfig config = new DeniedTableConfig();
+    config.setEnabled(properties.getRules().getDeniedTable().isEnabled());
+    config.setDeniedTables(properties.getRules().getDeniedTable().getDeniedTables());
+    return new DeniedTableChecker(config);
+  }
+
+  /**
+   * Creates ReadOnlyTableChecker bean.
+   *
+   * <p>Protects read-only tables from write operations.</p>
+   *
+   * @return ReadOnlyTableChecker instance
+   */
+  @Bean
+  @ConditionalOnMissingBean
+  public ReadOnlyTableChecker readOnlyTableChecker() {
+    ReadOnlyTableConfig config = new ReadOnlyTableConfig();
+    config.setEnabled(properties.getRules().getReadOnlyTable().isEnabled());
+    config.setReadonlyTables(properties.getRules().getReadOnlyTable().getReadOnlyTables());
+    return new ReadOnlyTableChecker(config);
   }
 
   /**

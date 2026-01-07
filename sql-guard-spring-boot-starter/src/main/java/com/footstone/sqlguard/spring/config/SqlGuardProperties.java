@@ -8,7 +8,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -48,7 +48,7 @@ public class SqlGuardProperties {
     /**
      * Enable SQL Safety Guard.
      */
-    private boolean enabled = true;
+    private boolean enabled = false;
 
     /**
      * Active violation strategy: LOG, WARN, or BLOCK.
@@ -202,7 +202,7 @@ public class SqlGuardProperties {
      * MyBatis interceptor configuration.
      */
     public static class MyBatisConfig {
-        private boolean enabled = true;
+        private boolean enabled = false;
 
         public boolean isEnabled() {
             return enabled;
@@ -222,7 +222,7 @@ public class SqlGuardProperties {
      * MyBatis-Plus interceptor configuration.
      */
     public static class MyBatisPlusConfig {
-        private boolean enabled = true;
+        private boolean enabled = false;
 
         public boolean isEnabled() {
             return enabled;
@@ -242,7 +242,7 @@ public class SqlGuardProperties {
      * JDBC interceptor configuration.
      */
     public static class JdbcConfig {
-        private boolean enabled = true;
+        private boolean enabled = false;
 
         public boolean isEnabled() {
             return enabled;
@@ -265,7 +265,7 @@ public class SqlGuardProperties {
         /**
          * Enable SQL deduplication.
          */
-        private boolean enabled = true;
+        private boolean enabled = false;
 
         /**
          * Cache size for deduplication (number of SQL statements).
@@ -349,6 +349,45 @@ public class SqlGuardProperties {
         @NestedConfigurationProperty
         private NoPaginationProperties noPagination = new NoPaginationProperties();
 
+        // ==================== SQL Injection Checkers ====================
+
+        @NestedConfigurationProperty
+        private MultiStatementProperties multiStatement = new MultiStatementProperties();
+
+        @NestedConfigurationProperty
+        private SetOperationProperties setOperation = new SetOperationProperties();
+
+        @NestedConfigurationProperty
+        private SqlCommentProperties sqlComment = new SqlCommentProperties();
+
+        @NestedConfigurationProperty
+        private IntoOutfileProperties intoOutfile = new IntoOutfileProperties();
+
+        // ==================== Dangerous Operations Checkers ====================
+
+        @NestedConfigurationProperty
+        private DdlOperationProperties ddlOperation = new DdlOperationProperties();
+
+        @NestedConfigurationProperty
+        private DangerousFunctionProperties dangerousFunction = new DangerousFunctionProperties();
+
+        @NestedConfigurationProperty
+        private CallStatementProperties callStatement = new CallStatementProperties();
+
+        // ==================== Access Control Checkers ====================
+
+        @NestedConfigurationProperty
+        private MetadataStatementProperties metadataStatement = new MetadataStatementProperties();
+
+        @NestedConfigurationProperty
+        private SetStatementProperties setStatement = new SetStatementProperties();
+
+        @NestedConfigurationProperty
+        private DeniedTableProperties deniedTable = new DeniedTableProperties();
+
+        @NestedConfigurationProperty
+        private ReadOnlyTableProperties readOnlyTable = new ReadOnlyTableProperties();
+
         public NoWhereClauseProperties getNoWhereClause() {
             return noWhereClause;
         }
@@ -429,6 +468,100 @@ public class SqlGuardProperties {
             this.noPagination = noPagination;
         }
 
+        // ==================== SQL Injection Checker Getters/Setters ====================
+
+        public MultiStatementProperties getMultiStatement() {
+            return multiStatement;
+        }
+
+        public void setMultiStatement(MultiStatementProperties multiStatement) {
+            this.multiStatement = multiStatement;
+        }
+
+        public SetOperationProperties getSetOperation() {
+            return setOperation;
+        }
+
+        public void setSetOperation(SetOperationProperties setOperation) {
+            this.setOperation = setOperation;
+        }
+
+        public SqlCommentProperties getSqlComment() {
+            return sqlComment;
+        }
+
+        public void setSqlComment(SqlCommentProperties sqlComment) {
+            this.sqlComment = sqlComment;
+        }
+
+        public IntoOutfileProperties getIntoOutfile() {
+            return intoOutfile;
+        }
+
+        public void setIntoOutfile(IntoOutfileProperties intoOutfile) {
+            this.intoOutfile = intoOutfile;
+        }
+
+        // ==================== Dangerous Operations Checker Getters/Setters ====================
+
+        public DdlOperationProperties getDdlOperation() {
+            return ddlOperation;
+        }
+
+        public void setDdlOperation(DdlOperationProperties ddlOperation) {
+            this.ddlOperation = ddlOperation;
+        }
+
+        public DangerousFunctionProperties getDangerousFunction() {
+            return dangerousFunction;
+        }
+
+        public void setDangerousFunction(DangerousFunctionProperties dangerousFunction) {
+            this.dangerousFunction = dangerousFunction;
+        }
+
+        public CallStatementProperties getCallStatement() {
+            return callStatement;
+        }
+
+        public void setCallStatement(CallStatementProperties callStatement) {
+            this.callStatement = callStatement;
+        }
+
+        // ==================== Access Control Checker Getters/Setters ====================
+
+        public MetadataStatementProperties getMetadataStatement() {
+            return metadataStatement;
+        }
+
+        public void setMetadataStatement(MetadataStatementProperties metadataStatement) {
+            this.metadataStatement = metadataStatement;
+        }
+
+        public SetStatementProperties getSetStatement() {
+            return setStatement;
+        }
+
+        public void setSetStatement(SetStatementProperties setStatement) {
+            this.setStatement = setStatement;
+        }
+
+        public DeniedTableProperties getDeniedTable() {
+            return deniedTable;
+        }
+
+        public void setDeniedTable(DeniedTableProperties deniedTable) {
+            this.deniedTable = deniedTable;
+        }
+
+        public ReadOnlyTableProperties getReadOnlyTable() {
+            return readOnlyTable;
+        }
+
+        public void setReadOnlyTable(ReadOnlyTableProperties readOnlyTable) {
+            this.readOnlyTable = readOnlyTable;
+        }
+
         @Override
         public String toString() {
             return "RulesConfig{" +
@@ -442,6 +575,17 @@ public class SqlGuardProperties {
                     ", largePageSize=" + largePageSize +
                     ", missingOrderBy=" + missingOrderBy +
                     ", noPagination=" + noPagination +
+                    ", multiStatement=" + multiStatement +
+                    ", setOperation=" + setOperation +
+                    ", sqlComment=" + sqlComment +
+                    ", intoOutfile=" + intoOutfile +
+                    ", ddlOperation=" + ddlOperation +
+                    ", dangerousFunction=" + dangerousFunction +
+                    ", callStatement=" + callStatement +
+                    ", metadataStatement=" + metadataStatement +
+                    ", setStatement=" + setStatement +
+                    ", deniedTable=" + deniedTable +
+                    ", readOnlyTable=" + readOnlyTable +
                     '}';
         }
     }
@@ -450,7 +594,7 @@ public class SqlGuardProperties {
      * No WHERE clause rule properties.
      */
     public static class NoWhereClauseProperties {
-        private boolean enabled = true;
+        private boolean enabled = false;
         private RiskLevel riskLevel = RiskLevel.CRITICAL;
 
         public boolean isEnabled() {
@@ -479,7 +623,7 @@ public class SqlGuardProperties {
      * Dummy condition rule properties.
      */
     public static class DummyConditionProperties {
-        private boolean enabled = true;
+        private boolean enabled = false;
         private RiskLevel riskLevel = RiskLevel.HIGH;
         private List<String> patterns = Arrays.asList("1=1", "true", "'a'='a'");
 
@@ -517,7 +661,7 @@ public class SqlGuardProperties {
      * Blacklist field rule properties.
      */
     public static class BlacklistFieldProperties {
-        private boolean enabled = true;
+        private boolean enabled = false;
         private RiskLevel riskLevel = RiskLevel.HIGH;
         private List<String> blacklistFields = Arrays.asList("deleted", "status", "enabled");
 
@@ -555,7 +699,7 @@ public class SqlGuardProperties {
      * Whitelist field rule properties.
      */
     public static class WhitelistFieldProperties {
-        private boolean enabled = true;
+        private boolean enabled = false;
         private RiskLevel riskLevel = RiskLevel.HIGH;
         private Map<String, List<String>> whitelistFields = new HashMap<>();
 
@@ -593,7 +737,7 @@ public class SqlGuardProperties {
      * Logical pagination rule properties.
      */
     public static class LogicalPaginationProperties {
-        private boolean enabled = true;
+        private boolean enabled = false;
         private RiskLevel riskLevel = RiskLevel.CRITICAL;
 
         public boolean isEnabled() {
@@ -622,7 +766,7 @@ public class SqlGuardProperties {
      * No condition pagination rule properties.
      */
     public static class NoConditionPaginationProperties {
-        private boolean enabled = true;
+        private boolean enabled = false;
         private RiskLevel riskLevel = RiskLevel.CRITICAL;
 
         public boolean isEnabled() {
@@ -651,7 +795,7 @@ public class SqlGuardProperties {
      * Deep pagination rule properties.
      */
     public static class DeepPaginationProperties {
-        private boolean enabled = true;
+        private boolean enabled = false;
         private RiskLevel riskLevel = RiskLevel.MEDIUM;
         @Min(1)
         private int maxOffset = 10000;
@@ -690,7 +834,7 @@ public class SqlGuardProperties {
      * Large page size rule properties.
      */
     public static class LargePageSizeProperties {
-        private boolean enabled = true;
+        private boolean enabled = false;
         private RiskLevel riskLevel = RiskLevel.MEDIUM;
         @Min(1)
         private int maxPageSize = 1000;
@@ -729,7 +873,7 @@ public class SqlGuardProperties {
      * Missing ORDER BY rule properties.
      */
     public static class MissingOrderByProperties {
-        private boolean enabled = true;
+        private boolean enabled = false;
         private RiskLevel riskLevel = RiskLevel.LOW;
 
         public boolean isEnabled() {
@@ -758,7 +902,7 @@ public class SqlGuardProperties {
      * No pagination rule properties.
      */
     public static class NoPaginationProperties {
-        private boolean enabled = true;
+        private boolean enabled = false;
         private RiskLevel riskLevel = RiskLevel.MEDIUM;
         @Min(1)
         private long estimatedRowsThreshold = 10000;
@@ -813,6 +957,361 @@ public class SqlGuardProperties {
         @Override
         public String toString() {
             return "ParserConfig{lenientMode=" + lenientMode + '}';
+        }
+    }
+
+    // ==================== SQL Injection Checker Properties ====================
+
+    /**
+     * Multi-statement SQL injection detection properties.
+     */
+    public static class MultiStatementProperties {
+        private boolean enabled = false;
+        private RiskLevel riskLevel = RiskLevel.CRITICAL;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        @Override
+        public String toString() {
+            return "MultiStatementProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + '}';
+        }
+    }
+
+    /**
+     * Set operation (UNION/MINUS/EXCEPT/INTERSECT) injection detection properties.
+     */
+    public static class SetOperationProperties {
+        private boolean enabled = false;
+        private RiskLevel riskLevel = RiskLevel.HIGH;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        @Override
+        public String toString() {
+            return "SetOperationProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + '}';
+        }
+    }
+
+    /**
+     * SQL comment-based injection detection properties.
+     */
+    public static class SqlCommentProperties {
+        private boolean enabled = false;
+        private RiskLevel riskLevel = RiskLevel.HIGH;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        @Override
+        public String toString() {
+            return "SqlCommentProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + '}';
+        }
+    }
+
+    /**
+     * MySQL INTO OUTFILE file write detection properties.
+     */
+    public static class IntoOutfileProperties {
+        private boolean enabled = false;
+        private RiskLevel riskLevel = RiskLevel.CRITICAL;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        @Override
+        public String toString() {
+            return "IntoOutfileProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + '}';
+        }
+    }
+
+    // ==================== Dangerous Operations Checker Properties ====================
+
+    /**
+     * DDL operation (CREATE/ALTER/DROP/TRUNCATE) detection properties.
+     */
+    public static class DdlOperationProperties {
+        private boolean enabled = false;
+        private RiskLevel riskLevel = RiskLevel.CRITICAL;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        @Override
+        public String toString() {
+            return "DdlOperationProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + '}';
+        }
+    }
+
+    /**
+     * Dangerous function (load_file, sys_exec, sleep, etc.) detection properties.
+     */
+    public static class DangerousFunctionProperties {
+        private boolean enabled = false;
+        private RiskLevel riskLevel = RiskLevel.CRITICAL;
+        private List<String> additionalFunctions = new ArrayList<>();
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        public List<String> getAdditionalFunctions() {
+            return additionalFunctions;
+        }
+
+        public void setAdditionalFunctions(List<String> additionalFunctions) {
+            this.additionalFunctions = additionalFunctions;
+        }
+
+        @Override
+        public String toString() {
+            return "DangerousFunctionProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + 
+                   ", additionalFunctions=" + additionalFunctions + '}';
+        }
+    }
+
+    /**
+     * Stored procedure call (CALL/EXECUTE/EXEC) detection properties.
+     */
+    public static class CallStatementProperties {
+        private boolean enabled = false;
+        private RiskLevel riskLevel = RiskLevel.HIGH;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        @Override
+        public String toString() {
+            return "CallStatementProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + '}';
+        }
+    }
+
+    // ==================== Access Control Checker Properties ====================
+
+    /**
+     * Metadata disclosure (SHOW/DESCRIBE/USE) detection properties.
+     */
+    public static class MetadataStatementProperties {
+        private boolean enabled = false;
+        private RiskLevel riskLevel = RiskLevel.MEDIUM;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        @Override
+        public String toString() {
+            return "MetadataStatementProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + '}';
+        }
+    }
+
+    /**
+     * Session variable modification (SET statements) detection properties.
+     */
+    public static class SetStatementProperties {
+        private boolean enabled = false;
+        private RiskLevel riskLevel = RiskLevel.MEDIUM;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        @Override
+        public String toString() {
+            return "SetStatementProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + '}';
+        }
+    }
+
+    /**
+     * Table-level access control blacklist properties.
+     */
+    public static class DeniedTableProperties {
+        private boolean enabled = false;
+        private RiskLevel riskLevel = RiskLevel.CRITICAL;
+        private List<String> deniedTables = Arrays.asList("sys_*", "admin_*", "audit_log", "sensitive_data");
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        public List<String> getDeniedTables() {
+            return deniedTables;
+        }
+
+        public void setDeniedTables(List<String> deniedTables) {
+            this.deniedTables = deniedTables;
+        }
+
+        @Override
+        public String toString() {
+            return "DeniedTableProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + 
+                   ", deniedTables=" + deniedTables + '}';
+        }
+    }
+
+    /**
+     * Read-only table protection properties.
+     */
+    public static class ReadOnlyTableProperties {
+        private boolean enabled = false;
+        private RiskLevel riskLevel = RiskLevel.CRITICAL;
+        private List<String> readOnlyTables = Arrays.asList("audit_log", "history_*", "compliance_records");
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public RiskLevel getRiskLevel() {
+            return riskLevel;
+        }
+
+        public void setRiskLevel(RiskLevel riskLevel) {
+            this.riskLevel = riskLevel;
+        }
+
+        public List<String> getReadOnlyTables() {
+            return readOnlyTables;
+        }
+
+        public void setReadOnlyTables(List<String> readOnlyTables) {
+            this.readOnlyTables = readOnlyTables;
+        }
+
+        @Override
+        public String toString() {
+            return "ReadOnlyTableProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + 
+                   ", readOnlyTables=" + readOnlyTables + '}';
         }
     }
 }

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: MetadataStatement (HIGH)
+  PATTERN: SQL metadata disclosure commands (SHOW, DESCRIBE, USE)
+  WHY DANGEROUS: Exposes database schema information to attackers for reconnaissance.
+  REAL-WORLD IMPACT: Attackers can discover table structures, column names, and database topology.
+  EXPECTED VIOLATION MESSAGE: "检测到元数据语句: [SHOW/DESCRIBE/USE]..."
+  EXPECTED RISK LEVEL: HIGH
+  FIX RECOMMENDATION: Use INFORMATION_SCHEMA queries via SELECT or remove metadata commands.
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.MetadataStatementMapper">
+
+    <!-- BAD: SHOW TABLES reveals all table names in the database -->
+    <!-- Attack: Attacker uses this to discover sensitive tables like 'credit_cards', 'passwords' -->
+    <select id="showAllTables" resultType="map">
+        SHOW TABLES
+    </select>
+
+    <!-- BAD: DESCRIBE reveals column names, types, and constraints -->
+    <!-- Attack: Attacker uses this to understand table structure for targeted SQL injection -->
+    <select id="describeUsersTable" resultType="map">
+        DESCRIBE users
+    </select>
+
+    <!-- BAD: SHOW DATABASES reveals all database names on the server -->
+    <!-- Attack: Attacker discovers other databases (e.g., 'admin_db', 'backup_db') to target -->
+    <select id="showAllDatabases" resultType="map">
+        SHOW DATABASES
+    </select>
+
+</mapper>

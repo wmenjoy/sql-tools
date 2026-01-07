@@ -1,0 +1,12 @@
+# LOG Strategy Profile - Silent logging mode (default)
+# Use this profile for development and testing
+# SQL violations are logged but execution continues
+# Start with: mvn spring-boot:run -Dspring-boot.run.profiles=log
+
+sql-guard:
+  enabled: true
+  active-strategy: LOG
+
+logging:
+  level:
+    com.footstone.sqlguard: DEBUG

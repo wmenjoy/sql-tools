@@ -175,6 +175,108 @@ rules:
       UPDATE: 5000
       DELETE: 1000
 
+  # ==================== SQL Injection Checkers (Phase 1) ====================
+  
+  # Rule: Multi-Statement Injection Detection (CRITICAL)
+  # Detects multi-statement SQL injection via semicolons
+  multiStatement:
+    enabled: true
+    riskLevel: CRITICAL
+
+  # Rule: Set Operation Injection Detection (CRITICAL)
+  # Detects UNION/MINUS/EXCEPT/INTERSECT injection attacks
+  setOperation:
+    enabled: true
+    riskLevel: CRITICAL
+
+  # Rule: SQL Comment Injection Detection (CRITICAL)
+  # Detects comment-based SQL injection (-- or /* */)
+  sqlComment:
+    enabled: true
+    riskLevel: CRITICAL
+
+  # Rule: INTO OUTFILE Detection (CRITICAL)
+  # Detects MySQL file write operations that could be exploited
+  intoOutfile:
+    enabled: true
+    riskLevel: CRITICAL
+
+  # ==================== Dangerous Operations Checkers (Phase 1) ====================
+  
+  # Rule: DDL Operation Detection (CRITICAL)
+  # Detects dangerous DDL statements (CREATE/ALTER/DROP/TRUNCATE)
+  ddlOperation:
+    enabled: true
+    riskLevel: CRITICAL
+    # Operations to detect
+    checkOperations:
+      - CREATE
+      - ALTER
+      - DROP
+      - TRUNCATE
+
+  # Rule: Dangerous Function Detection (CRITICAL)
+  # Detects dangerous SQL functions that could be exploited
+  dangerousFunction:
+    enabled: true
+    riskLevel: CRITICAL
+    # Dangerous functions to detect
+    functions:
+      - load_file
+      - sys_exec
+      - sys_eval
+      - sleep
+      - benchmark
+      - pg_sleep
+      - waitfor
+
+  # Rule: Stored Procedure Call Detection (HIGH)
+  # Detects CALL/EXECUTE/EXEC statements
+  callStatement:
+    enabled: true
+    riskLevel: HIGH
+    # Whitelist allowed procedures
+    allowedProcedures: []
+
+  # ==================== Access Control Checkers (Phase 1) ====================
+  
+  # Rule: Metadata Statement Detection (HIGH)
+  # Detects metadata disclosure (SHOW/DESCRIBE/USE)
+  metadataStatement:
+    enabled: true
+    riskLevel: HIGH
+
+  # Rule: SET Statement Detection (HIGH)
+  # Detects session variable modification
+  setStatement:
+    enabled: true
+    riskLevel: HIGH
+    # Variables that are allowed to be set
+    allowedVariables: []
+
+  # Rule: Denied Table Access Detection (CRITICAL)
+  # Enforces table-level blacklist access control
+  deniedTable:
+    enabled: true
+    riskLevel: CRITICAL
+    # Tables that are denied access (supports wildcards)
+    deniedTables:
+      - sys_*
+      - admin_*
+      - audit_log
+      - sensitive_data
+
+  # Rule: Read-Only Table Protection (HIGH)
+  # Protects read-only tables from write operations
+  readOnlyTable:
+    enabled: true
+    riskLevel: HIGH
+    # Tables that are read-only (supports wildcards)
+    readonlyTables:
+      - audit_log
+      - history_*
+      - compliance_records
+
 # Static Analysis Configuration Notes:
 # 静态分析的检查开关目前通过代码配置，不在此 YAML 文件中
 # 

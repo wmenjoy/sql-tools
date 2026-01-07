@@ -1,0 +1,25 @@
+# Druid Interceptor Profile - Connection pool filter
+# Use this profile to use Druid filter (second priority)
+# Start with: mvn spring-boot:run -Dspring-boot.run.profiles=druid
+
+sql-guard:
+  enabled: true
+  active-strategy: LOG
+  
+  # Disable MyBatis interceptor, enable Druid
+  interceptors:
+    mybatis:
+      enabled: false
+    mybatis-plus:
+      enabled: false
+    druid:
+      enabled: true
+    hikari:
+      enabled: false
+    p6spy:
+      enabled: false
+
+logging:
+  level:
+    com.footstone.sqlguard: DEBUG
+    com.footstone.sqlguard.interceptor.jdbc.druid: DEBUG

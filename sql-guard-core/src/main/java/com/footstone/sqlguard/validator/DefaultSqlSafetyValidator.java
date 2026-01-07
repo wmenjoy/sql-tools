@@ -129,6 +129,12 @@ public class DefaultSqlSafetyValidator implements SqlSafetyValidator {
    *   <li>Return aggregated validation result</li>
    * </ol>
    *
+   * <p><strong>Parse Failure Handling:</strong></p>
+   * <p>When SQL parsing fails (e.g., MySQL-specific syntax like INTO OUTFILE),
+   * the validator still executes all checkers with the unparsed context. This allows
+   * raw-SQL-based checkers (MultiStatementChecker, SqlCommentChecker, IntoOutfileChecker)
+   * to detect violations even when the AST is unavailable.</p>
+   *
    * @param context the SQL execution context
    * @return ValidationResult with violations and risk level; never null
    * @throws IllegalArgumentException if context is null
@@ -148,32 +154,42 @@ public class DefaultSqlSafetyValidator implements SqlSafetyValidator {
 
     // Step 3: Parse-once logic
     SqlContext contextWithParsedSql = context;
+    boolean parseFailed = false;
     if (context.getStatement() == null) {
       try {
         Statement stmt = facade.parse(context.getSql());
-        // If parse returns null (lenient mode), return pass without validation
+        // If parse returns null (lenient mode), still run checkers with raw SQL
         if (stmt == null) {
-          logger.warn("Parse returned null for SQL: {} - Skipping validation", 
+          logger.debug("Parse returned null for SQL: {} - Running raw SQL checkers", 
               getSqlSnippet(context.getSql()));
-          return ValidationResult.pass();
+          parseFailed = true;
+        } else {
+          // Create new context with parsed SQL (SqlContext is immutable)
+          contextWithParsedSql = SqlContext.builder()
+              .sql(context.getSql())
+              .statement(stmt)
+              .type(context.getType())
+              .executionLayer(context.getExecutionLayer())
+              .statementId(context.getStatementId())
+              .params(context.getParams())
+              .datasource(context.getDatasource())
+              .rowBounds(context.getRowBounds())
+              .build();
         }
-        // Create new context with parsed SQL (SqlContext is immutable)
-        contextWithParsedSql = SqlContext.builder()
-            .sql(context.getSql())
-            .statement(stmt)
-            .type(context.getType())
-            .executionLayer(context.getExecutionLayer())
-            .statementId(context.getStatementId())
-            .params(context.getParams())
-            .datasource(context.getDatasource())
-            .rowBounds(context.getRowBounds())
-            .build();
       } catch (Exception e) {
-        return handleParseFailure(context, e);
+        // In lenient mode, still run checkers with raw SQL
+        if (facade.isLenientMode()) {
+          logger.debug("Parse failed for SQL: {} - Running raw SQL checkers. Error: {}", 
+              getSqlSnippet(context.getSql()), e.getMessage());
+          parseFailed = true;
+        } else {
+          return handleParseFailure(context, e);
+        }
       }
     }
 
     // Step 4: Orchestrator integration
+    // Execute all checkers even if parse failed - raw SQL checkers can still work
     ValidationResult result = ValidationResult.pass();
     orchestrator.orchestrate(contextWithParsedSql, result);
     return result;

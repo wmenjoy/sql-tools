@@ -277,9 +277,10 @@ public class SqlGuardScanTask extends DefaultTask {
      */
     private com.footstone.sqlguard.validator.DefaultSqlSafetyValidator createValidator(
             com.footstone.sqlguard.config.SqlGuardConfig config) {
-        // Create JSqlParser facade
+        // Create JSqlParser facade in lenient mode to allow raw SQL checkers to run
+        // even when SQL parsing fails (e.g., MySQL-specific syntax like INTO OUTFILE)
         com.footstone.sqlguard.parser.JSqlParserFacade facade =
-            new com.footstone.sqlguard.parser.JSqlParserFacade(false); // fail-fast mode
+            new com.footstone.sqlguard.parser.JSqlParserFacade(true); // lenient mode
 
         // Create all rule checkers
         java.util.List<com.footstone.sqlguard.validator.rule.RuleChecker> checkers =
@@ -299,7 +300,7 @@ public class SqlGuardScanTask extends DefaultTask {
     }
 
     /**
-     * Creates all rule checkers with configuration.
+     * Creates all rule checkers with configuration from YAML config file.
      * 
      * @param config the SQL Guard configuration
      * @return list of configured rule checkers
@@ -309,33 +310,85 @@ public class SqlGuardScanTask extends DefaultTask {
         java.util.List<com.footstone.sqlguard.validator.rule.RuleChecker> checkers =
             new java.util.ArrayList<>();
 
+        com.footstone.sqlguard.config.SqlGuardConfig.RulesConfig rules = config.getRules();
+
+        // ==================== Basic Security Checkers (1-4) ====================
+
         // Checker 1: NoWhereClauseChecker
-        com.footstone.sqlguard.validator.rule.impl.NoWhereClauseConfig noWhereConfig =
-            new com.footstone.sqlguard.validator.rule.impl.NoWhereClauseConfig();
-        noWhereConfig.setEnabled(true);
-        checkers.add(
-            new com.footstone.sqlguard.validator.rule.impl.NoWhereClauseChecker(noWhereConfig));
+        checkers.add(new com.footstone.sqlguard.validator.rule.impl.NoWhereClauseChecker(
+            rules.getNoWhereClause()));
 
         // Checker 2: DummyConditionChecker
-        com.footstone.sqlguard.validator.rule.impl.DummyConditionConfig dummyConfig =
-            new com.footstone.sqlguard.validator.rule.impl.DummyConditionConfig();
-        dummyConfig.setEnabled(true);
-        checkers.add(
-            new com.footstone.sqlguard.validator.rule.impl.DummyConditionChecker(dummyConfig));
+        checkers.add(new com.footstone.sqlguard.validator.rule.impl.DummyConditionChecker(
+            rules.getDummyCondition()));
 
         // Checker 3: BlacklistFieldChecker
-        com.footstone.sqlguard.validator.rule.impl.BlacklistFieldsConfig blacklistConfig =
-            new com.footstone.sqlguard.validator.rule.impl.BlacklistFieldsConfig();
-        blacklistConfig.setEnabled(true);
-        checkers.add(
-            new com.footstone.sqlguard.validator.rule.impl.BlacklistFieldChecker(blacklistConfig));
+        checkers.add(new com.footstone.sqlguard.validator.rule.impl.BlacklistFieldChecker(
+            rules.getBlacklistFields()));
 
         // Checker 4: WhitelistFieldChecker
-        com.footstone.sqlguard.validator.rule.impl.WhitelistFieldsConfig whitelistConfig =
-            new com.footstone.sqlguard.validator.rule.impl.WhitelistFieldsConfig();
-        whitelistConfig.setEnabled(true);
-        checkers.add(
-            new com.footstone.sqlguard.validator.rule.impl.WhitelistFieldChecker(whitelistConfig));
+        checkers.add(new com.footstone.sqlguard.validator.rule.impl.WhitelistFieldChecker(
+            rules.getWhitelistFields()));
+
+        // ==================== SQL Injection Checkers (5-8) ====================
+
+        // Checker 5: MultiStatementChecker - Detects multi-statement SQL injection
+        checkers.add(new com.footstone.sqlguard.validator.rule.impl.MultiStatementChecker(
+            rules.getMultiStatement()));
+
+        // Checker 6: SetOperationChecker - Detects UNION/MINUS/EXCEPT/INTERSECT injection
+        checkers.add(new com.footstone.sqlguard.validator.rule.impl.SetOperationChecker(
+            rules.getSetOperation()));
+
+        // Checker 7: SqlCommentChecker - Detects comment-based SQL injection
+        checkers.add(new com.footstone.sqlguard.validator.rule.impl.SqlCommentChecker(
+            rules.getSqlComment()));
+
+        // Checker 8: IntoOutfileChecker - Detects MySQL file write operations
+        checkers.add(new com.footstone.sqlguard.validator.rule.impl.IntoOutfileChecker(
+            rules.getIntoOutfile()));
+
+        // ==================== Dangerous Operations Checkers (9-11) ====================
+
+        // Checker 9: DdlOperationChecker - Detects DDL operations (CREATE/ALTER/DROP/TRUNCATE)
+        checkers.add(new com.footstone.sqlguard.validator.rule.impl.DdlOperationChecker(
+            rules.getDdlOperation()));
+
+        // Checker 10: DangerousFunctionChecker - Detects dangerous functions (load_file, sys_exec, sleep, etc.)
+        checkers.add(new com.footstone.sqlguard.validator.rule.impl.DangerousFunctionChecker(
+            rules.getDangerousFunction()));
+
+        // Checker 11: CallStatementChecker - Detects stored procedure calls (CALL/EXECUTE/EXEC)
+        checkers.add(new com.footstone.sqlguard.validator.rule.impl.CallStatementChecker(
+            rules.getCallStatement()));
+
+        // ==================== Access Control Checkers (12-15) ====================
+
+        // Checker 12: MetadataStatementChecker - Detects metadata disclosure (SHOW/DESCRIBE/USE)
+        checkers.add(new com.footstone.sqlguard.validator.rule.impl.MetadataStatementChecker(
+            rules.getMetadataStatement()));
+
+        // Checker 13: SetStatementChecker - Detects session variable modification (SET statements)
+        checkers.add(new com.footstone.sqlguard.validator.rule.impl.SetStatementChecker(
+            rules.getSetStatement()));
+
+        // Checker 14: DeniedTableChecker - Enforces table-level access control blacklist
+        com.footstone.sqlguard.validator.rule.impl.DeniedTableConfig deniedTableConfig = 
+            rules.getDeniedTable();
+        // Set default denied tables if not configured
+        if (deniedTableConfig.getDeniedTables() == null || deniedTableConfig.getDeniedTables().isEmpty()) {
+            deniedTableConfig.setDeniedTables(java.util.Arrays.asList("sys_*", "admin_*", "audit_log", "sensitive_data"));
+        }
+        checkers.add(new com.footstone.sqlguard.validator.rule.impl.DeniedTableChecker(deniedTableConfig));
+
+        // Checker 15: ReadOnlyTableChecker - Protects read-only tables from write operations
+        com.footstone.sqlguard.validator.rule.impl.ReadOnlyTableConfig readOnlyTableConfig = 
+            rules.getReadOnlyTable();
+        // Set default read-only tables if not configured
+        if (readOnlyTableConfig.getReadonlyTables() == null || readOnlyTableConfig.getReadonlyTables().isEmpty()) {
+            readOnlyTableConfig.setReadonlyTables(java.util.Arrays.asList("audit_log", "history_*", "compliance_records"));
+        }
+        checkers.add(new com.footstone.sqlguard.validator.rule.impl.ReadOnlyTableChecker(readOnlyTableConfig));
 
         return checkers;
     }

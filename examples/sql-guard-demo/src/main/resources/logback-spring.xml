@@ -69,9 +69,11 @@
     <!-- ============================================ -->
     <appender name="AUDIT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_HOME}/audit/audit.log</file>
+        <immediateFlush>true</immediateFlush>
         <encoder>
             <pattern>%msg%n</pattern> <!-- Pure JSON output -->
             <charset>UTF-8</charset>
+            <immediateFlush>true</immediateFlush>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${LOG_HOME}/audit/archive/audit.%d{yyyy-MM-dd-HH}.%i.log.gz</fileNamePattern>
@@ -135,10 +137,14 @@
         <appender-ref ref="ASYNC_AUDIT_FILE"/>
     </logger>
 
-    <!-- SQL Guard Loggers -->
-    <logger name="com.footstone.sqlguard" level="DEBUG" additivity="false">
+    <!-- SQL Guard Loggers - Only write to file, not console (rules are disabled) -->
+    <logger name="com.footstone.sqlguard" level="INFO" additivity="false">
         <appender-ref ref="ASYNC_SQLGUARD_FILE"/>
-        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!-- SQL Guard Interceptor Logger - Separate from validation rules -->
+    <logger name="com.footstone.sqlguard.interceptor" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_SQLGUARD_FILE"/>
     </logger>
 
     <!-- MyBatis SQL Loggers - Print SQL statements -->

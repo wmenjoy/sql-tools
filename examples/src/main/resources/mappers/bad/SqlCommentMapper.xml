@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: SqlComment (CRITICAL)
+  PATTERN: SQL comments (- -, /* */, #) used for injection
+  
+  WHY DANGEROUS:
+  - Comment-based SQL Injection to bypass security
+  - Attackers use - - to comment out WHERE clauses
+  - Multi-line comments can hide malicious code
+  - MySQL # comments for authentication bypass
+  
+  REAL-WORLD IMPACT:
+  - Authentication bypass (login as any user)
+  - Authorization bypass (access all records)
+  - Hidden malicious payloads
+  - Evade WAF and security detection
+  
+  EXPECTED VIOLATION MESSAGE: "检测到SQL注释(可能存在SQL注入风险)"
+  EXPECTED RISK LEVEL: CRITICAL
+  
+  FIX RECOMMENDATION: Never allow comments in dynamic SQL, use parameterized queries
+  
+  DESIGN REFERENCE: Phase 1, Task 1.3 - SqlCommentChecker Implementation
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.SqlCommentMapper">
+
+    <!-- BAD: Single-line comment (- -) to bypass authentication -->
+    <!-- Attack: Attacker injects admin'- - to login without password -->
+    <select id="singleLineCommentBypass" resultType="map">
+        <![CDATA[SELECT * FROM users WHERE username = 'admin'-- AND password = 'wrong_password']]>
+    </select>
+
+    <!-- BAD: Multi-line comment (/* */) to hide WHERE clause -->
+    <!-- Attack: Attacker uses /* */ to comment out security conditions -->
+    <select id="multiLineCommentHiding" resultType="map">
+        <![CDATA[SELECT * FROM users /* WHERE role = 'user' AND status = 'active' */]]>
+    </select>
+
+    <!-- BAD: MySQL hash comment (#) for authentication bypass -->
+    <!-- Attack: Attacker uses # to comment out password check -->
+    <select id="mysqlHashCommentBypass" resultType="map">
+        <![CDATA[SELECT * FROM users WHERE id = 1 # AND password = 'secret' AND status = 'active']]>
+    </select>
+
+</mapper>

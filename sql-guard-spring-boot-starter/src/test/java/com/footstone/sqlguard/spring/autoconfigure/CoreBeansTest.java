@@ -15,8 +15,19 @@ import com.footstone.sqlguard.validator.pagination.impl.NoPaginationChecker;
 import com.footstone.sqlguard.validator.rule.RuleChecker;
 import com.footstone.sqlguard.validator.rule.RuleCheckerOrchestrator;
 import com.footstone.sqlguard.validator.rule.impl.BlacklistFieldChecker;
+import com.footstone.sqlguard.validator.rule.impl.CallStatementChecker;
+import com.footstone.sqlguard.validator.rule.impl.DangerousFunctionChecker;
+import com.footstone.sqlguard.validator.rule.impl.DdlOperationChecker;
+import com.footstone.sqlguard.validator.rule.impl.DeniedTableChecker;
 import com.footstone.sqlguard.validator.rule.impl.DummyConditionChecker;
+import com.footstone.sqlguard.validator.rule.impl.IntoOutfileChecker;
+import com.footstone.sqlguard.validator.rule.impl.MetadataStatementChecker;
+import com.footstone.sqlguard.validator.rule.impl.MultiStatementChecker;
 import com.footstone.sqlguard.validator.rule.impl.NoWhereClauseChecker;
+import com.footstone.sqlguard.validator.rule.impl.ReadOnlyTableChecker;
+import com.footstone.sqlguard.validator.rule.impl.SetOperationChecker;
+import com.footstone.sqlguard.validator.rule.impl.SetStatementChecker;
+import com.footstone.sqlguard.validator.rule.impl.SqlCommentChecker;
 import com.footstone.sqlguard.validator.rule.impl.WhitelistFieldChecker;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -52,19 +63,19 @@ class CoreBeansTest {
   }
 
   /**
-   * Test 2: All 10 rule checkers should be created.
+   * Test 2: All 21 rule checkers should be created (10 original + 11 security checkers).
    */
   @Test
   void testAllRuleCheckers_shouldCreate() {
     contextRunner.run(
         context -> {
-          // Basic rule checkers
+          // Basic rule checkers (4)
           assertTrue(context.containsBean("noWhereClauseChecker"));
           assertTrue(context.containsBean("dummyConditionChecker"));
           assertTrue(context.containsBean("blacklistFieldChecker"));
           assertTrue(context.containsBean("whitelistFieldChecker"));
           
-          // Pagination checkers
+          // Pagination checkers (6)
           assertTrue(context.containsBean("logicalPaginationChecker"));
           assertTrue(context.containsBean("noConditionPaginationChecker"));
           assertTrue(context.containsBean("deepPaginationChecker"));
@@ -72,7 +83,24 @@ class CoreBeansTest {
           assertTrue(context.containsBean("missingOrderByChecker"));
           assertTrue(context.containsBean("noPaginationChecker"));
           
-          // Verify beans are of correct type
+          // SQL Injection checkers (4)
+          assertTrue(context.containsBean("multiStatementChecker"));
+          assertTrue(context.containsBean("setOperationChecker"));
+          assertTrue(context.containsBean("sqlCommentChecker"));
+          assertTrue(context.containsBean("intoOutfileChecker"));
+          
+          // Dangerous operations checkers (3)
+          assertTrue(context.containsBean("ddlOperationChecker"));
+          assertTrue(context.containsBean("dangerousFunctionChecker"));
+          assertTrue(context.containsBean("callStatementChecker"));
+          
+          // Access control checkers (4)
+          assertTrue(context.containsBean("metadataStatementChecker"));
+          assertTrue(context.containsBean("setStatementChecker"));
+          assertTrue(context.containsBean("deniedTableChecker"));
+          assertTrue(context.containsBean("readOnlyTableChecker"));
+          
+          // Verify beans are of correct type - original 10
           assertNotNull(context.getBean(NoWhereClauseChecker.class));
           assertNotNull(context.getBean(DummyConditionChecker.class));
           assertNotNull(context.getBean(BlacklistFieldChecker.class));
@@ -83,11 +111,24 @@ class CoreBeansTest {
           assertNotNull(context.getBean(LargePageSizeChecker.class));
           assertNotNull(context.getBean(MissingOrderByChecker.class));
           assertNotNull(context.getBean(NoPaginationChecker.class));
+          
+          // Verify beans are of correct type - new 11 security checkers
+          assertNotNull(context.getBean(MultiStatementChecker.class));
+          assertNotNull(context.getBean(SetOperationChecker.class));
+          assertNotNull(context.getBean(SqlCommentChecker.class));
+          assertNotNull(context.getBean(IntoOutfileChecker.class));
+          assertNotNull(context.getBean(DdlOperationChecker.class));
+          assertNotNull(context.getBean(DangerousFunctionChecker.class));
+          assertNotNull(context.getBean(CallStatementChecker.class));
+          assertNotNull(context.getBean(MetadataStatementChecker.class));
+          assertNotNull(context.getBean(SetStatementChecker.class));
+          assertNotNull(context.getBean(DeniedTableChecker.class));
+          assertNotNull(context.getBean(ReadOnlyTableChecker.class));
         });
   }
 
   /**
-   * Test 3: RuleCheckerOrchestrator should autowire all checkers.
+   * Test 3: RuleCheckerOrchestrator should autowire all 21 checkers.
    */
   @Test
   void testRuleCheckerOrchestrator_shouldAutowireAllCheckers() {
@@ -97,10 +138,11 @@ class CoreBeansTest {
           RuleCheckerOrchestrator orchestrator = context.getBean(RuleCheckerOrchestrator.class);
           assertNotNull(orchestrator);
           
-          // Verify all checkers are autowired
+          // Verify all 21 checkers are autowired (10 original + 11 security checkers)
           List<RuleChecker> checkers = new java.util.ArrayList<>(
               context.getBeansOfType(RuleChecker.class).values());
-          assertTrue(checkers.size() >= 10); // At least 10 rule checkers
+          assertTrue(checkers.size() >= 21, 
+              "Expected at least 21 rule checkers, but found: " + checkers.size());
         });
   }
 

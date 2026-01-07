@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CORRECTED VERSION: SqlComment Fixed
+  FIX APPLIED: Removed all SQL comments, proper parameterization
+  
+  KEY IMPROVEMENTS:
+  - No SQL comments (- -, /* */, #) in queries
+  - All security conditions properly enforced
+  - User inputs use MyBatis parameter placeholders
+  - XML comments for documentation (not SQL comments)
+  
+  SAFETY GUARANTEE: No comment-based injection possible
+-->
+<mapper namespace="com.footstone.sqlguard.examples.good.SqlCommentMapper">
+
+    <!-- GOOD: Proper authentication with all conditions enforced -->
+    <!-- Safe: Both username AND password checked, no comments -->
+    <select id="authenticateUser" resultType="map">
+        SELECT id, username, email, role 
+        FROM users 
+        WHERE username = #{username} 
+          AND password = #{passwordHash}
+          AND status = 'active'
+    </select>
+
+    <!-- GOOD: All WHERE conditions properly applied -->
+    <!-- Safe: Role and status conditions enforced, no hidden comments -->
+    <select id="selectActiveUsers" resultType="map">
+        SELECT id, username, email, created_at 
+        FROM users 
+        WHERE role = #{role} 
+          AND status = 'active'
+          AND deleted_at IS NULL
+    </select>
+
+    <!-- GOOD: Complete security conditions without comments -->
+    <!-- Safe: All authorization checks in place -->
+    <select id="selectUserWithFullValidation" resultType="map">
+        SELECT id, username, email 
+        FROM users 
+        WHERE id = #{id} 
+          AND password = #{passwordHash} 
+          AND status = 'active'
+          AND role IN ('user', 'admin')
+    </select>
+
+</mapper>

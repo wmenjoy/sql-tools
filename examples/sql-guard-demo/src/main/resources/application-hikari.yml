@@ -1,0 +1,38 @@
+# HikariCP Interceptor Profile - Connection pool proxy
+# Use this profile to use HikariCP proxy (third priority)
+# Start with: mvn spring-boot:run -Dspring-boot.run.profiles=hikari
+
+spring:
+  datasource:
+    # Switch to HikariCP (instead of Druid)
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      pool-name: SqlGuardDemoPool
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+sql-guard:
+  enabled: true
+  active-strategy: LOG
+  
+  # Disable MyBatis and Druid, enable HikariCP
+  interceptors:
+    mybatis:
+      enabled: false
+    mybatis-plus:
+      enabled: false
+    druid:
+      enabled: false
+    hikari:
+      enabled: true
+    p6spy:
+      enabled: false
+
+logging:
+  level:
+    com.footstone.sqlguard: DEBUG
+    com.footstone.sqlguard.interceptor.jdbc.hikari: DEBUG
+    com.zaxxer.hikari: DEBUG

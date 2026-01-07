@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CORRECTED VERSION: IntoOutfile Fixed
+  FIX APPLIED: Removed file operations, use application-level export
+  
+  KEY IMPROVEMENTS:
+  - No INTO OUTFILE/DUMPFILE operations
+  - Data export handled at application layer
+  - Standard SELECT queries return data to application
+  - Application writes files with proper access controls
+  
+  SAFETY GUARANTEE: No file write injection possible
+-->
+<mapper namespace="com.footstone.sqlguard.examples.good.IntoOutfileMapper">
+
+    <!-- GOOD: Standard SELECT for data export (application handles file writing) -->
+    <!-- Safe: Returns data to application, which writes files securely -->
+    <select id="selectUsersForExport" resultType="map">
+        SELECT id, username, email, created_at 
+        FROM users 
+        WHERE status = 'active'
+          AND role = #{role}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- GOOD: Paginated query for large data export -->
+    <!-- Safe: Application handles pagination and file writing -->
+    <select id="selectUsersBatch" resultType="map">
+        SELECT id, username, email 
+        FROM users 
+        WHERE id > #{lastId}
+        ORDER BY id ASC
+        LIMIT #{batchSize}
+    </select>
+
+    <!-- GOOD: Secure data retrieval without file operations -->
+    <!-- Safe: Application processes and writes data with proper permissions -->
+    <select id="selectUserDataSecure" resultType="map">
+        SELECT 
+            u.id,
+            u.username,
+            u.email,
+            u.created_at
+        FROM users u
+        WHERE u.id = #{id}
+          AND u.status = 'active'
+    </select>
+
+</mapper>

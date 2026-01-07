@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: MultiStatement (CRITICAL)
+  PATTERN: Multiple SQL statements separated by semicolons
+  
+  WHY DANGEROUS:
+  - SQL Injection via stacked queries
+  - Attackers can append destructive commands (DROP, DELETE, UPDATE)
+  - Can execute arbitrary SQL operations in a single request
+  - Bypass application-level security controls
+  
+  REAL-WORLD IMPACT:
+  - Complete database compromise
+  - Data exfiltration
+  - Privilege escalation
+  - Denial of service
+  
+  EXPECTED VIOLATION MESSAGE: "检测到多语句执行(SQL注入风险)"
+  EXPECTED RISK LEVEL: CRITICAL
+  
+  FIX RECOMMENDATION: Use parameterized queries, never concatenate user input
+  
+  DESIGN REFERENCE: Phase 1, Task 1.1 - MultiStatementChecker Implementation
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.MultiStatementMapper">
+
+    <!-- BAD: Classic SQL Injection - SELECT followed by DROP TABLE -->
+    <!-- Attack: Attacker injects '; DROP TABLE users' via user input -->
+    <select id="classicInjection" resultType="map">
+        <![CDATA[SELECT * FROM users WHERE id = 1; DROP TABLE users]]>
+    </select>
+
+    <!-- BAD: Stacked Queries - Multiple statements for data exfiltration -->
+    <!-- Attack: Attacker uses stacked queries to insert stolen data -->
+    <select id="stackedQueriesInjection" resultType="map">
+        <![CDATA[SELECT * FROM users WHERE id = 1; INSERT INTO hacker_log (data) SELECT password FROM users WHERE username = 'admin']]>
+    </select>
+
+    <!-- BAD: Time-based Blind SQL Injection via stacked queries -->
+    <!-- Attack: Attacker uses WAITFOR DELAY to confirm injection vulnerability -->
+    <select id="timeBasedInjection" resultType="map">
+        <![CDATA[SELECT * FROM users WHERE id = 1; SELECT SLEEP(5)]]>
+    </select>
+
+</mapper>

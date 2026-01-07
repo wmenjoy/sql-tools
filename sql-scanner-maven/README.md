@@ -9,7 +9,7 @@ Maven plugin for SQL Safety Guard providing CI/CD integration via `mvn sqlguard:
 - 🚨 **Build Quality Gates** - Fail builds on CRITICAL violations
 - ⚙️ **Configurable Rules** - YAML-based configuration
 - 🎯 **Maven Lifecycle Integration** - Runs automatically in verify phase
-- 🔧 **4 Core Checkers** - NoWhereClause, DummyCondition, BlacklistField, WhitelistField
+- 🔧 **15 Security Checkers** - Complete security analysis coverage matching CLI module
 
 ## Quick Start
 
@@ -337,11 +337,48 @@ mvn sqlguard:scan
 | MEDIUM | SQL patterns that may cause issues | Log warning |
 | LOW | Minor SQL quality issues | Log info |
 
-## Core Checkers
+## Security Checkers (15 Total)
 
-### 1. NoWhereClauseChecker (CRITICAL)
+The Maven plugin includes all 15 security checkers to match the CLI module:
 
-Detects DELETE/UPDATE statements without WHERE clause:
+### Basic Security Checkers (1-4)
+
+| Checker | Severity | Description |
+|---------|----------|-------------|
+| NoWhereClauseChecker | CRITICAL | Detects DELETE/UPDATE without WHERE clause |
+| DummyConditionChecker | HIGH | Detects dummy conditions (1=1, 'a'='a') |
+| BlacklistFieldChecker | HIGH | Detects queries on sensitive fields (password, etc.) |
+| WhitelistFieldChecker | MEDIUM | Detects SELECT * queries |
+
+### SQL Injection Checkers (5-8)
+
+| Checker | Severity | Description |
+|---------|----------|-------------|
+| MultiStatementChecker | CRITICAL | Detects multi-statement SQL injection |
+| SetOperationChecker | CRITICAL | Detects UNION/MINUS/EXCEPT/INTERSECT injection |
+| SqlCommentChecker | CRITICAL | Detects comment-based SQL injection |
+| IntoOutfileChecker | CRITICAL | Detects MySQL file write operations (INTO OUTFILE) |
+
+### Dangerous Operation Checkers (9-11)
+
+| Checker | Severity | Description |
+|---------|----------|-------------|
+| DdlOperationChecker | CRITICAL | Detects DDL operations (CREATE/ALTER/DROP/TRUNCATE) |
+| DangerousFunctionChecker | CRITICAL | Detects dangerous functions (load_file, sys_exec, sleep) |
+| CallStatementChecker | HIGH | Detects stored procedure calls (CALL/EXECUTE/EXEC) |
+
+### Access Control Checkers (12-15)
+
+| Checker | Severity | Description |
+|---------|----------|-------------|
+| MetadataStatementChecker | HIGH | Detects metadata disclosure (SHOW/DESCRIBE/USE) |
+| SetStatementChecker | HIGH | Detects session variable modification (SET statements) |
+| DeniedTableChecker | CRITICAL | Enforces table-level access blacklist (sys_*, admin_*) |
+| ReadOnlyTableChecker | HIGH | Protects read-only tables from write operations |
+
+### Examples
+
+#### NoWhereClauseChecker (CRITICAL)
 
 ```xml
 <!-- ❌ CRITICAL: Missing WHERE clause -->
@@ -355,9 +392,7 @@ Detects DELETE/UPDATE statements without WHERE clause:
 </delete>
 ```
 
-### 2. DummyConditionChecker (HIGH)
-
-Detects dummy conditions like `1=1` or `'a'='a'`:
+#### DummyConditionChecker (HIGH)
 
 ```xml
 <!-- ❌ HIGH: Dummy condition -->
@@ -371,36 +406,18 @@ Detects dummy conditions like `1=1` or `'a'='a'`:
 </select>
 ```
 
-### 3. BlacklistFieldChecker (HIGH)
-
-Detects queries on sensitive fields:
+#### MultiStatementChecker (CRITICAL)
 
 ```xml
-<!-- ❌ HIGH: Selecting sensitive field -->
-<select id="getPassword">
-    SELECT password FROM users WHERE id = #{id}
-</select>
+<!-- ❌ CRITICAL: Multi-statement injection -->
+<update id="updateUser">
+    UPDATE users SET name = #{name}; DROP TABLE users; --
+</update>
 
-<!-- ✅ OK: Selecting safe fields -->
-<select id="getUser">
-    SELECT id, name, email FROM users WHERE id = #{id}
-</select>
-```
-
-### 4. WhitelistFieldChecker (MEDIUM)
-
-Detects SELECT * queries:
-
-```xml
-<!-- ❌ MEDIUM: SELECT * -->
-<select id="selectAll">
-    SELECT * FROM users WHERE id = #{id}
-</select>
-
-<!-- ✅ OK: Explicit field list -->
-<select id="selectUser">
-    SELECT id, name, email FROM users WHERE id = #{id}
-</select>
+<!-- ✅ OK: Single statement -->
+<update id="updateUser">
+    UPDATE users SET name = #{name} WHERE id = #{id}
+</update>
 ```
 
 ## Troubleshooting
@@ -520,6 +537,7 @@ Copyright © 2025 Footstone Technology. All rights reserved.
 For issues and questions:
 - GitHub Issues: https://github.com/footstone/sql-safety-guard/issues
 - Documentation: https://github.com/footstone/sql-safety-guard/wiki
+
 
 
 

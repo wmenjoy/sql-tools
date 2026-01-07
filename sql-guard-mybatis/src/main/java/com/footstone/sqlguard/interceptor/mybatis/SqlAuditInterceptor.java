@@ -158,12 +158,24 @@ public class SqlAuditInterceptor implements Interceptor {
             // Retrieve pre-execution validation result from ThreadLocal
             ValidationResult validationResult = SqlInterceptorContext.VALIDATION_RESULT.get();
 
+            // Get datasource name from Environment
+            String datasourceName = null;
+            try {
+                if (ms.getConfiguration() != null && ms.getConfiguration().getEnvironment() != null) {
+                    datasourceName = ms.getConfiguration().getEnvironment().getId();
+                }
+            } catch (Exception e) {
+                // Ignore - datasource will be null
+                logger.debug("Failed to extract datasource name", e);
+            }
+
             // Build audit event
             AuditEvent.Builder eventBuilder = AuditEvent.builder()
                 .sql(sql)
                 .sqlType(sqlType)
                 .executionLayer(ExecutionLayer.MYBATIS)
                 .statementId(mapperId)
+                .datasource(datasourceName)
                 .timestamp(Instant.now())
                 .executionTimeMs(durationMs)
                 .rowsAffected(rowsAffected);
@@ -295,6 +307,7 @@ public class SqlAuditInterceptor implements Interceptor {
         // No configuration properties needed
     }
 }
+
 
 
 

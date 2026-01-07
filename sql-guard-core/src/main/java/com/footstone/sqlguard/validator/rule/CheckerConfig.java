@@ -12,7 +12,7 @@ import com.footstone.sqlguard.core.model.RiskLevel;
  * <p><strong>Design Rationale:</strong></p>
  * <ul>
  *   <li>Centralizes enabled/disabled logic across all checkers</li>
- *   <li>Provides consistent default behavior (enabled=true)</li>
+ *   <li>Provides consistent default behavior (enabled=false for explicit opt-in)</li>
  *   <li>Allows runtime configuration via YAML or programmatic setup</li>
  *   <li>Supports selective rule activation in different environments</li>
  * </ul>
@@ -23,7 +23,7 @@ import com.footstone.sqlguard.core.model.RiskLevel;
  *   private List<String> excludedTables;
  *
  *   public NoWhereClauseConfig() {
- *     super(); // enabled=true by default
+ *     super(); // enabled=false by default (explicit opt-in)
  *     this.excludedTables = new ArrayList<>();
  *   }
  *
@@ -41,7 +41,7 @@ import com.footstone.sqlguard.core.model.RiskLevel;
 public class CheckerConfig {
 
   /**
-   * Whether this checker is enabled (default: true).
+   * Whether this checker is enabled (default: false - explicit opt-in required).
    */
   private boolean enabled;
 
@@ -51,10 +51,10 @@ public class CheckerConfig {
   private RiskLevel riskLevel;
 
   /**
-   * Creates a CheckerConfig with enabled=true (default).
+   * Creates a CheckerConfig with enabled=false (default - explicit opt-in required).
    */
   public CheckerConfig() {
-    this.enabled = true;
+    this.enabled = false;  // Changed from true to false for explicit opt-in
     this.riskLevel = RiskLevel.MEDIUM;
   }
 

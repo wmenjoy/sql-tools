@@ -10,6 +10,7 @@ Gradle plugin for SQL Safety Guard providing CI/CD integration via `gradle sqlgu
 - ✅ Fail-fast build integration on critical violations
 - ✅ CI/CD pipeline integration
 - ✅ Compatible with Gradle 7.0+
+- ✅ **15 Security Checkers** - Complete security analysis coverage matching CLI module
 
 ## Quick Start
 
@@ -401,6 +402,45 @@ mvn clean install
 - Check that output directory is writable
 - Verify `outputFile` path is valid
 
+## Security Checkers (15 Total)
+
+The Gradle plugin includes all 15 security checkers to match the CLI module:
+
+### Basic Security Checkers (1-4)
+
+| Checker | Severity | Description |
+|---------|----------|-------------|
+| NoWhereClauseChecker | CRITICAL | Detects DELETE/UPDATE without WHERE clause |
+| DummyConditionChecker | HIGH | Detects dummy conditions (1=1, 'a'='a') |
+| BlacklistFieldChecker | HIGH | Detects queries on sensitive fields (password, etc.) |
+| WhitelistFieldChecker | MEDIUM | Detects SELECT * queries |
+
+### SQL Injection Checkers (5-8)
+
+| Checker | Severity | Description |
+|---------|----------|-------------|
+| MultiStatementChecker | CRITICAL | Detects multi-statement SQL injection |
+| SetOperationChecker | CRITICAL | Detects UNION/MINUS/EXCEPT/INTERSECT injection |
+| SqlCommentChecker | CRITICAL | Detects comment-based SQL injection |
+| IntoOutfileChecker | CRITICAL | Detects MySQL file write operations (INTO OUTFILE) |
+
+### Dangerous Operation Checkers (9-11)
+
+| Checker | Severity | Description |
+|---------|----------|-------------|
+| DdlOperationChecker | CRITICAL | Detects DDL operations (CREATE/ALTER/DROP/TRUNCATE) |
+| DangerousFunctionChecker | CRITICAL | Detects dangerous functions (load_file, sys_exec, sleep) |
+| CallStatementChecker | HIGH | Detects stored procedure calls (CALL/EXECUTE/EXEC) |
+
+### Access Control Checkers (12-15)
+
+| Checker | Severity | Description |
+|---------|----------|-------------|
+| MetadataStatementChecker | HIGH | Detects metadata disclosure (SHOW/DESCRIBE/USE) |
+| SetStatementChecker | HIGH | Detects session variable modification (SET statements) |
+| DeniedTableChecker | CRITICAL | Enforces table-level access blacklist (sys_*, admin_*) |
+| ReadOnlyTableChecker | HIGH | Protects read-only tables from write operations |
+
 ## Advanced Configuration
 
 ### Custom Validators
@@ -510,6 +550,7 @@ For issues, questions, or contributions:
 - DSL-based configuration
 - CI/CD integration support
 - Gradle 7.0+ compatibility
+
 
 
 

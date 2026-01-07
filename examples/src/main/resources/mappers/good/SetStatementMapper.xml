@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CORRECTED VERSION: SetStatement Fixed
+  FIX APPLIED: Removed SET statements; use UPDATE...SET column assignments instead
+  
+  KEY IMPROVEMENTS:
+  - UPDATE...SET is column assignment (ALLOWED by SetStatementChecker)
+  - SET statements for session variables should be configured at connection pool level
+  - All examples demonstrate UPDATE...SET differentiation
+  
+  SAFETY GUARANTEE: UPDATE...SET modifies table data, not session variables.
+  
+  CRITICAL DIFFERENTIATION:
+  - SET autocommit = 0 (BLOCKED - session variable modification)
+  - UPDATE users SET name = 'test' (ALLOWED - column assignment)
+  
+  The SetStatementChecker correctly allows UPDATE...SET because:
+  1. It checks if SQL starts with UPDATE keyword first
+  2. If UPDATE is found, the SET is column assignment, not session variable
+-->
+<mapper namespace="com.footstone.sqlguard.examples.good.SetStatementMapper">
+
+    <!-- GOOD: UPDATE...SET is column assignment, NOT a SET statement -->
+    <!-- SetStatementChecker correctly differentiates this from SET autocommit = 0 -->
+    <update id="updateUserStatus" parameterType="map">
+        UPDATE users SET status = #{status} WHERE id = #{id}
+    </update>
+
+    <!-- GOOD: UPDATE...SET with multiple columns is still column assignment -->
+    <!-- This is NOT a session variable modification -->
+    <update id="updateUserProfile" parameterType="map">
+        UPDATE users 
+        SET name = #{name}, 
+            email = #{email}, 
+            updated_at = NOW() 
+        WHERE id = #{id}
+    </update>
+
+    <!-- GOOD: UPDATE...SET with dynamic conditions -->
+    <!-- MyBatis <set> tag generates column assignments, not session variables -->
+    <update id="updateUserDynamic" parameterType="map">
+        UPDATE users
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="phone != null">phone = #{phone},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+</mapper>

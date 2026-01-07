@@ -1,0 +1,78 @@
+# SQL Guard Test Configuration
+# This file is used by AcceptanceChecklistIntegrationTest to verify YAML parsing
+
+sql-guard:
+  # Global settings
+  enabled: true
+  
+  rules:
+    # SQL Injection Checkers (Tasks 1.1-1.4)
+    multi-statement:
+      enabled: true
+      risk-level: CRITICAL
+    
+    set-operation:
+      enabled: true
+      risk-level: CRITICAL
+      allowed-operations: []  # Empty = block all
+    
+    sql-comment:
+      enabled: true
+      risk-level: CRITICAL
+      allow-hint-comments: false
+    
+    into-outfile:
+      enabled: true
+      risk-level: CRITICAL
+    
+    # Dangerous Operations Checkers (Tasks 1.5-1.7)
+    ddl-operation:
+      enabled: true
+      risk-level: CRITICAL
+      allowed-operations: []  # Empty = block all DDL
+    
+    dangerous-function:
+      enabled: true
+      risk-level: CRITICAL
+      denied-functions:
+        - load_file
+        - sys_exec
+        - sys_eval
+        - sleep
+        - benchmark
+        - pg_sleep
+        - waitfor
+        - xp_cmdshell
+    
+    call-statement:
+      enabled: true
+      risk-level: HIGH
+      violation-strategy: WARN
+    
+    # Access Control Checkers (Tasks 1.8-1.11)
+    metadata-statement:
+      enabled: true
+      risk-level: HIGH
+      allowed-statements: []  # Empty = block all
+    
+    set-statement:
+      enabled: true
+      risk-level: MEDIUM
+    
+    denied-table:
+      enabled: true
+      risk-level: CRITICAL
+      denied-tables:
+        - sys_*
+        - admin_*
+        - audit_log
+        - sensitive_data
+    
+    readonly-table:
+      enabled: true
+      risk-level: HIGH
+      readonly-tables:
+        - history_*
+        - audit_*
+        - archive_log
+        - reference_*

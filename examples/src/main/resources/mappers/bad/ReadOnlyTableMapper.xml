@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: ReadOnlyTable (CRITICAL)
+  PATTERN: Write operations (INSERT/UPDATE/DELETE) on read-only tables
+  WHY DANGEROUS: Protects audit logs, historical data, and compliance records from modification.
+  REAL-WORLD IMPACT: Prevents tampering with audit trails, financial history, and regulatory data.
+  EXPECTED VIOLATION MESSAGE: "禁止对只读表进行写操作: [table_name]..."
+  EXPECTED RISK LEVEL: CRITICAL
+  FIX RECOMMENDATION: Use SELECT for read-only tables; write to normal tables only.
+  
+  WILDCARD PATTERN DEMONSTRATION:
+  - history_* matches: history_orders, history_payments, history_logins
+  - audit_* matches: audit_log, audit_trail, audit_events
+  - Exact match: compliance_records
+  
+  NOTE: SELECT from read-only tables is ALLOWED (reading is OK)
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.ReadOnlyTableMapper">
+
+    <!-- BAD: UPDATE on audit_log table (exact match in readonly list) -->
+    <!-- Attack: Attacker tries to modify audit records to hide malicious activity -->
+    <update id="tamperAuditLog" parameterType="map">
+        UPDATE audit_log SET action = 'legitimate_action' WHERE id = 12345
+    </update>
+
+    <!-- BAD: DELETE from history_orders table (matches history_* wildcard pattern) -->
+    <!-- Attack: Attacker tries to delete historical order records -->
+    <delete id="deleteOrderHistory" parameterType="long">
+        DELETE FROM history_orders WHERE order_id = 67890
+    </delete>
+
+    <!-- BAD: INSERT into history_payments table (matches history_* wildcard pattern) -->
+    <!-- Attack: Attacker tries to insert fake historical payment records -->
+    <insert id="insertFakePaymentHistory" parameterType="map">
+        INSERT INTO history_payments (payment_id, amount, timestamp)
+        VALUES (99999, 1000.00, '2024-01-01 00:00:00')
+    </insert>
+
+</mapper>

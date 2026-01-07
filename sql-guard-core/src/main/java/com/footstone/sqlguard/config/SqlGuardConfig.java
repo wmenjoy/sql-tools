@@ -119,7 +119,7 @@ public class SqlGuardConfig {
 
         // Validate pattern lists not empty if configured
         if (rules != null && rules.getDummyCondition() != null) {
-            DummyConditionConfig dummyCondition = rules.getDummyCondition();
+            com.footstone.sqlguard.validator.rule.impl.DummyConditionConfig dummyCondition = rules.getDummyCondition();
             if (dummyCondition.isEnabled()) {
                 if ((dummyCondition.getPatterns() == null || dummyCondition.getPatterns().isEmpty()) &&
                     (dummyCondition.getCustomPatterns() == null || dummyCondition.getCustomPatterns().isEmpty())) {
@@ -252,48 +252,177 @@ public class SqlGuardConfig {
 
     /**
      * Container for all validation rule configurations.
+     * All configurations use validator.rule.impl package classes for consistency.
      */
     public static class RulesConfig {
-        private NoWhereClauseConfig noWhereClause = new NoWhereClauseConfig();
-        private DummyConditionConfig dummyCondition = new DummyConditionConfig();
-        private BlacklistFieldsConfig blacklistFields = new BlacklistFieldsConfig();
-        private WhitelistFieldsConfig whitelistFields = new WhitelistFieldsConfig();
+        // Basic security checkers (1-4)
+        private com.footstone.sqlguard.validator.rule.impl.NoWhereClauseConfig noWhereClause = 
+            new com.footstone.sqlguard.validator.rule.impl.NoWhereClauseConfig();
+        private com.footstone.sqlguard.validator.rule.impl.DummyConditionConfig dummyCondition = 
+            new com.footstone.sqlguard.validator.rule.impl.DummyConditionConfig();
+        private com.footstone.sqlguard.validator.rule.impl.BlacklistFieldsConfig blacklistFields = 
+            new com.footstone.sqlguard.validator.rule.impl.BlacklistFieldsConfig();
+        private com.footstone.sqlguard.validator.rule.impl.WhitelistFieldsConfig whitelistFields = 
+            new com.footstone.sqlguard.validator.rule.impl.WhitelistFieldsConfig();
+        
+        // SQL injection checkers (5-8)
+        private com.footstone.sqlguard.validator.rule.impl.MultiStatementConfig multiStatement = 
+            new com.footstone.sqlguard.validator.rule.impl.MultiStatementConfig();
+        private com.footstone.sqlguard.validator.rule.impl.SetOperationConfig setOperation = 
+            new com.footstone.sqlguard.validator.rule.impl.SetOperationConfig();
+        private com.footstone.sqlguard.validator.rule.impl.SqlCommentConfig sqlComment = 
+            new com.footstone.sqlguard.validator.rule.impl.SqlCommentConfig();
+        private com.footstone.sqlguard.validator.rule.impl.IntoOutfileConfig intoOutfile = 
+            new com.footstone.sqlguard.validator.rule.impl.IntoOutfileConfig();
+        
+        // Dangerous operation checkers (9-11)
+        private com.footstone.sqlguard.validator.rule.impl.DdlOperationConfig ddlOperation = 
+            new com.footstone.sqlguard.validator.rule.impl.DdlOperationConfig();
+        private com.footstone.sqlguard.validator.rule.impl.DangerousFunctionConfig dangerousFunction = 
+            new com.footstone.sqlguard.validator.rule.impl.DangerousFunctionConfig();
+        private com.footstone.sqlguard.validator.rule.impl.CallStatementConfig callStatement = 
+            new com.footstone.sqlguard.validator.rule.impl.CallStatementConfig();
+        
+        // Access control checkers (12-15)
+        private com.footstone.sqlguard.validator.rule.impl.MetadataStatementConfig metadataStatement = 
+            new com.footstone.sqlguard.validator.rule.impl.MetadataStatementConfig();
+        private com.footstone.sqlguard.validator.rule.impl.SetStatementConfig setStatement = 
+            new com.footstone.sqlguard.validator.rule.impl.SetStatementConfig();
+        private com.footstone.sqlguard.validator.rule.impl.DeniedTableConfig deniedTable = 
+            new com.footstone.sqlguard.validator.rule.impl.DeniedTableConfig();
+        private com.footstone.sqlguard.validator.rule.impl.ReadOnlyTableConfig readOnlyTable = 
+            new com.footstone.sqlguard.validator.rule.impl.ReadOnlyTableConfig();
+        
+        // Pagination and performance checkers
         private PaginationAbuseConfig paginationAbuse = new PaginationAbuseConfig();
         private NoPaginationConfig noPagination = new NoPaginationConfig();
         private EstimatedRowsConfig estimatedRows = new EstimatedRowsConfig();
 
-        public NoWhereClauseConfig getNoWhereClause() {
+        // Basic security checkers getters/setters
+        public com.footstone.sqlguard.validator.rule.impl.NoWhereClauseConfig getNoWhereClause() {
             return noWhereClause;
         }
 
-        public void setNoWhereClause(NoWhereClauseConfig noWhereClause) {
+        public void setNoWhereClause(com.footstone.sqlguard.validator.rule.impl.NoWhereClauseConfig noWhereClause) {
             this.noWhereClause = noWhereClause;
         }
 
-        public DummyConditionConfig getDummyCondition() {
+        public com.footstone.sqlguard.validator.rule.impl.DummyConditionConfig getDummyCondition() {
             return dummyCondition;
         }
 
-        public void setDummyCondition(DummyConditionConfig dummyCondition) {
+        public void setDummyCondition(com.footstone.sqlguard.validator.rule.impl.DummyConditionConfig dummyCondition) {
             this.dummyCondition = dummyCondition;
         }
 
-        public BlacklistFieldsConfig getBlacklistFields() {
+        public com.footstone.sqlguard.validator.rule.impl.BlacklistFieldsConfig getBlacklistFields() {
             return blacklistFields;
         }
 
-        public void setBlacklistFields(BlacklistFieldsConfig blacklistFields) {
+        public void setBlacklistFields(com.footstone.sqlguard.validator.rule.impl.BlacklistFieldsConfig blacklistFields) {
             this.blacklistFields = blacklistFields;
         }
 
-        public WhitelistFieldsConfig getWhitelistFields() {
+        public com.footstone.sqlguard.validator.rule.impl.WhitelistFieldsConfig getWhitelistFields() {
             return whitelistFields;
         }
 
-        public void setWhitelistFields(WhitelistFieldsConfig whitelistFields) {
+        public void setWhitelistFields(com.footstone.sqlguard.validator.rule.impl.WhitelistFieldsConfig whitelistFields) {
             this.whitelistFields = whitelistFields;
         }
 
+        // SQL injection checkers getters/setters
+        public com.footstone.sqlguard.validator.rule.impl.MultiStatementConfig getMultiStatement() {
+            return multiStatement;
+        }
+
+        public void setMultiStatement(com.footstone.sqlguard.validator.rule.impl.MultiStatementConfig multiStatement) {
+            this.multiStatement = multiStatement;
+        }
+
+        public com.footstone.sqlguard.validator.rule.impl.SetOperationConfig getSetOperation() {
+            return setOperation;
+        }
+
+        public void setSetOperation(com.footstone.sqlguard.validator.rule.impl.SetOperationConfig setOperation) {
+            this.setOperation = setOperation;
+        }
+
+        public com.footstone.sqlguard.validator.rule.impl.SqlCommentConfig getSqlComment() {
+            return sqlComment;
+        }
+
+        public void setSqlComment(com.footstone.sqlguard.validator.rule.impl.SqlCommentConfig sqlComment) {
+            this.sqlComment = sqlComment;
+        }
+
+        public com.footstone.sqlguard.validator.rule.impl.IntoOutfileConfig getIntoOutfile() {
+            return intoOutfile;
+        }
+
+        public void setIntoOutfile(com.footstone.sqlguard.validator.rule.impl.IntoOutfileConfig intoOutfile) {
+            this.intoOutfile = intoOutfile;
+        }
+
+        // Dangerous operation checkers getters/setters
+        public com.footstone.sqlguard.validator.rule.impl.DdlOperationConfig getDdlOperation() {
+            return ddlOperation;
+        }
+
+        public void setDdlOperation(com.footstone.sqlguard.validator.rule.impl.DdlOperationConfig ddlOperation) {
+            this.ddlOperation = ddlOperation;
+        }
+
+        public com.footstone.sqlguard.validator.rule.impl.DangerousFunctionConfig getDangerousFunction() {
+            return dangerousFunction;
+        }
+
+        public void setDangerousFunction(com.footstone.sqlguard.validator.rule.impl.DangerousFunctionConfig dangerousFunction) {
+            this.dangerousFunction = dangerousFunction;
+        }
+
+        public com.footstone.sqlguard.validator.rule.impl.CallStatementConfig getCallStatement() {
+            return callStatement;
+        }
+
+        public void setCallStatement(com.footstone.sqlguard.validator.rule.impl.CallStatementConfig callStatement) {
+            this.callStatement = callStatement;
+        }
+
+        // Access control checkers getters/setters
+        public com.footstone.sqlguard.validator.rule.impl.MetadataStatementConfig getMetadataStatement() {
+            return metadataStatement;
+        }
+
+        public void setMetadataStatement(com.footstone.sqlguard.validator.rule.impl.MetadataStatementConfig metadataStatement) {
+            this.metadataStatement = metadataStatement;
+        }
+
+        public com.footstone.sqlguard.validator.rule.impl.SetStatementConfig getSetStatement() {
+            return setStatement;
+        }
+
+        public void setSetStatement(com.footstone.sqlguard.validator.rule.impl.SetStatementConfig setStatement) {
+            this.setStatement = setStatement;
+        }
+
+        public com.footstone.sqlguard.validator.rule.impl.DeniedTableConfig getDeniedTable() {
+            return deniedTable;
+        }
+
+        public void setDeniedTable(com.footstone.sqlguard.validator.rule.impl.DeniedTableConfig deniedTable) {
+            this.deniedTable = deniedTable;
+        }
+
+        public com.footstone.sqlguard.validator.rule.impl.ReadOnlyTableConfig getReadOnlyTable() {
+            return readOnlyTable;
+        }
+
+        public void setReadOnlyTable(com.footstone.sqlguard.validator.rule.impl.ReadOnlyTableConfig readOnlyTable) {
+            this.readOnlyTable = readOnlyTable;
+        }
+
+        // Pagination and performance checkers getters/setters
         public PaginationAbuseConfig getPaginationAbuse() {
             return paginationAbuse;
         }

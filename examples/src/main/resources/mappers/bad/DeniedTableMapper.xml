@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: DeniedTable (CRITICAL)
+  PATTERN: Access to blacklisted tables (exact match and wildcard patterns)
+  WHY DANGEROUS: Prevents unauthorized access to sensitive system or administrative tables.
+  REAL-WORLD IMPACT: Attackers cannot access system configuration, admin accounts, or audit logs.
+  EXPECTED VIOLATION MESSAGE: "禁止访问表: [table_name]..."
+  EXPECTED RISK LEVEL: CRITICAL
+  FIX RECOMMENDATION: Access only allowed tables; use authorized APIs for system data.
+  
+  WILDCARD PATTERN DEMONSTRATION:
+  - sys_* matches: sys_user, sys_config, sys_role, sys_permission
+  - admin_* matches: admin_users, admin_settings, admin_logs
+  - Exact match: audit_log, sensitive_data
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.DeniedTableMapper">
+
+    <!-- BAD: Access to sys_user table (matches sys_* wildcard pattern) -->
+    <!-- Attack: Attacker tries to read system user credentials -->
+    <select id="selectSystemUsers" resultType="map">
+        SELECT id, username, password_hash, role FROM sys_user WHERE status = 'active'
+    </select>
+
+    <!-- BAD: Access to sys_config table (matches sys_* wildcard pattern) -->
+    <!-- Attack: Attacker tries to read system configuration including API keys -->
+    <select id="selectSystemConfig" resultType="map">
+        SELECT config_key, config_value FROM sys_config WHERE category = 'security'
+    </select>
+
+    <!-- BAD: Access to admin_users table (matches admin_* wildcard pattern) -->
+    <!-- Attack: Attacker tries to enumerate admin accounts -->
+    <select id="selectAdminUsers" resultType="map">
+        SELECT id, username, email, last_login FROM admin_users
+    </select>
+
+</mapper>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  VIOLATION TYPE: DdlOperation (CRITICAL)
+  PATTERN: DDL operations (CREATE/ALTER/DROP/TRUNCATE) in application code
+  
+  WHY DANGEROUS:
+  - DDL operations can destroy data permanently (DROP, TRUNCATE)
+  - Schema changes can break application functionality
+  - Unauthorized schema modifications bypass change management
+  - Can lead to data loss, service outage, or security vulnerabilities
+  
+  REAL-WORLD IMPACT:
+  - Accidental table deletion causing data loss
+  - Schema drift between environments
+  - Production database corruption
+  - Compliance violations (untracked schema changes)
+  
+  EXPECTED VIOLATION MESSAGE: Contains "DDL" and operation type (CREATE/ALTER/DROP/TRUNCATE)
+  EXPECTED RISK LEVEL: CRITICAL
+  
+  FIX RECOMMENDATION: Use migration tools (Flyway/Liquibase) for DDL, not application SQL
+  
+  DESIGN REFERENCE: Phase 1, Task 1.5 - DdlOperationChecker Implementation
+-->
+<mapper namespace="com.footstone.sqlguard.examples.bad.DdlOperationMapper">
+
+    <!-- BAD: CREATE TABLE in application code -->
+    <!-- Attack: Dynamic table creation can lead to resource exhaustion or schema pollution -->
+    <update id="createUserTable">
+        CREATE TABLE users (id INT PRIMARY KEY, name VARCHAR(100), email VARCHAR(255))
+    </update>
+
+    <!-- BAD: ALTER TABLE modifying schema at runtime -->
+    <!-- Risk: Uncontrolled schema changes can break other applications -->
+    <update id="alterUserTable">
+        ALTER TABLE users ADD COLUMN phone VARCHAR(20)
+    </update>
+
+    <!-- BAD: DROP TABLE - catastrophic data loss -->
+    <!-- Attack: SQL injection could lead to DROP TABLE execution -->
+    <update id="dropOldTable">
+        DROP TABLE old_users
+    </update>
+
+    <!-- BAD: TRUNCATE TABLE - fast but dangerous data deletion -->
+    <!-- Risk: TRUNCATE cannot be rolled back in most databases -->
+    <update id="truncateLogTable">
+        TRUNCATE TABLE audit_logs
+    </update>
+
+    <!-- BAD: CREATE INDEX at runtime -->
+    <!-- Risk: Index creation can lock tables and cause performance issues -->
+    <update id="createIndex">
+        CREATE INDEX idx_users_email ON users (email)
+    </update>
+
+</mapper>

@@ -44,6 +44,28 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- JDBC Interceptor Modules (optional - for connection pool integration) -->
+        <dependency>
+            <groupId>com.footstone</groupId>
+            <artifactId>sql-guard-jdbc-druid</artifactId>
+            <version>${project.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>com.footstone</groupId>
+            <artifactId>sql-guard-jdbc-hikari</artifactId>
+            <version>${project.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>com.footstone</groupId>
+            <artifactId>sql-guard-jdbc-p6spy</artifactId>
+            <version>${project.version}</version>
+            <optional>true</optional>
+        </dependency>
+
         <!-- MyBatis (optional - for pagination plugin detection) -->
         <dependency>
             <groupId>org.mybatis</groupId>

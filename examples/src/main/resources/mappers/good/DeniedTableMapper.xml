@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CORRECTED VERSION: DeniedTable Fixed
+  FIX APPLIED: Access only allowed tables, not blacklisted ones
+  
+  KEY IMPROVEMENTS:
+  - Access 'users' table instead of 'sys_user' (sys_* pattern is denied)
+  - Access 'app_config' instead of 'sys_config' (sys_* pattern is denied)
+  - Access 'user_roles' instead of 'admin_users' (admin_* pattern is denied)
+  
+  SAFETY GUARANTEE: All queries access allowed tables only.
+  
+  WILDCARD PATTERN DEMONSTRATION (what is DENIED):
+  - sys_* matches: sys_user, sys_config, sys_role, sys_permission
+  - admin_* matches: admin_users, admin_settings, admin_logs
+  - Exact match: audit_log, sensitive_data
+  
+  ALLOWED TABLES (used in GOOD examples):
+  - users, app_config, user_roles (do not match denied patterns)
+-->
+<mapper namespace="com.footstone.sqlguard.examples.good.DeniedTableMapper">
+
+    <!-- GOOD: Access 'users' table instead of denied 'sys_user' -->
+    <!-- 'users' does not match the sys_* wildcard pattern -->
+    <select id="selectActiveUsers" resultType="map">
+        SELECT id, username, email, role FROM users WHERE status = 'active'
+    </select>
+
+    <!-- GOOD: Access 'app_config' table instead of denied 'sys_config' -->
+    <!-- 'app_config' does not match the sys_* wildcard pattern -->
+    <select id="selectAppConfig" resultType="map">
+        SELECT config_key, config_value FROM app_config WHERE category = #{category}
+    </select>
+
+    <!-- GOOD: Access 'user_roles' table instead of denied 'admin_users' -->
+    <!-- 'user_roles' does not match the admin_* wildcard pattern -->
+    <select id="selectUserRoles" resultType="map">
+        SELECT user_id, role_name, permissions FROM user_roles WHERE user_id = #{userId}
+    </select>
+
+</mapper>

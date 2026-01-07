@@ -11,6 +11,9 @@ import java.util.*;
  */
 public class SqlGuardConfigDefaults {
 
+    // Alias for validator.rule.impl config classes to avoid conflicts with config package classes
+    private static final String IMPL_PKG = "com.footstone.sqlguard.validator.rule.impl.";
+
     /**
      * Returns a SqlGuardConfig with all default values.
      *
@@ -41,32 +44,126 @@ public class SqlGuardConfigDefaults {
         // Rules defaults
         SqlGuardConfig.RulesConfig rules = new SqlGuardConfig.RulesConfig();
         
+        // ==================== Basic Security Checkers (1-4) ====================
+        
         // NoWhereClause rule
-        NoWhereClauseConfig noWhereClause = new NoWhereClauseConfig();
+        com.footstone.sqlguard.validator.rule.impl.NoWhereClauseConfig noWhereClause = 
+            new com.footstone.sqlguard.validator.rule.impl.NoWhereClauseConfig();
         noWhereClause.setEnabled(true);
         noWhereClause.setRiskLevel(RiskLevel.CRITICAL);
         rules.setNoWhereClause(noWhereClause);
         
         // DummyCondition rule
-        DummyConditionConfig dummyCondition = new DummyConditionConfig();
+        com.footstone.sqlguard.validator.rule.impl.DummyConditionConfig dummyCondition = 
+            new com.footstone.sqlguard.validator.rule.impl.DummyConditionConfig();
         dummyCondition.setEnabled(true);
         dummyCondition.setRiskLevel(RiskLevel.HIGH);
         rules.setDummyCondition(dummyCondition);
         
         // BlacklistFields rule
-        BlacklistFieldsConfig blacklistFields = new BlacklistFieldsConfig(true, 
+        com.footstone.sqlguard.validator.rule.impl.BlacklistFieldsConfig blacklistFields = 
+            new com.footstone.sqlguard.validator.rule.impl.BlacklistFieldsConfig(true, 
             new HashSet<>(Arrays.asList("deleted", "del_flag", "status")));
         blacklistFields.setRiskLevel(RiskLevel.HIGH);
         rules.setBlacklistFields(blacklistFields);
         
         // WhitelistFields rule
-        WhitelistFieldsConfig whitelistFields = new WhitelistFieldsConfig();
+        com.footstone.sqlguard.validator.rule.impl.WhitelistFieldsConfig whitelistFields = 
+            new com.footstone.sqlguard.validator.rule.impl.WhitelistFieldsConfig();
         whitelistFields.setEnabled(true);
         whitelistFields.setRiskLevel(RiskLevel.MEDIUM);
         whitelistFields.setFields(new ArrayList<>());
         whitelistFields.setByTable(new HashMap<>());
         whitelistFields.setEnforceForUnknownTables(false);
         rules.setWhitelistFields(whitelistFields);
+        
+        // ==================== SQL Injection Checkers (5-8) ====================
+        
+        // MultiStatement rule
+        com.footstone.sqlguard.validator.rule.impl.MultiStatementConfig multiStatement = 
+            new com.footstone.sqlguard.validator.rule.impl.MultiStatementConfig();
+        multiStatement.setEnabled(true);
+        multiStatement.setRiskLevel(RiskLevel.CRITICAL);
+        rules.setMultiStatement(multiStatement);
+        
+        // SetOperation rule
+        com.footstone.sqlguard.validator.rule.impl.SetOperationConfig setOperation = 
+            new com.footstone.sqlguard.validator.rule.impl.SetOperationConfig();
+        setOperation.setEnabled(true);
+        setOperation.setRiskLevel(RiskLevel.CRITICAL);
+        rules.setSetOperation(setOperation);
+        
+        // SqlComment rule
+        com.footstone.sqlguard.validator.rule.impl.SqlCommentConfig sqlComment = 
+            new com.footstone.sqlguard.validator.rule.impl.SqlCommentConfig();
+        sqlComment.setEnabled(true);
+        sqlComment.setRiskLevel(RiskLevel.CRITICAL);
+        rules.setSqlComment(sqlComment);
+        
+        // IntoOutfile rule
+        com.footstone.sqlguard.validator.rule.impl.IntoOutfileConfig intoOutfile = 
+            new com.footstone.sqlguard.validator.rule.impl.IntoOutfileConfig();
+        intoOutfile.setEnabled(true);
+        intoOutfile.setRiskLevel(RiskLevel.CRITICAL);
+        rules.setIntoOutfile(intoOutfile);
+        
+        // ==================== Dangerous Operations Checkers (9-11) ====================
+        
+        // DdlOperation rule
+        com.footstone.sqlguard.validator.rule.impl.DdlOperationConfig ddlOperation = 
+            new com.footstone.sqlguard.validator.rule.impl.DdlOperationConfig();
+        ddlOperation.setEnabled(true);
+        ddlOperation.setRiskLevel(RiskLevel.CRITICAL);
+        rules.setDdlOperation(ddlOperation);
+        
+        // DangerousFunction rule
+        com.footstone.sqlguard.validator.rule.impl.DangerousFunctionConfig dangerousFunction = 
+            new com.footstone.sqlguard.validator.rule.impl.DangerousFunctionConfig();
+        dangerousFunction.setEnabled(true);
+        dangerousFunction.setRiskLevel(RiskLevel.CRITICAL);
+        rules.setDangerousFunction(dangerousFunction);
+        
+        // CallStatement rule
+        com.footstone.sqlguard.validator.rule.impl.CallStatementConfig callStatement = 
+            new com.footstone.sqlguard.validator.rule.impl.CallStatementConfig();
+        callStatement.setEnabled(true);
+        callStatement.setRiskLevel(RiskLevel.HIGH);
+        rules.setCallStatement(callStatement);
+        
+        // ==================== Access Control Checkers (12-15) ====================
+        
+        // MetadataStatement rule
+        com.footstone.sqlguard.validator.rule.impl.MetadataStatementConfig metadataStatement = 
+            new com.footstone.sqlguard.validator.rule.impl.MetadataStatementConfig();
+        metadataStatement.setEnabled(true);
+        metadataStatement.setRiskLevel(RiskLevel.HIGH);
+        rules.setMetadataStatement(metadataStatement);
+        
+        // SetStatement rule
+        com.footstone.sqlguard.validator.rule.impl.SetStatementConfig setStatement = 
+            new com.footstone.sqlguard.validator.rule.impl.SetStatementConfig();
+        setStatement.setEnabled(true);
+        setStatement.setRiskLevel(RiskLevel.HIGH);
+        rules.setSetStatement(setStatement);
+        
+        // DeniedTable rule
+        com.footstone.sqlguard.validator.rule.impl.DeniedTableConfig deniedTable = 
+            new com.footstone.sqlguard.validator.rule.impl.DeniedTableConfig();
+        deniedTable.setEnabled(true);
+        deniedTable.setRiskLevel(RiskLevel.CRITICAL);
+        deniedTable.setDeniedTables(Arrays.asList("sys_*", "admin_*", "audit_log", "sensitive_data"));
+        rules.setDeniedTable(deniedTable);
+        
+        // ReadOnlyTable rule
+        com.footstone.sqlguard.validator.rule.impl.ReadOnlyTableConfig readOnlyTable = 
+            new com.footstone.sqlguard.validator.rule.impl.ReadOnlyTableConfig();
+        readOnlyTable.setEnabled(true);
+        readOnlyTable.setRiskLevel(RiskLevel.HIGH);
+        readOnlyTable.setReadonlyTables(Arrays.asList("audit_log", "history_*", "compliance_records"));
+        rules.setReadOnlyTable(readOnlyTable);
+        
+        // ==================== Pagination and Performance Checkers ====================
+        // These use config package classes, not validator.rule.impl
         
         // PaginationAbuse rule
         PaginationAbuseConfig paginationAbuse = new PaginationAbuseConfig();

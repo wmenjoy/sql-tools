@@ -239,14 +239,22 @@ class ParseOnceIntegrationTest {
   }
 
   @Test
-  @DisplayName("Parse failure with lenient config should log warning and return pass")
+  @DisplayName("Parse failure with lenient config should still execute checkers with raw SQL")
   void testParseFailureLenient_shouldReturnPass() {
     facade = new JSqlParserFacade(true); // lenient mode
     
+    final AtomicInteger checkerCallCount = new AtomicInteger(0);
+    
+    // Mock checker that verifies it's called even when parse fails
+    // (raw SQL checkers can still detect violations)
     RuleChecker mockChecker = new RuleChecker() {
       @Override
       public void check(SqlContext context, ValidationResult result) {
-        fail("Checker should not be called when parse fails in lenient mode");
+        checkerCallCount.incrementAndGet();
+        // Verify raw SQL is available even when parse fails
+        assertNotNull(context.getSql(), "Raw SQL should be available");
+        // Statement may be null when parse fails in lenient mode
+        // This is expected behavior - raw SQL checkers can still work
       }
 
       @Override
@@ -267,13 +275,14 @@ class ParseOnceIntegrationTest {
         .statementId("test.Mapper.selectById")
         .build();
 
-    // Execute validation - should return pass (not throw)
+    // Execute validation - should not throw and should execute checkers
     ValidationResult result = validator.validate(context);
 
     assertNotNull(result, "Result should not be null");
-    assertTrue(result.isPassed(), "Lenient mode should return pass on parse failure");
-    assertEquals(RiskLevel.SAFE, result.getRiskLevel(), "Risk level should be SAFE");
-    assertTrue(result.getViolations().isEmpty(), "Should have no violations");
+    // Checkers should be called even when parse fails (for raw SQL detection)
+    assertEquals(1, checkerCallCount.get(), "Checker should be called once even when parse fails");
+    // Result depends on what checkers find - if no violations, it passes
+    assertTrue(result.isPassed(), "Should pass if no violations found by raw SQL checkers");
   }
 
   @Test

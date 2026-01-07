@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CORRECTED VERSION: CallStatement Fixed
+  FIX APPLIED: Replaced stored procedure calls with direct SQL statements
+  
+  KEY IMPROVEMENTS:
+  - No CALL/EXECUTE/EXEC statements
+  - Business logic implemented in application layer
+  - SQL statements are auditable and visible in code review
+  - No hidden procedure logic or elevated privileges
+  
+  BENEFITS:
+  - Full visibility of SQL operations
+  - Consistent security context (no DEFINER privileges)
+  - Easier testing and debugging
+  - Better code review and audit trail
+  
+  SAFETY GUARANTEE: No stored procedure execution, all logic visible in application code
+-->
+<mapper namespace="com.footstone.sqlguard.examples.good.CallStatementMapper">
+
+    <!-- GOOD: Direct DELETE instead of CALL sp_cleanup_old_data -->
+    <!-- Safe: SQL is visible, auditable, and under application control -->
+    <delete id="cleanupOldData" parameterType="map">
+        DELETE FROM audit_logs 
+        WHERE created_at &lt; #{retentionDate}
+        LIMIT #{batchSize}
+    </delete>
+
+    <!-- GOOD: Direct INSERT instead of CALL sp_user_create -->
+    <!-- Safe: User creation logic is in application code, fully auditable -->
+    <insert id="createUser" parameterType="map">
+        INSERT INTO users (id, username, email, created_at, status)
+        VALUES (#{userId}, #{username}, #{email}, NOW(), 'active')
+    </insert>
+
+    <!-- GOOD: Direct UPDATE instead of EXECUTE sp_process_batch -->
+    <!-- Safe: Batch processing logic visible in application layer -->
+    <update id="processBatch" parameterType="map">
+        UPDATE batch_jobs 
+        SET status = 'processing', 
+            started_at = NOW(),
+            processor_id = #{processorId}
+        WHERE status = 'pending'
+          AND scheduled_at &lt;= NOW()
+        LIMIT #{batchSize}
+    </update>
+
+    <!-- GOOD: Direct UPDATE instead of EXECUTE sp_update_inventory -->
+    <!-- Safe: Inventory update logic is transparent and testable -->
+    <update id="updateInventory" parameterType="map">
+        UPDATE inventory 
+        SET quantity = quantity + #{quantity},
+            last_updated = NOW()
+        WHERE sku_code = #{skuCode}
+    </update>
+
+    <!-- GOOD: Direct INSERT instead of EXEC sp_send_notification -->
+    <!-- Safe: Notification queued in database, processed by application -->
+    <insert id="queueNotification" parameterType="map">
+        INSERT INTO notification_queue (user_id, message, priority, created_at, status)
+        VALUES (#{userId}, #{message}, #{priority}, NOW(), 'pending')
+    </insert>
+
+    <!-- GOOD: Direct SELECT instead of schema-qualified procedure -->
+    <!-- Safe: Order processing query is visible and auditable -->
+    <select id="selectOrdersForProcessing" parameterType="int" resultType="map">
+        SELECT 
+            o.id AS order_id,
+            o.customer_id,
+            o.total_amount,
+            o.status
+        FROM orders o
+        WHERE o.id = #{orderId}
+          AND o.status = 'confirmed'
+    </select>
+
+</mapper>

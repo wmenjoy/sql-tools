@@ -1,0 +1,25 @@
+# MyBatis Interceptor Profile - ORM-level interception
+# Use this profile to use MyBatis interceptor (highest priority)
+# Start with: mvn spring-boot:run -Dspring-boot.run.profiles=mybatis
+
+sql-guard:
+  enabled: true
+  active-strategy: LOG
+  
+  # Enable MyBatis interceptor, disable others
+  interceptors:
+    mybatis:
+      enabled: true
+    mybatis-plus:
+      enabled: true
+    druid:
+      enabled: false
+    hikari:
+      enabled: false
+    p6spy:
+      enabled: false
+
+logging:
+  level:
+    com.footstone.sqlguard: DEBUG
+    com.footstone.sqlguard.interceptor.mybatis: DEBUG

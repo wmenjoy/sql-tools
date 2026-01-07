@@ -8,12 +8,12 @@ SQL Safety Guard includes 10 specialized rule checkers detecting dangerous SQL p
 |------|-----------|-------------|---------------|
 | **No WHERE Clause** | 🔴 CRITICAL | Detects DELETE/UPDATE/SELECT without WHERE | [Details](no-where-clause.md) |
 | **Dummy Condition** | 🟠 HIGH | Detects meaningless conditions (1=1, true) | [Details](dummy-condition.md) |
-| **Blacklist Fields** | 🟠 HIGH | Detects WHERE using only low-cardinality fields | [Details](blacklist-whitelist.md#blacklist-fields) |
-| **Whitelist Fields** | 🟠 HIGH | Enforces mandatory high-selectivity fields | [Details](blacklist-whitelist.md#whitelist-fields) |
+| **Blacklist Fields** | 🟠 HIGH | Detects WHERE using only low-cardinality fields | [Details](blacklist-fields.md) |
+| **Whitelist Fields** | 🟠 HIGH | Enforces mandatory high-selectivity fields | [Details](whitelist-fields.md) |
 | **Logical Pagination** | 🔴 CRITICAL | Detects in-memory pagination (OOM risk) | [Details](logical-pagination.md) |
-| **No Condition Pagination** | 🔴 CRITICAL | Detects LIMIT without WHERE | [Details](pagination-abuse.md#no-condition-pagination) |
-| **Deep Pagination** | 🟡 MEDIUM | Detects high OFFSET values | [Details](pagination-abuse.md#deep-pagination) |
-| **Large Page Size** | 🟡 MEDIUM | Detects excessive LIMIT values | [Details](pagination-abuse.md#large-page-size) |
+| **No Condition Pagination** | 🔴 CRITICAL | Detects LIMIT without WHERE | [Details](no-condition-pagination.md) |
+| **Deep Pagination** | 🟡 MEDIUM | Detects high OFFSET values | [Details](deep-pagination.md) |
+| **Large Page Size** | 🟡 MEDIUM | Detects excessive LIMIT values | [Details](large-page-size.md) |
 | **Missing ORDER BY** | 🟢 LOW | Detects pagination without ORDER BY | [Details](missing-orderby.md) |
 | **No Pagination** | 🟡 VARIABLE | Detects SELECT without LIMIT | [Details](no-pagination.md) |
 
@@ -75,17 +75,17 @@ Prevent data loss and corruption:
 Prevent performance degradation:
 
 - **[Logical Pagination](logical-pagination.md)** - Prevents in-memory pagination
-- **[No Condition Pagination](pagination-abuse.md#no-condition-pagination)** - Requires WHERE with LIMIT
-- **[Deep Pagination](pagination-abuse.md#deep-pagination)** - Limits OFFSET values
-- **[Large Page Size](pagination-abuse.md#large-page-size)** - Limits LIMIT values
+- **[No Condition Pagination](no-condition-pagination.md)** - Requires WHERE with LIMIT
+- **[Deep Pagination](deep-pagination.md)** - Limits OFFSET values
+- **[Large Page Size](large-page-size.md)** - Limits LIMIT values
 - **[No Pagination](no-pagination.md)** - Encourages LIMIT usage
 
 ### Security Rules
 
 Prevent data leakage and unauthorized access:
 
-- **[Blacklist Fields](blacklist-whitelist.md#blacklist-fields)** - Prevents low-selectivity queries
-- **[Whitelist Fields](blacklist-whitelist.md#whitelist-fields)** - Enforces high-selectivity fields
+- **[Blacklist Fields](blacklist-fields.md)** - Prevents low-selectivity queries
+- **[Whitelist Fields](whitelist-fields.md)** - Enforces high-selectivity fields
 
 ### Code Quality Rules
 
@@ -356,12 +356,15 @@ public void disableChecker() {
 
 - **[No WHERE Clause](no-where-clause.md)** - CRITICAL rule preventing data loss
 - **[Logical Pagination](logical-pagination.md)** - CRITICAL rule preventing OOM
-- **[Pagination Abuse](pagination-abuse.md)** - MEDIUM rules optimizing performance
+- **[No Condition Pagination](no-condition-pagination.md)** - CRITICAL rule preventing uncontrolled queries
+- **[Blacklist/Whitelist Fields](blacklist-fields.md)** - HIGH priority security rules
+- **[Deep Pagination](deep-pagination.md)** - MEDIUM rule optimizing performance
 - **[Configuration Reference](../configuration-reference.md)** - Complete property documentation
 
 ---
 
 **Need help?** See [FAQ](../faq.md) or [Troubleshooting Guide](../troubleshooting.md).
+
 
 
 

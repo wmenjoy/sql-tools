@@ -4,18 +4,43 @@ Interactive demonstration of SQL Safety Guard System with real-world MyBatis/MyB
 
 ## Overview
 
-This demo application showcases the SQL Safety Guard System's capabilities through REST endpoints that trigger each of the 10 validation rules on demand. It demonstrates zero-configuration integration via `sql-guard-spring-boot-starter` and provides hands-on experience with different violation strategies (BLOCK/WARN/LOG).
+This demo application showcases the SQL Safety Guard System's capabilities through REST endpoints that trigger each of the 21 validation rules on demand. It demonstrates zero-configuration integration via `sql-guard-spring-boot-starter` and provides hands-on experience with different violation strategies (BLOCK/WARN/LOG) and interceptor priority selection.
 
 ## Features Demonstrated
 
 - ✅ **Zero-Configuration Integration** - Just add starter dependency, no code changes needed
-- ✅ **10 Validation Rules** - All rule checkers with interactive violation triggers
+- ✅ **21 Validation Rules** - All rule checkers with interactive violation triggers
 - ✅ **3 Violation Strategies** - BLOCK (prevent execution), WARN (log error), LOG (observe)
+- ✅ **Priority-based Interceptor Selection** - MyBatis > Druid > HikariCP > P6Spy
 - ✅ **MyBatis Integration** - XML mappers, annotation mappers, and dynamic SQL
 - ✅ **MyBatis-Plus Integration** - QueryWrapper and BaseMapper CRUD operations
 - ✅ **Profile-Specific Configuration** - Dev/prod profiles with different strategies
 - ✅ **Runtime Observability** - Violation dashboard and logging
 - ✅ **Docker Deployment** - Complete environment with MySQL database
+
+## Interceptor Priority
+
+The SQL Guard system uses priority-based interceptor selection. Only **one** interceptor is active at a time:
+
+| Priority | Interceptor | Description |
+|----------|-------------|-------------|
+| 1 (Highest) | MyBatis | ORM-level interception |
+| 2 | Druid | Connection pool filter |
+| 3 | HikariCP | Connection pool proxy |
+| 4 (Lowest) | P6Spy | JDBC spy |
+
+Use profiles to control which interceptor is used:
+
+```bash
+# Use MyBatis interceptor (default - highest priority)
+mvn spring-boot:run -Dspring-boot.run.profiles=mybatis
+
+# Use Druid filter (disables MyBatis)
+mvn spring-boot:run -Dspring-boot.run.profiles=druid
+
+# Use HikariCP proxy (disables MyBatis and Druid)
+mvn spring-boot:run -Dspring-boot.run.profiles=hikari
+```
 
 ## Quick Start
 

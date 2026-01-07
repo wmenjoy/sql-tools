@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CORRECTED VERSION: ReadOnlyTable Fixed
+  FIX APPLIED: Use SELECT for read-only tables; write to normal tables only
+  
+  KEY IMPROVEMENTS:
+  - SELECT from audit_log is ALLOWED (reading is OK)
+  - SELECT from history_* tables is ALLOWED (reading is OK)
+  - Write operations (INSERT/UPDATE/DELETE) go to normal tables
+  
+  SAFETY GUARANTEE: Read-only tables are only read, never written.
+  
+  WILDCARD PATTERN DEMONSTRATION (what is READ-ONLY):
+  - history_* matches: history_orders, history_payments, history_logins
+  - audit_* matches: audit_log, audit_trail, audit_events
+  - Exact match: compliance_records
+  
+  ALLOWED OPERATIONS:
+  - SELECT from any table (including read-only tables)
+  - INSERT/UPDATE/DELETE on normal tables (orders, payments, etc.)
+-->
+<mapper namespace="com.footstone.sqlguard.examples.good.ReadOnlyTableMapper">
+
+    <!-- GOOD: SELECT from audit_log is allowed (reading is OK) -->
+    <!-- ReadOnlyTableChecker only blocks write operations (INSERT/UPDATE/DELETE) -->
+    <select id="selectAuditLog" resultType="map">
+        SELECT id, user_id, action, timestamp FROM audit_log WHERE user_id = #{userId}
+    </select>
+
+    <!-- GOOD: SELECT from history_orders is allowed (reading is OK) -->
+    <!-- Even though history_* is read-only, SELECT operations are permitted -->
+    <select id="selectOrderHistory" resultType="map">
+        SELECT order_id, product_name, amount, created_at 
+        FROM history_orders 
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- GOOD: INSERT into normal 'orders' table (not read-only) -->
+    <!-- Write operations should target normal tables, not read-only ones -->
+    <insert id="insertOrder" parameterType="map">
+        INSERT INTO orders (user_id, product_id, amount, status, created_at)
+        VALUES (#{userId}, #{productId}, #{amount}, 'pending', NOW())
+    </insert>
+
+</mapper>

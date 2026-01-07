@@ -53,7 +53,7 @@ SQL Safety Guard prevents production incidents like:
 │                          │                                   │
 │                ┌─────────▼──────────┐                        │
 │                │  Validation Engine │                        │
-│                │  • 10 Rule Checkers│                        │
+│                │  • 21 Rule Checkers│                        │
 │                │  • Risk Levels     │                        │
 │                │  • Deduplication   │                        │
 │                └────────────────────┘                        │
@@ -136,7 +136,7 @@ java -jar sql-scanner-cli/target/sql-scanner-cli.jar \
 ### User Guides
 - **[Installation Guide](docs/user-guide/installation.md)** - Maven/Gradle integration and version compatibility
 - **[Configuration Reference](docs/user-guide/configuration-reference.md)** - Complete YAML property documentation
-- **[Rule Documentation](docs/user-guide/rules/README.md)** - All 10 validation rules with examples
+- **[Rule Documentation](docs/user-guide/rules/README.md)** - All 21 validation rules with examples
 - **[Deployment Guide](docs/user-guide/deployment.md)** - Phased rollout strategy (LOG→WARN→BLOCK)
 - **[Performance Guide](docs/user-guide/performance.md)** - Benchmarks, tuning, and optimization
 - **[FAQ](docs/user-guide/faq.md)** - Common questions and answers
@@ -149,8 +149,9 @@ java -jar sql-scanner-cli/target/sql-scanner-cli.jar \
 
 ## 🛡️ Validation Rules
 
-SQL Safety Guard includes 10 specialized rule checkers:
+SQL Safety Guard includes 21 specialized rule checkers covering SQL safety, security, and access control:
 
+### Data Safety Rules (10 Checkers)
 | Rule | Risk Level | Description |
 |------|-----------|-------------|
 | **No WHERE Clause** | CRITICAL | Detects DELETE/UPDATE without WHERE |
@@ -163,6 +164,21 @@ SQL Safety Guard includes 10 specialized rule checkers:
 | **Large Page Size** | MEDIUM | Detects excessive LIMIT values |
 | **Missing ORDER BY** | LOW | Detects pagination without ORDER BY |
 | **No Pagination** | VARIABLE | Detects SELECT without LIMIT |
+
+### Security Rules (11 Checkers) 🆕
+| Rule | Risk Level | Description |
+|------|-----------|-------------|
+| **Multi-Statement** | CRITICAL | Detects SQL injection via statement separators (;) |
+| **Set Operation** | CRITICAL | Detects UNION/MINUS/EXCEPT/INTERSECT attacks |
+| **SQL Comment** | CRITICAL | Detects comment-based injection (--, /* */, #) |
+| **INTO OUTFILE** | CRITICAL | Detects MySQL file write operations |
+| **DDL Operation** | CRITICAL | Detects schema changes (CREATE/ALTER/DROP/TRUNCATE) |
+| **Dangerous Function** | CRITICAL | Detects load_file, sys_exec, sleep, benchmark |
+| **Call Statement** | HIGH | Detects stored procedure calls (CALL/EXECUTE/EXEC) |
+| **Metadata Statement** | HIGH | Detects metadata disclosure (SHOW/DESCRIBE/USE) |
+| **SET Statement** | MEDIUM | Detects session variable modification |
+| **Denied Table** | CRITICAL | Table-level access control with wildcards (sys_*) |
+| **Readonly Table** | HIGH | Protects readonly tables from write operations |
 
 See **[Rule Documentation](docs/user-guide/rules/README.md)** for detailed descriptions and examples.
 
@@ -265,7 +281,7 @@ This is a Maven multi-module project:
 - **sql-scanner-gradle** - Gradle plugin
 
 ### Runtime Validation (Guard)
-- **sql-guard-core** - Validation engine with 10 rule checkers
+- **sql-guard-core** - Validation engine with 21 rule checkers (10 safety + 11 security)
 - **sql-guard-mybatis** - MyBatis interceptor
 - **sql-guard-mp** - MyBatis-Plus interceptor
 - **sql-guard-jdbc** - JDBC layer interceptors (Druid/HikariCP/P6Spy)

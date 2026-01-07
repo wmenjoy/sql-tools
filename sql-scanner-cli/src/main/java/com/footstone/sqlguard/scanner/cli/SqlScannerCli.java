@@ -607,9 +607,10 @@ public class SqlScannerCli implements Callable<Integer> {
    * @return configured validator instance
    */
   private com.footstone.sqlguard.validator.DefaultSqlSafetyValidator createValidator(SqlGuardConfig config) {
-    // Create JSqlParser facade
+    // Create JSqlParser facade in lenient mode to allow raw SQL checkers to run
+    // even when SQL parsing fails (e.g., MySQL-specific syntax like INTO OUTFILE)
     com.footstone.sqlguard.parser.JSqlParserFacade facade = 
-        new com.footstone.sqlguard.parser.JSqlParserFacade(false); // fail-fast mode
+        new com.footstone.sqlguard.parser.JSqlParserFacade(true); // lenient mode
 
     // Create all rule checkers
     java.util.List<com.footstone.sqlguard.validator.rule.RuleChecker> checkers = createAllCheckers(config);
@@ -661,8 +662,70 @@ public class SqlScannerCli implements Callable<Integer> {
     whitelistConfig.setEnabled(true);
     checkers.add(new com.footstone.sqlguard.validator.rule.impl.WhitelistFieldChecker(whitelistConfig));
 
-    // Note: Additional checkers (pagination, etc.) can be added here as needed
-    // For now, we use the core checkers that don't require complex dependencies
+    // ==================== SQL Injection Checkers (Phase 1) ====================
+    
+    // Checker 5: MultiStatementChecker - Detects multi-statement SQL injection
+    com.footstone.sqlguard.validator.rule.impl.MultiStatementConfig multiStatementConfig = 
+        new com.footstone.sqlguard.validator.rule.impl.MultiStatementConfig();
+    checkers.add(new com.footstone.sqlguard.validator.rule.impl.MultiStatementChecker(multiStatementConfig));
+
+    // Checker 6: SetOperationChecker - Detects UNION/MINUS/EXCEPT/INTERSECT injection
+    com.footstone.sqlguard.validator.rule.impl.SetOperationConfig setOperationConfig = 
+        new com.footstone.sqlguard.validator.rule.impl.SetOperationConfig();
+    checkers.add(new com.footstone.sqlguard.validator.rule.impl.SetOperationChecker(setOperationConfig));
+
+    // Checker 7: SqlCommentChecker - Detects comment-based SQL injection
+    com.footstone.sqlguard.validator.rule.impl.SqlCommentConfig sqlCommentConfig = 
+        new com.footstone.sqlguard.validator.rule.impl.SqlCommentConfig();
+    checkers.add(new com.footstone.sqlguard.validator.rule.impl.SqlCommentChecker(sqlCommentConfig));
+
+    // Checker 8: IntoOutfileChecker - Detects MySQL file write operations
+    com.footstone.sqlguard.validator.rule.impl.IntoOutfileConfig intoOutfileConfig = 
+        new com.footstone.sqlguard.validator.rule.impl.IntoOutfileConfig();
+    checkers.add(new com.footstone.sqlguard.validator.rule.impl.IntoOutfileChecker(intoOutfileConfig));
+
+    // ==================== Dangerous Operations Checkers (Phase 1) ====================
+    
+    // Checker 9: DdlOperationChecker - Detects DDL operations (CREATE/ALTER/DROP/TRUNCATE)
+    com.footstone.sqlguard.validator.rule.impl.DdlOperationConfig ddlOperationConfig = 
+        new com.footstone.sqlguard.validator.rule.impl.DdlOperationConfig();
+    checkers.add(new com.footstone.sqlguard.validator.rule.impl.DdlOperationChecker(ddlOperationConfig));
+
+    // Checker 10: DangerousFunctionChecker - Detects dangerous functions (load_file, sys_exec, sleep, etc.)
+    com.footstone.sqlguard.validator.rule.impl.DangerousFunctionConfig dangerousFunctionConfig = 
+        new com.footstone.sqlguard.validator.rule.impl.DangerousFunctionConfig();
+    checkers.add(new com.footstone.sqlguard.validator.rule.impl.DangerousFunctionChecker(dangerousFunctionConfig));
+
+    // Checker 11: CallStatementChecker - Detects stored procedure calls (CALL/EXECUTE/EXEC)
+    com.footstone.sqlguard.validator.rule.impl.CallStatementConfig callStatementConfig = 
+        new com.footstone.sqlguard.validator.rule.impl.CallStatementConfig();
+    checkers.add(new com.footstone.sqlguard.validator.rule.impl.CallStatementChecker(callStatementConfig));
+
+    // ==================== Access Control Checkers (Phase 1) ====================
+    
+    // Checker 12: MetadataStatementChecker - Detects metadata disclosure (SHOW/DESCRIBE/USE)
+    com.footstone.sqlguard.validator.rule.impl.MetadataStatementConfig metadataConfig = 
+        new com.footstone.sqlguard.validator.rule.impl.MetadataStatementConfig();
+    checkers.add(new com.footstone.sqlguard.validator.rule.impl.MetadataStatementChecker(metadataConfig));
+
+    // Checker 13: SetStatementChecker - Detects session variable modification (SET statements)
+    com.footstone.sqlguard.validator.rule.impl.SetStatementConfig setStatementConfig = 
+        new com.footstone.sqlguard.validator.rule.impl.SetStatementConfig();
+    checkers.add(new com.footstone.sqlguard.validator.rule.impl.SetStatementChecker(setStatementConfig));
+
+    // Checker 14: DeniedTableChecker - Enforces table-level access control blacklist
+    com.footstone.sqlguard.validator.rule.impl.DeniedTableConfig deniedTableConfig = 
+        new com.footstone.sqlguard.validator.rule.impl.DeniedTableConfig();
+    // Configure denied tables with wildcard patterns
+    deniedTableConfig.setDeniedTables(java.util.Arrays.asList("sys_*", "admin_*", "audit_log", "sensitive_data"));
+    checkers.add(new com.footstone.sqlguard.validator.rule.impl.DeniedTableChecker(deniedTableConfig));
+
+    // Checker 15: ReadOnlyTableChecker - Protects read-only tables from write operations
+    com.footstone.sqlguard.validator.rule.impl.ReadOnlyTableConfig readOnlyTableConfig = 
+        new com.footstone.sqlguard.validator.rule.impl.ReadOnlyTableConfig();
+    // Configure read-only tables with wildcard patterns
+    readOnlyTableConfig.setReadonlyTables(java.util.Arrays.asList("audit_log", "history_*", "compliance_records"));
+    checkers.add(new com.footstone.sqlguard.validator.rule.impl.ReadOnlyTableChecker(readOnlyTableConfig));
 
     return checkers;
   }
