@@ -1,5 +1,6 @@
 package com.footstone.sqlguard.interceptor.inner.impl;
 
+import com.footstone.sqlguard.config.SqlGuardConfig;
 import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
@@ -85,6 +86,11 @@ public class SqlGuardRewriteInnerInterceptor implements SqlGuardInnerInterceptor
     private final List<StatementRewriter> rewriters;
 
     /**
+     * Configuration containing global enabled flag.
+     */
+    private final SqlGuardConfig config;
+
+    /**
      * Cached reflection Field for BoundSql.sql (performance optimization).
      */
     private static volatile Field boundSqlSqlField;
@@ -95,14 +101,27 @@ public class SqlGuardRewriteInnerInterceptor implements SqlGuardInnerInterceptor
     private static final Object FIELD_INIT_LOCK = new Object();
 
     /**
-     * Constructs SqlGuardRewriteInnerInterceptor with StatementRewriter list.
+     * Constructs SqlGuardRewriteInnerInterceptor with StatementRewriter list and configuration.
      *
      * @param rewriters List of StatementRewriter instances
+     * @param config    SqlGuardConfig containing global enabled flag
      */
-    public SqlGuardRewriteInnerInterceptor(List<StatementRewriter> rewriters) {
+    public SqlGuardRewriteInnerInterceptor(List<StatementRewriter> rewriters, SqlGuardConfig config) {
         this.rewriters = rewriters;
+        this.config = config;
         // Initialize reflection field lazily on first use
         initBoundSqlSqlField();
+    }
+
+    /**
+     * Constructs SqlGuardRewriteInnerInterceptor with StatementRewriter list (backward compatible).
+     *
+     * @param rewriters List of StatementRewriter instances
+     * @deprecated Use {@link #SqlGuardRewriteInnerInterceptor(List, SqlGuardConfig)} instead
+     */
+    @Deprecated
+    public SqlGuardRewriteInnerInterceptor(List<StatementRewriter> rewriters) {
+        this(rewriters, new SqlGuardConfig());
     }
 
     /**
@@ -209,6 +228,12 @@ public class SqlGuardRewriteInnerInterceptor implements SqlGuardInnerInterceptor
      * @param boundSql BoundSql to modify
      */
     private void executeRewrites(MappedStatement ms, BoundSql boundSql) throws SQLException {
+        // Global switch - skip all rewrites if SqlGuard is disabled
+        if (config != null && !config.isEnabled()) {
+            log.trace("SqlGuard is globally disabled, skipping all rewrites");
+            return;
+        }
+
         String originalSql = boundSql.getSql();
 
         // 1. Get Statement from ThreadLocal cache

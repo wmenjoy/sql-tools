@@ -407,7 +407,7 @@ class AcceptanceChecklistIntegrationTest {
                 // Each checker should have a constructor that takes its config
                 RuleChecker checker = createCheckerInstance(checkerClass);
                 assertNotNull(checker, "Checker should be instantiable: " + checkerClass.getSimpleName());
-                assertTrue(checker.isEnabled(), "Checker should be enabled by default: " + checkerClass.getSimpleName());
+                assertFalse(checker.isEnabled(), "Checker should be disabled by default (opt-in): " + checkerClass.getSimpleName());
                 instantiatedCount++;
                 System.out.println("✓ " + checkerClass.getSimpleName() + " - instantiated");
             } catch (Exception e) {
@@ -504,7 +504,7 @@ class AcceptanceChecklistIntegrationTest {
     @Test
     @DisplayName("Edge Case: SQL with 100+ table JOINs should be handled")
     void testManyTableJoins() {
-        DeniedTableConfig config = new DeniedTableConfig();
+        DeniedTableConfig config = new DeniedTableConfig(true); // Explicitly enable for tests
         config.setDeniedTables(Arrays.asList("denied_table"));
         DeniedTableChecker checker = new DeniedTableChecker(config);
 

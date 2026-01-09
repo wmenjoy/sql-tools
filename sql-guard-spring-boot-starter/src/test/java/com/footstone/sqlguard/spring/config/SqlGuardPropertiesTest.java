@@ -62,26 +62,27 @@ public class SqlGuardPropertiesTest {
         // Test default values match expected defaults
         SqlGuardProperties defaultProps = new SqlGuardProperties();
         
-        assertTrue(defaultProps.isEnabled());
+        // Default enabled is false (opt-in design for safety)
+        assertFalse(defaultProps.isEnabled());
         assertEquals("LOG", defaultProps.getActiveStrategy());
         
-        // Deduplication defaults
-        assertTrue(defaultProps.getDeduplication().isEnabled());
+        // Deduplication defaults (disabled by default in Spring Boot Starter)
+        assertFalse(defaultProps.getDeduplication().isEnabled());
         assertEquals(1000, defaultProps.getDeduplication().getCacheSize());
         assertEquals(100, defaultProps.getDeduplication().getTtlMs());
         
-        // Rule defaults
-        assertTrue(defaultProps.getRules().getNoWhereClause().isEnabled());
+        // Rule defaults (all disabled by default in Spring Boot Starter for opt-in design)
+        assertFalse(defaultProps.getRules().getNoWhereClause().isEnabled());
         assertEquals(RiskLevel.CRITICAL, defaultProps.getRules().getNoWhereClause().getRiskLevel());
         
-        assertTrue(defaultProps.getRules().getDummyCondition().isEnabled());
+        assertFalse(defaultProps.getRules().getDummyCondition().isEnabled());
         assertEquals(RiskLevel.HIGH, defaultProps.getRules().getDummyCondition().getRiskLevel());
         
-        assertTrue(defaultProps.getRules().getDeepPagination().isEnabled());
+        assertFalse(defaultProps.getRules().getDeepPagination().isEnabled());
         assertEquals(RiskLevel.MEDIUM, defaultProps.getRules().getDeepPagination().getRiskLevel());
         assertEquals(10000, defaultProps.getRules().getDeepPagination().getMaxOffset());
         
-        assertTrue(defaultProps.getRules().getLargePageSize().isEnabled());
+        assertFalse(defaultProps.getRules().getLargePageSize().isEnabled());
         assertEquals(RiskLevel.MEDIUM, defaultProps.getRules().getLargePageSize().getRiskLevel());
         assertEquals(1000, defaultProps.getRules().getLargePageSize().getMaxPageSize());
     }

@@ -1,5 +1,7 @@
 package com.footstone.sqlguard.spring.autoconfigure;
 
+import com.footstone.sqlguard.config.SqlGuardConfig;
+import com.footstone.sqlguard.config.ViolationStrategy;
 import com.footstone.sqlguard.parser.JSqlParserFacade;
 import com.footstone.sqlguard.spring.config.SqlGuardProperties;
 import com.footstone.sqlguard.validator.DefaultSqlSafetyValidator;
@@ -156,6 +158,39 @@ public class SqlGuardAutoConfiguration {
   }
 
   // ==================== Core Beans ====================
+
+  /**
+   * Creates SqlGuardConfig bean for global configuration.
+   *
+   * <p>SqlGuardConfig provides the global enabled flag that controls whether all
+   * SQL Guard checks and rewrites are active. When disabled (sql-guard.enabled=false),
+   * all interceptors will skip processing entirely without entering individual checker logic.</p>
+   *
+   * <p>This is the master switch for SQL Guard functionality:</p>
+   * <ul>
+   *   <li><strong>enabled=true (default):</strong> All configured checkers and rewriters are active</li>
+   *   <li><strong>enabled=false:</strong> All SQL Guard processing is bypassed at the interceptor level</li>
+   * </ul>
+   *
+   * @return SqlGuardConfig instance with properties from application.yml
+   */
+  @Bean
+  @ConditionalOnMissingBean
+  public SqlGuardConfig sqlGuardConfig() {
+    SqlGuardConfig config = new SqlGuardConfig();
+    config.setEnabled(properties.isEnabled());
+    config.setActiveStrategy(properties.getActiveStrategy());
+    
+    // Map violation strategy from string to enum
+    try {
+      config.setViolationStrategy(ViolationStrategy.valueOf(properties.getActiveStrategy().toUpperCase()));
+    } catch (IllegalArgumentException e) {
+      // Default to LOG if invalid strategy
+      config.setViolationStrategy(ViolationStrategy.LOG);
+    }
+    
+    return config;
+  }
 
   /**
    * Creates JSqlParserFacade bean for SQL parsing.

@@ -89,6 +89,7 @@ public class SqlGuardCheckInnerInterceptorTest {
             ruleCheckers = Collections.singletonList(mockChecker);
             interceptor = new SqlGuardCheckInnerInterceptor(ruleCheckers, config, parserFacade);
 
+            when(config.isEnabled()).thenReturn(true); // Global switch enabled
             when(config.getViolationStrategy()).thenReturn(ViolationStrategy.LOG);
 
             // Access executeChecks via reflection to test core logic
@@ -120,6 +121,7 @@ public class SqlGuardCheckInnerInterceptorTest {
             ruleCheckers = Collections.singletonList(mockChecker);
             interceptor = new SqlGuardCheckInnerInterceptor(ruleCheckers, config, parserFacade);
 
+            when(config.isEnabled()).thenReturn(true); // Global switch enabled
             when(parserFacade.parse(sql)).thenReturn(stmt);
             when(config.getViolationStrategy()).thenReturn(ViolationStrategy.LOG);
 
@@ -150,6 +152,7 @@ public class SqlGuardCheckInnerInterceptorTest {
             ruleCheckers = Collections.singletonList(mockChecker);
             interceptor = new SqlGuardCheckInnerInterceptor(ruleCheckers, config, parserFacade);
 
+            when(config.isEnabled()).thenReturn(true); // Global switch enabled
             when(parserFacade.parse(sql)).thenReturn(stmt);
             when(config.getViolationStrategy()).thenReturn(ViolationStrategy.LOG);
 
@@ -193,6 +196,7 @@ public class SqlGuardCheckInnerInterceptorTest {
             ruleCheckers = Arrays.asList(checker1, checker2, checker3);
             interceptor = new SqlGuardCheckInnerInterceptor(ruleCheckers, config, parserFacade);
 
+            when(config.isEnabled()).thenReturn(true); // Global switch enabled
             when(parserFacade.parse(sql)).thenReturn(stmt);
             when(config.getViolationStrategy()).thenReturn(ViolationStrategy.LOG);
 
@@ -226,6 +230,7 @@ public class SqlGuardCheckInnerInterceptorTest {
             ruleCheckers = Arrays.asList(checker1, checker2);
             interceptor = new SqlGuardCheckInnerInterceptor(ruleCheckers, config, parserFacade);
 
+            when(config.isEnabled()).thenReturn(true); // Global switch enabled
             when(parserFacade.parse(sql)).thenReturn(stmt);
             when(config.getViolationStrategy()).thenReturn(ViolationStrategy.LOG);
 
@@ -263,6 +268,7 @@ public class SqlGuardCheckInnerInterceptorTest {
             ruleCheckers = Collections.singletonList(mockChecker);
             interceptor = new SqlGuardCheckInnerInterceptor(ruleCheckers, config, parserFacade);
 
+            when(config.isEnabled()).thenReturn(true); // Global switch enabled
             when(parserFacade.parse(sql)).thenReturn(stmt);
             when(config.getViolationStrategy()).thenReturn(ViolationStrategy.LOG);
 
@@ -305,6 +311,7 @@ public class SqlGuardCheckInnerInterceptorTest {
             ruleCheckers = Collections.singletonList(mockChecker);
             interceptor = new SqlGuardCheckInnerInterceptor(ruleCheckers, config, parserFacade);
 
+            when(config.isEnabled()).thenReturn(true); // Global switch enabled
             when(parserFacade.parse(sql)).thenReturn(stmt);
             when(config.getViolationStrategy()).thenReturn(ViolationStrategy.BLOCK);
 
@@ -346,6 +353,7 @@ public class SqlGuardCheckInnerInterceptorTest {
             ruleCheckers = Collections.singletonList(mockChecker);
             interceptor = new SqlGuardCheckInnerInterceptor(ruleCheckers, config, parserFacade);
 
+            when(config.isEnabled()).thenReturn(true); // Global switch enabled
             when(parserFacade.parse(sql)).thenReturn(stmt);
             when(config.getViolationStrategy()).thenReturn(ViolationStrategy.WARN);
 
@@ -383,6 +391,7 @@ public class SqlGuardCheckInnerInterceptorTest {
             ruleCheckers = Collections.singletonList(mockChecker);
             interceptor = new SqlGuardCheckInnerInterceptor(ruleCheckers, config, parserFacade);
 
+            when(config.isEnabled()).thenReturn(true); // Global switch enabled
             when(parserFacade.parse(sql)).thenReturn(stmt);
             when(config.getViolationStrategy()).thenReturn(ViolationStrategy.LOG);
 
@@ -428,6 +437,7 @@ public class SqlGuardCheckInnerInterceptorTest {
             ruleCheckers = Arrays.asList(checker1, checker2);
             interceptor = new SqlGuardCheckInnerInterceptor(ruleCheckers, config, parserFacade);
 
+            when(config.isEnabled()).thenReturn(true); // Global switch enabled
             when(parserFacade.parse(sql)).thenReturn(stmt);
             when(config.getViolationStrategy()).thenReturn(ViolationStrategy.BLOCK);
 
@@ -461,6 +471,7 @@ public class SqlGuardCheckInnerInterceptorTest {
             ruleCheckers = Collections.singletonList(mockChecker);
             interceptor = new SqlGuardCheckInnerInterceptor(ruleCheckers, config, parserFacade);
 
+            when(config.isEnabled()).thenReturn(true); // Global switch enabled
             when(parserFacade.parse(sql)).thenReturn(stmt);
             when(config.getViolationStrategy()).thenReturn(ViolationStrategy.BLOCK);
 

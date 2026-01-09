@@ -49,7 +49,7 @@ public class MissingOrderByCheckerMigrationTest {
     @BeforeEach
     public void setUp() {
         detector = Mockito.mock(PaginationPluginDetector.class);
-        config = new MissingOrderByConfig();
+        config = new MissingOrderByConfig(true); // Explicitly enable for tests
         config.setEnabled(true);
         checker = new MissingOrderByChecker(detector, config);
     }

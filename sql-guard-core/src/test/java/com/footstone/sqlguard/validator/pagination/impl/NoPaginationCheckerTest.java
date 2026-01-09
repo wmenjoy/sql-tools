@@ -51,7 +51,7 @@ class NoPaginationCheckerTest {
     detectorWithPageHelper = new PaginationPluginDetector(interceptors, null);
     
     blacklistConfig = new BlacklistFieldsConfig();
-    config = new NoPaginationConfig();
+    config = new NoPaginationConfig(); config.setEnabled(true); // Explicitly enable for tests
     checker = new NoPaginationChecker(detectorWithoutPlugin, blacklistConfig, config);
   }
 

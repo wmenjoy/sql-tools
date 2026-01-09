@@ -45,7 +45,7 @@ class DeepPaginationCheckerTest {
     parser = new JSqlParserFacade();
     // Create detector without pagination plugin (to detect PHYSICAL pagination via LIMIT only)
     detector = new PaginationPluginDetector(null, null);
-    config = new PaginationAbuseConfig(); // Default: maxOffset=10000
+    config = new PaginationAbuseConfig(); config.setEnabled(true); // Enabled for tests - Default: maxOffset=10000
     checker = new DeepPaginationChecker(config, detector);
   }
 

@@ -48,7 +48,7 @@ class MultiStatementCheckerTest {
   @BeforeEach
   void setUp() {
     parser = new JSqlParserFacade();
-    config = new MultiStatementConfig();
+    config = new MultiStatementConfig(true); // Explicitly enable for tests
     checker = new MultiStatementChecker(config);
   }
 
@@ -438,7 +438,7 @@ class MultiStatementCheckerTest {
     @DisplayName("Checker should be enabled by default")
     void testDefaultEnabled() {
       MultiStatementConfig defaultConfig = new MultiStatementConfig();
-      assertTrue(defaultConfig.isEnabled(), "Should be enabled by default");
+      assertFalse(defaultConfig.isEnabled(), "Should be disabled by default (opt-in design)");
     }
   }
 

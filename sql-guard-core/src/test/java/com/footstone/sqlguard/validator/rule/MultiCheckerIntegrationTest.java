@@ -48,34 +48,59 @@ class MultiCheckerIntegrationTest {
     }
 
     /**
-     * Creates all 11 security checkers with default configurations.
+     * Creates all 11 security checkers with enabled configurations for testing.
      */
     private List<RuleChecker> createAllCheckers() {
         List<RuleChecker> checkers = new ArrayList<>();
 
-        // SQL Injection Checkers (Tasks 1.1-1.4)
-        checkers.add(new MultiStatementChecker(new MultiStatementConfig()));
-        checkers.add(new SetOperationChecker(new SetOperationConfig()));
-        checkers.add(new SqlCommentChecker(new SqlCommentConfig()));
-        checkers.add(new IntoOutfileChecker(new IntoOutfileConfig()));
+        // SQL Injection Checkers (Tasks 1.1-1.4) - explicitly enabled for tests
+        MultiStatementConfig msConfig = new MultiStatementConfig();
+        msConfig.setEnabled(true);
+        checkers.add(new MultiStatementChecker(msConfig));
+
+        SetOperationConfig soConfig = new SetOperationConfig();
+        soConfig.setEnabled(true);
+        checkers.add(new SetOperationChecker(soConfig));
+
+        SqlCommentConfig scConfig = new SqlCommentConfig();
+        scConfig.setEnabled(true);
+        checkers.add(new SqlCommentChecker(scConfig));
+
+        IntoOutfileConfig ioConfig = new IntoOutfileConfig();
+        ioConfig.setEnabled(true);
+        checkers.add(new IntoOutfileChecker(ioConfig));
 
         // Dangerous Operations Checkers (Tasks 1.5-1.7)
-        checkers.add(new DdlOperationChecker(new DdlOperationConfig()));
+        DdlOperationConfig ddlConfig = new DdlOperationConfig();
+        ddlConfig.setEnabled(true);
+        checkers.add(new DdlOperationChecker(ddlConfig));
+
         DangerousFunctionConfig dfConfig = new DangerousFunctionConfig();
+        dfConfig.setEnabled(true);
         checkers.add(new DangerousFunctionChecker(dfConfig));
-        checkers.add(new CallStatementChecker(new CallStatementConfig()));
+
+        CallStatementConfig csConfig = new CallStatementConfig();
+        csConfig.setEnabled(true);
+        checkers.add(new CallStatementChecker(csConfig));
 
         // Access Control Checkers (Tasks 1.8-1.11)
-        checkers.add(new MetadataStatementChecker(new MetadataStatementConfig()));
-        checkers.add(new SetStatementChecker(new SetStatementConfig()));
+        MetadataStatementConfig metaConfig = new MetadataStatementConfig();
+        metaConfig.setEnabled(true);
+        checkers.add(new MetadataStatementChecker(metaConfig));
+
+        SetStatementConfig ssConfig = new SetStatementConfig();
+        ssConfig.setEnabled(true);
+        checkers.add(new SetStatementChecker(ssConfig));
 
         // DeniedTableChecker with configured denied tables
         DeniedTableConfig dtConfig = new DeniedTableConfig();
+        dtConfig.setEnabled(true);
         dtConfig.setDeniedTables(Arrays.asList("sys_*", "admin_*", "audit_log"));
         checkers.add(new DeniedTableChecker(dtConfig));
 
         // ReadOnlyTableChecker with configured readonly tables
         ReadOnlyTableConfig rtConfig = new ReadOnlyTableConfig();
+        rtConfig.setEnabled(true);
         rtConfig.setReadonlyTables(Arrays.asList("history_*", "audit_*", "archive_log"));
         checkers.add(new ReadOnlyTableChecker(rtConfig));
 
@@ -169,10 +194,12 @@ class MultiCheckerIntegrationTest {
         void testMultipleViolations_DeniedTable_ReadOnlyTable() {
             // UPDATE on a table that is both denied and readonly
             DeniedTableConfig dtConfig = new DeniedTableConfig();
+            dtConfig.setEnabled(true); // Explicitly enable
             dtConfig.setDeniedTables(Arrays.asList("audit_log"));
             DeniedTableChecker deniedChecker = new DeniedTableChecker(dtConfig);
 
             ReadOnlyTableConfig rtConfig = new ReadOnlyTableConfig();
+            rtConfig.setEnabled(true); // Explicitly enable
             rtConfig.setReadonlyTables(Arrays.asList("audit_log"));
             ReadOnlyTableChecker readOnlyChecker = new ReadOnlyTableChecker(rtConfig);
 
@@ -241,9 +268,11 @@ class MultiCheckerIntegrationTest {
             // SetStatementChecker defaults to MEDIUM risk
             // MultiStatementChecker defaults to BLOCK (CRITICAL risk)
             SetStatementConfig setConfig = new SetStatementConfig();
+            setConfig.setEnabled(true); // Explicitly enable
             SetStatementChecker setChecker = new SetStatementChecker(setConfig);
 
             MultiStatementConfig msConfig = new MultiStatementConfig();
+            msConfig.setEnabled(true); // Explicitly enable
             MultiStatementChecker msChecker = new MultiStatementChecker(msConfig);
 
             // Test SetStatementChecker alone
@@ -270,10 +299,12 @@ class MultiCheckerIntegrationTest {
         void testIndependentValidation() {
             // Create two checkers with different configurations
             DeniedTableConfig config1 = new DeniedTableConfig();
+            config1.setEnabled(true); // Explicitly enable
             config1.setDeniedTables(Arrays.asList("table_a"));
             DeniedTableChecker checker1 = new DeniedTableChecker(config1);
 
             DeniedTableConfig config2 = new DeniedTableConfig();
+            config2.setEnabled(true); // Explicitly enable
             config2.setDeniedTables(Arrays.asList("table_b"));
             DeniedTableChecker checker2 = new DeniedTableChecker(config2);
 
@@ -371,8 +402,13 @@ class MultiCheckerIntegrationTest {
             // Create checkers with different risk levels
             // CallStatementChecker: HIGH
             // MultiStatementChecker: CRITICAL
-            CallStatementChecker callChecker = new CallStatementChecker(new CallStatementConfig());
-            MultiStatementChecker msChecker = new MultiStatementChecker(new MultiStatementConfig());
+            CallStatementConfig callConfig = new CallStatementConfig();
+            callConfig.setEnabled(true); // Explicitly enable
+            CallStatementChecker callChecker = new CallStatementChecker(callConfig);
+            
+            MultiStatementConfig msConfig = new MultiStatementConfig();
+            msConfig.setEnabled(true); // Explicitly enable
+            MultiStatementChecker msChecker = new MultiStatementChecker(msConfig);
 
             // SQL that triggers both
             String sql = "CALL sp_test(); SELECT 1";
@@ -390,8 +426,13 @@ class MultiCheckerIntegrationTest {
         @Test
         @DisplayName("Violations should preserve order of detection")
         void testViolationOrder() {
-            MultiStatementChecker msChecker = new MultiStatementChecker(new MultiStatementConfig());
-            SqlCommentChecker scChecker = new SqlCommentChecker(new SqlCommentConfig());
+            MultiStatementConfig msConfig = new MultiStatementConfig();
+            msConfig.setEnabled(true); // Explicitly enable
+            MultiStatementChecker msChecker = new MultiStatementChecker(msConfig);
+            
+            SqlCommentConfig scConfig = new SqlCommentConfig();
+            scConfig.setEnabled(true); // Explicitly enable
+            SqlCommentChecker scChecker = new SqlCommentChecker(scConfig);
 
             String sql = "SELECT * FROM users -- comment; DROP TABLE users";
             SqlContext context = createContext(sql, SqlCommandType.SELECT);

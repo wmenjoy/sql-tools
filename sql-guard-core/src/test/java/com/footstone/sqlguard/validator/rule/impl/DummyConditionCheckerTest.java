@@ -28,7 +28,7 @@ class DummyConditionCheckerTest {
 
   @BeforeEach
   void setUp() {
-    config = new DummyConditionConfig();
+    config = new DummyConditionConfig(true); // Explicitly enable for tests
     checker = new DummyConditionChecker(config);
   }
 
@@ -239,6 +239,7 @@ class DummyConditionCheckerTest {
   void testCustomPattern_shouldDetect() throws Exception {
     // Create config with custom pattern
     DummyConditionConfig customConfig = new DummyConditionConfig();
+    customConfig.setEnabled(true);
     customConfig.setCustomPatterns(Arrays.asList("0=0", "null is null"));
     DummyConditionChecker customChecker = new DummyConditionChecker(customConfig);
 

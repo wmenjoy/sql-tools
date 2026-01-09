@@ -60,7 +60,7 @@ public class NoPaginationCheckerMigrationTest {
     blacklist.add("status");
     blacklistConfig.setFields(blacklist);
 
-    config = new NoPaginationConfig();
+    config = new NoPaginationConfig(); config.setEnabled(true); // Explicitly enable for tests
     config.setEnabled(true);
 
     checker = new NoPaginationChecker(pluginDetector, blacklistConfig, config);

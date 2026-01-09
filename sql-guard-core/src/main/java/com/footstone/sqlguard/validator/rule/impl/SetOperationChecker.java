@@ -3,10 +3,14 @@ package com.footstone.sqlguard.validator.rule.impl;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlContext;
 import com.footstone.sqlguard.validator.rule.AbstractRuleChecker;
+import net.sf.jsqlparser.statement.select.ExceptOp;
+import net.sf.jsqlparser.statement.select.IntersectOp;
+import net.sf.jsqlparser.statement.select.MinusOp;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectBody;
 import net.sf.jsqlparser.statement.select.SetOperation;
 import net.sf.jsqlparser.statement.select.SetOperationList;
+import net.sf.jsqlparser.statement.select.UnionOp;
 
 import java.util.List;
 
@@ -149,10 +153,14 @@ public class SetOperationChecker extends AbstractRuleChecker {
   }
 
   /**
-   * Extracts the operation type name from a SetOperation.
+   * Extracts the operation type name from a SetOperation using instanceof checks.
    *
-   * <p>JSqlParser represents set operations with specific classes. This method
-   * extracts a normalized operation type name for configuration matching.</p>
+   * <p>JSqlParser 4.x represents set operations with specific classes:
+   * UnionOp, IntersectOp, ExceptOp, MinusOp. This method uses instanceof
+   * for type-safe, efficient operation type detection.</p>
+   *
+   * <p>For UNION operations, this method distinguishes between UNION and UNION ALL
+   * using the {@link UnionOp#isAll()} method.</p>
    *
    * @param operation the set operation
    * @return the operation type name (e.g., "UNION", "UNION_ALL", "MINUS", "EXCEPT", "INTERSECT")
@@ -162,30 +170,19 @@ public class SetOperationChecker extends AbstractRuleChecker {
       return null;
     }
 
-    // Get the string representation and normalize it
-    String opString = operation.toString().trim().toUpperCase();
-
-    // Handle variations in JSqlParser output
-    // JSqlParser may return "UNION", "UNION ALL", "MINUS", "EXCEPT", "INTERSECT", etc.
-    if (opString.contains("UNION ALL")) {
-      return "UNION_ALL";
-    } else if (opString.contains("UNION")) {
-      return "UNION";
-    } else if (opString.contains("MINUS ALL")) {
-      return "MINUS_ALL";
-    } else if (opString.contains("MINUS")) {
-      return "MINUS";
-    } else if (opString.contains("EXCEPT ALL")) {
-      return "EXCEPT_ALL";
-    } else if (opString.contains("EXCEPT")) {
-      return "EXCEPT";
-    } else if (opString.contains("INTERSECT ALL")) {
-      return "INTERSECT_ALL";
-    } else if (opString.contains("INTERSECT")) {
+    // Use instanceof for type-safe checking (more efficient than string comparison)
+    if (operation instanceof UnionOp) {
+      UnionOp unionOp = (UnionOp) operation;
+      return unionOp.isAll() ? "UNION_ALL" : "UNION";
+    } else if (operation instanceof IntersectOp) {
       return "INTERSECT";
+    } else if (operation instanceof ExceptOp) {
+      return "EXCEPT";
+    } else if (operation instanceof MinusOp) {
+      return "MINUS";
     }
 
-    // Fallback: return the raw string (normalized)
-    return opString.replace(" ", "_");
+    // Fallback for unknown operation types (should not happen in practice)
+    return operation.getClass().getSimpleName().replace("Op", "").toUpperCase();
   }
 }

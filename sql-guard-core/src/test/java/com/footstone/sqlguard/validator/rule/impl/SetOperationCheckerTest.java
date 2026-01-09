@@ -50,7 +50,7 @@ class SetOperationCheckerTest {
 
   @BeforeEach
   void setUp() {
-    config = new SetOperationConfig();
+    config = new SetOperationConfig(true); // Explicitly enable checker for tests
     checker = new SetOperationChecker(config);
   }
 
@@ -451,10 +451,10 @@ class SetOperationCheckerTest {
   class ConfigurationTests {
 
     @Test
-    @DisplayName("Default config should have empty allowedOperations")
+    @DisplayName("Default config should be disabled (opt-in design)")
     void testDefaultConfig() {
       SetOperationConfig defaultConfig = new SetOperationConfig();
-      assertTrue(defaultConfig.isEnabled(), "Should be enabled by default");
+      assertFalse(defaultConfig.isEnabled(), "Should be disabled by default (opt-in design)");
       assertEquals(RiskLevel.CRITICAL, defaultConfig.getRiskLevel(), "Should have CRITICAL risk level");
       assertTrue(defaultConfig.getAllowedOperations().isEmpty(), "Should have empty allowedOperations");
     }

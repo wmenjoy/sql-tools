@@ -41,7 +41,7 @@ class DdlOperationCheckerTest {
     @BeforeEach
     void setUp() {
         parser = new JSqlParserFacade();
-        config = new DdlOperationConfig();
+        config = new DdlOperationConfig(true); // Explicitly enable for tests
         checker = new DdlOperationChecker(config);
     }
 
@@ -366,8 +366,9 @@ class DdlOperationCheckerTest {
         @Test
         @DisplayName("Empty allowedOperations should block all DDL")
         void testEmptyAllowedOperations_shouldBlockAllDdl() throws Exception {
-            // Default config has empty allowedOperations
+            // Default config has empty allowedOperations, explicitly enable
             DdlOperationConfig emptyConfig = new DdlOperationConfig();
+            emptyConfig.setEnabled(true); // Explicitly enable
             assertTrue(emptyConfig.getAllowedOperations().isEmpty());
             DdlOperationChecker emptyChecker = new DdlOperationChecker(emptyConfig);
 
@@ -495,7 +496,7 @@ class DdlOperationCheckerTest {
         @DisplayName("Default config should be enabled")
         void testDefaultConfig_shouldBeEnabled() {
             DdlOperationConfig defaultConfig = new DdlOperationConfig();
-            assertTrue(defaultConfig.isEnabled());
+            assertFalse(defaultConfig.isEnabled(), "Should be disabled by default (opt-in design)");
         }
 
         @Test

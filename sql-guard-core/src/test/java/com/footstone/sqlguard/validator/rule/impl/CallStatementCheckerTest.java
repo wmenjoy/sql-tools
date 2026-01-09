@@ -45,7 +45,7 @@ class CallStatementCheckerTest {
 
   @BeforeEach
   void setUp() {
-    config = new CallStatementConfig();
+    config = new CallStatementConfig(true); // Explicitly enable for tests
     checker = new CallStatementChecker(config);
   }
 
@@ -513,7 +513,7 @@ class CallStatementCheckerTest {
     @DisplayName("Default config should be enabled with HIGH risk level and WARN strategy")
     void testDefaultConfig() {
       CallStatementConfig defaultConfig = new CallStatementConfig();
-      assertTrue(defaultConfig.isEnabled(), "Should be enabled by default");
+      assertFalse(defaultConfig.isEnabled(), "Should be disabled by default (opt-in design)");
       assertEquals(RiskLevel.HIGH, defaultConfig.getRiskLevel(), "Should have HIGH risk level");
       assertEquals(ViolationStrategy.WARN, defaultConfig.getViolationStrategy(), "Should have WARN strategy");
     }

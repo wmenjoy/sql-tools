@@ -66,7 +66,7 @@ public class LogicalPaginationCheckerTest {
         .build();
     
     PaginationPluginDetector detector = new PaginationPluginDetector(null, null);
-    LogicalPaginationConfig config = new LogicalPaginationConfig();
+    LogicalPaginationConfig config = new LogicalPaginationConfig(true); // Explicitly enable
     LogicalPaginationChecker checker = new LogicalPaginationChecker(detector, config);
     ValidationResult result = ValidationResult.pass();
     
@@ -114,6 +114,7 @@ public class LogicalPaginationCheckerTest {
     
     PaginationPluginDetector detector = new PaginationPluginDetector(interceptors, null);
     LogicalPaginationConfig config = new LogicalPaginationConfig();
+    config.setEnabled(true);
     LogicalPaginationChecker checker = new LogicalPaginationChecker(detector, config);
     ValidationResult result = ValidationResult.pass();
     
@@ -144,6 +145,7 @@ public class LogicalPaginationCheckerTest {
     
     PaginationPluginDetector detector = new PaginationPluginDetector(null, null);
     LogicalPaginationConfig config = new LogicalPaginationConfig();
+    config.setEnabled(true);
     LogicalPaginationChecker checker = new LogicalPaginationChecker(detector, config);
     ValidationResult result = ValidationResult.pass();
     
@@ -175,6 +177,7 @@ public class LogicalPaginationCheckerTest {
     
     PaginationPluginDetector detector = new PaginationPluginDetector(null, null);
     LogicalPaginationConfig config = new LogicalPaginationConfig();
+    config.setEnabled(true);
     LogicalPaginationChecker checker = new LogicalPaginationChecker(detector, config);
     ValidationResult result = ValidationResult.pass();
     
@@ -206,7 +209,7 @@ public class LogicalPaginationCheckerTest {
         .build();
     
     PaginationPluginDetector detector = new PaginationPluginDetector(null, null);
-    LogicalPaginationConfig config = new LogicalPaginationConfig();
+    LogicalPaginationConfig config = new LogicalPaginationConfig(true); // Explicitly enable
     LogicalPaginationChecker checker = new LogicalPaginationChecker(detector, config);
     ValidationResult result = ValidationResult.pass();
     
@@ -242,7 +245,7 @@ public class LogicalPaginationCheckerTest {
         .build();
     
     PaginationPluginDetector detector = new PaginationPluginDetector(null, null);
-    LogicalPaginationConfig config = new LogicalPaginationConfig();
+    LogicalPaginationConfig config = new LogicalPaginationConfig(true); // Explicitly enable
     LogicalPaginationChecker checker = new LogicalPaginationChecker(detector, config);
     ValidationResult result = ValidationResult.pass();
     
@@ -278,7 +281,7 @@ public class LogicalPaginationCheckerTest {
         .build();
     
     PaginationPluginDetector detector = new PaginationPluginDetector(null, null);
-    LogicalPaginationConfig config = new LogicalPaginationConfig();
+    LogicalPaginationConfig config = new LogicalPaginationConfig(true); // Explicitly enable
     LogicalPaginationChecker checker = new LogicalPaginationChecker(detector, config);
     ValidationResult result = ValidationResult.pass();
     
@@ -316,7 +319,7 @@ public class LogicalPaginationCheckerTest {
         .build();
     
     PaginationPluginDetector detector = new PaginationPluginDetector(null, null);
-    LogicalPaginationConfig config = new LogicalPaginationConfig();
+    LogicalPaginationConfig config = new LogicalPaginationConfig(true); // Explicitly enable
     LogicalPaginationChecker checker = new LogicalPaginationChecker(detector, config);
     ValidationResult result = ValidationResult.pass();
     
@@ -356,6 +359,7 @@ public class LogicalPaginationCheckerTest {
     
     PaginationPluginDetector detector = new PaginationPluginDetector(interceptors, null);
     LogicalPaginationConfig config = new LogicalPaginationConfig();
+    config.setEnabled(true);
     LogicalPaginationChecker checker = new LogicalPaginationChecker(detector, config);
     ValidationResult result = ValidationResult.pass();
     
@@ -410,7 +414,7 @@ public class LogicalPaginationCheckerTest {
     Statement stmt = CCJSqlParserUtil.parse(sql);
     
     PaginationPluginDetector detector = new PaginationPluginDetector(null, null);
-    LogicalPaginationConfig config = new LogicalPaginationConfig();
+    LogicalPaginationConfig config = new LogicalPaginationConfig(true); // Explicitly enable
     LogicalPaginationChecker checker = new LogicalPaginationChecker(detector, config);
     
     // Test various offset/limit combinations
@@ -474,6 +478,7 @@ public class LogicalPaginationCheckerTest {
     
     PaginationPluginDetector detector = new PaginationPluginDetector(interceptors, null);
     LogicalPaginationConfig config = new LogicalPaginationConfig();
+    config.setEnabled(true);
     LogicalPaginationChecker checker = new LogicalPaginationChecker(detector, config);
     ValidationResult result = ValidationResult.pass();
     
@@ -514,6 +519,7 @@ public class LogicalPaginationCheckerTest {
     
     PaginationPluginDetector detector = new PaginationPluginDetector(interceptors, null);
     LogicalPaginationConfig config = new LogicalPaginationConfig();
+    config.setEnabled(true);
     LogicalPaginationChecker checker = new LogicalPaginationChecker(detector, config);
     ValidationResult result = ValidationResult.pass();
     
@@ -547,6 +553,7 @@ public class LogicalPaginationCheckerTest {
     
     PaginationPluginDetector detector = new PaginationPluginDetector(null, null);
     LogicalPaginationConfig config = new LogicalPaginationConfig();
+    config.setEnabled(true);
     LogicalPaginationChecker checker = new LogicalPaginationChecker(detector, config);
     ValidationResult result = ValidationResult.pass();
     
@@ -578,7 +585,7 @@ public class LogicalPaginationCheckerTest {
         .build();
     
     PaginationPluginDetector detector = new PaginationPluginDetector(null, null);
-    LogicalPaginationConfig config = new LogicalPaginationConfig();
+    LogicalPaginationConfig config = new LogicalPaginationConfig(true); // Explicitly enable
     LogicalPaginationChecker checker = new LogicalPaginationChecker(detector, config);
     
     // Act & Assert: Run validation 3 times
@@ -613,7 +620,7 @@ public class LogicalPaginationCheckerTest {
         .build();
     
     PaginationPluginDetector detector = new PaginationPluginDetector(null, null);
-    LogicalPaginationConfig config = new LogicalPaginationConfig();
+    LogicalPaginationConfig config = new LogicalPaginationConfig(true); // Explicitly enable
     LogicalPaginationChecker checker = new LogicalPaginationChecker(detector, config);
     ValidationResult result = ValidationResult.pass();
     

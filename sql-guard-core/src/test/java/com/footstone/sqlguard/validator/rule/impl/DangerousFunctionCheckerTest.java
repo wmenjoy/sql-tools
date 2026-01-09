@@ -48,7 +48,7 @@ class DangerousFunctionCheckerTest {
 
   @BeforeEach
   void setUp() {
-    config = new DangerousFunctionConfig();
+    config = new DangerousFunctionConfig(true); // Explicitly enable for tests
     checker = new DangerousFunctionChecker(config);
   }
 
@@ -451,7 +451,7 @@ class DangerousFunctionCheckerTest {
     @DisplayName("Default config should be enabled with CRITICAL risk level")
     void testDefaultConfig() {
       DangerousFunctionConfig defaultConfig = new DangerousFunctionConfig();
-      assertTrue(defaultConfig.isEnabled(), "Should be enabled by default");
+      assertFalse(defaultConfig.isEnabled(), "Should be disabled by default (opt-in design)");
       assertEquals(RiskLevel.CRITICAL, defaultConfig.getRiskLevel(), "Should have CRITICAL risk level");
       assertFalse(defaultConfig.getDeniedFunctions().isEmpty(), "Should have default denied functions");
     }

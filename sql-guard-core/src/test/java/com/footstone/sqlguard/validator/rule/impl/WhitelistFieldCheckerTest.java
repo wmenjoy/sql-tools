@@ -40,7 +40,7 @@ class WhitelistFieldCheckerTest {
     byTable.put("order", Collections.emptyList()); // Empty list means no enforcement
     byTable.put("tenant_data", Arrays.asList("tenant_id"));
     
-    config = new WhitelistFieldsConfig();
+    config = new WhitelistFieldsConfig(true); // Explicitly enable for tests
     config.setByTable(byTable);
     config.setEnforceForUnknownTables(false);
     
@@ -217,12 +217,13 @@ class WhitelistFieldCheckerTest {
     // Setup config with enforceForUnknownTables=true and global fields
     Map<String, List<String>> byTable = new HashMap<>();
     byTable.put("user", Arrays.asList("id", "user_id"));
-    
+
     WhitelistFieldsConfig strictConfig = new WhitelistFieldsConfig();
+    strictConfig.setEnabled(true);
     strictConfig.setByTable(byTable);
     strictConfig.setFields(Arrays.asList("id", "tenant_id"));
     strictConfig.setEnforceForUnknownTables(true);
-    
+
     WhitelistFieldChecker strictChecker = new WhitelistFieldChecker(strictConfig);
 
     // unknown_table not in byTable, but enforceForUnknownTables=true

@@ -46,7 +46,28 @@ import java.util.Map;
 public class SqlGuardProperties {
 
     /**
-     * Enable SQL Safety Guard.
+     * Global switch to enable/disable SQL Safety Guard.
+     *
+     * <p>When set to {@code false}, ALL SQL Guard functionality is bypassed at the interceptor level.
+     * This provides a single control point to completely disable SQL Guard without removing
+     * the dependency or modifying individual checker configurations.</p>
+     *
+     * <p><strong>Use Cases:</strong></p>
+     * <ul>
+     *   <li><strong>Emergency bypass:</strong> Quickly disable all checks if SQL Guard causes issues in production</li>
+     *   <li><strong>Performance testing:</strong> Compare application performance with/without SQL Guard</li>
+     *   <li><strong>Development mode:</strong> Disable checks during development for faster iteration</li>
+     *   <li><strong>Gradual rollout:</strong> Enable SQL Guard in specific environments only</li>
+     * </ul>
+     *
+     * <p><strong>Example:</strong></p>
+     * <pre>{@code
+     * # application.yml
+     * sql-guard:
+     *   enabled: false  # Completely disable SQL Guard
+     * }</pre>
+     *
+     * <p>Default: {@code false} (SQL Guard is disabled by default for safety)</p>
      */
     private boolean enabled = false;
 

@@ -191,6 +191,12 @@ public class SqlGuardCheckInnerInterceptor implements SqlGuardInnerInterceptor {
      * @throws SQLException If ViolationStrategy.BLOCK and violations detected
      */
     private boolean executeChecks(BoundSql boundSql, String statementId) throws SQLException {
+        // Global switch - skip all checks if SqlGuard is disabled
+        if (!config.isEnabled()) {
+            log.trace("SqlGuard is globally disabled, skipping all checks");
+            return true;
+        }
+
         String sql = boundSql.getSql();
 
         // 1. Attempt cache retrieval

@@ -126,8 +126,8 @@ class RuleCheckerTest {
   @Test
   @DisplayName("Enabled checker returns true from isEnabled()")
   void testEnabledChecker() {
-    // Create an enabled checker using CheckerConfig with default (true)
-    CheckerConfig enabledConfig = new CheckerConfig();
+    // Create an enabled checker using CheckerConfig with explicit enabled=true
+    CheckerConfig enabledConfig = new CheckerConfig(true);
 
     RuleChecker enabledChecker = new RuleChecker() {
       @Override
@@ -142,7 +142,7 @@ class RuleCheckerTest {
     };
 
     // Verify isEnabled returns true
-    assertTrue(enabledChecker.isEnabled(), "Enabled checker should return true by default");
+    assertTrue(enabledChecker.isEnabled(), "Enabled checker should return true when explicitly enabled");
   }
 
   @Test

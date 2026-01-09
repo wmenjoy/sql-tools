@@ -47,7 +47,7 @@ class NoConditionPaginationCheckerTest {
     parser = new JSqlParserFacade();
     // Create detector without pagination plugin (to detect PHYSICAL pagination via LIMIT only)
     detector = new PaginationPluginDetector(null, null);
-    config = new NoConditionPaginationConfig();
+    config = new NoConditionPaginationConfig(true); // Explicitly enable for tests
     checker = new NoConditionPaginationChecker(config, detector);
   }
 

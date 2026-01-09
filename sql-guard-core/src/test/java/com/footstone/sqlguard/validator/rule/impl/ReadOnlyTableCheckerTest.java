@@ -44,7 +44,7 @@ class ReadOnlyTableCheckerTest {
     @BeforeEach
     void setUp() {
         parser = new JSqlParserFacade();
-        config = new ReadOnlyTableConfig();
+        config = new ReadOnlyTableConfig(true); // Explicitly enable for tests
         // Default readonly tables for testing: audit_log, history_*
         config.setReadonlyTables(Arrays.asList("audit_log", "history_*"));
         checker = new ReadOnlyTableChecker(config);

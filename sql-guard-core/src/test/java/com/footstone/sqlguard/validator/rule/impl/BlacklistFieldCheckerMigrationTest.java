@@ -38,7 +38,7 @@ public class BlacklistFieldCheckerMigrationTest {
 
     @BeforeEach
     public void setUp() {
-        config = new BlacklistFieldsConfig();
+        config = new BlacklistFieldsConfig(true); // Explicitly enable for tests
         config.setEnabled(true);
 
         // Setup default blacklist: deleted, status

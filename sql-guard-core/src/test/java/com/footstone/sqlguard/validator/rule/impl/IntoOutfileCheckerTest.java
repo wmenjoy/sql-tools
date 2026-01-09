@@ -47,7 +47,7 @@ class IntoOutfileCheckerTest {
 
   @BeforeEach
   void setUp() {
-    config = new IntoOutfileConfig();
+    config = new IntoOutfileConfig(true); // Explicitly enable for tests
     checker = new IntoOutfileChecker(config);
   }
 
@@ -449,7 +449,7 @@ class IntoOutfileCheckerTest {
     @DisplayName("Default config should be enabled with CRITICAL risk level")
     void testDefaultConfig() {
       IntoOutfileConfig defaultConfig = new IntoOutfileConfig();
-      assertTrue(defaultConfig.isEnabled(), "Should be enabled by default");
+      assertFalse(defaultConfig.isEnabled(), "Should be disabled by default (opt-in design)");
       assertEquals(RiskLevel.CRITICAL, defaultConfig.getRiskLevel(), "Should have CRITICAL risk level");
     }
 

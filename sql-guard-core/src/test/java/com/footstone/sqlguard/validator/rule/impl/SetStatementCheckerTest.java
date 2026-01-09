@@ -43,7 +43,7 @@ class SetStatementCheckerTest {
 
   @BeforeEach
   void setUp() {
-    config = new SetStatementConfig();
+    config = new SetStatementConfig(true); // Explicitly enable for tests
     checker = new SetStatementChecker(config);
   }
 
@@ -484,7 +484,7 @@ class SetStatementCheckerTest {
     @DisplayName("Default config should be enabled with MEDIUM risk level")
     void testDefaultConfig() {
       SetStatementConfig defaultConfig = new SetStatementConfig();
-      assertTrue(defaultConfig.isEnabled(), "Should be enabled by default");
+      assertFalse(defaultConfig.isEnabled(), "Should be disabled by default (opt-in design)");
       assertEquals(RiskLevel.MEDIUM, defaultConfig.getRiskLevel(), "Should have MEDIUM risk level");
     }
 

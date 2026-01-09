@@ -51,7 +51,7 @@ class DeniedTableCheckerTest {
 
     @BeforeEach
     void setUp() {
-        config = new DeniedTableConfig();
+        config = new DeniedTableConfig(true); // Explicitly enable for tests
         config.setDeniedTables(Arrays.asList("sys_*", "admin_*", "audit_log", "sensitive_data"));
         checker = new DeniedTableChecker(config);
     }

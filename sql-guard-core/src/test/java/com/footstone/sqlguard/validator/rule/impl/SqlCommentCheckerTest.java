@@ -46,7 +46,7 @@ class SqlCommentCheckerTest {
 
   @BeforeEach
   void setUp() {
-    config = new SqlCommentConfig();
+    config = new SqlCommentConfig(true); // Explicitly enable for tests
     checker = new SqlCommentChecker(config);
   }
 
@@ -547,7 +547,7 @@ class SqlCommentCheckerTest {
     void testDefaultConfig() {
       SqlCommentConfig defaultConfig = new SqlCommentConfig();
 
-      assertTrue(defaultConfig.isEnabled(), "Should be enabled by default");
+      assertFalse(defaultConfig.isEnabled(), "Should be disabled by default (opt-in design)");
       assertEquals(RiskLevel.CRITICAL, defaultConfig.getRiskLevel(), "Risk level should be CRITICAL");
       assertFalse(defaultConfig.isAllowHintComments(), "Hints should not be allowed by default");
     }

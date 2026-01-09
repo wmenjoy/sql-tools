@@ -43,18 +43,64 @@ sqlGuard:
 ### `enabled`
 
 **Type:** `boolean`  
-**Default:** `true`  
-**Description:** Master switch to enable/disable SQL Safety Guard entirely.
+**Default:** `false` (Spring Boot Starter) / `true` (Core module)  
+**Description:** Global switch to enable/disable ALL SQL Safety Guard functionality.
 
 ```yaml
 sql-guard:
   enabled: true  # Enable SQL Safety Guard
 ```
 
-**When to disable:**
-- Development environments where validation interferes with debugging
-- Temporary disable during incident response
-- Testing scenarios requiring unrestricted SQL
+**How it works:**
+
+When `enabled=false`, ALL SQL Guard processing is bypassed at the interceptor level:
+- All `RuleChecker` validations are skipped
+- All `StatementRewriter` rewrites are skipped
+- No SQL parsing or analysis is performed
+- Zero overhead on SQL execution
+
+This is different from disabling individual rules - the global switch completely bypasses all SQL Guard logic without entering any checker code.
+
+**Use Cases:**
+
+| Scenario | Setting | Rationale |
+|----------|---------|-----------|
+| **Production** | `enabled: true` | Full SQL safety validation |
+| **Emergency bypass** | `enabled: false` | Quickly disable if SQL Guard causes issues |
+| **Performance testing** | `enabled: false` | Compare app performance with/without SQL Guard |
+| **Development** | `enabled: false` | Faster iteration without validation overhead |
+| **Gradual rollout** | Profile-specific | Enable in specific environments only |
+
+**Example: Emergency Bypass**
+
+```yaml
+# application-emergency.yml
+sql-guard:
+  enabled: false  # Completely bypass SQL Guard
+```
+
+```bash
+# Activate emergency profile
+java -jar myapp.jar --spring.profiles.active=emergency
+```
+
+**Example: Environment-Specific Configuration**
+
+```yaml
+# application-dev.yml
+sql-guard:
+  enabled: false  # Disable in development
+
+# application-staging.yml  
+sql-guard:
+  enabled: true
+  active-strategy: WARN
+
+# application-prod.yml
+sql-guard:
+  enabled: true
+  active-strategy: BLOCK
+```
 
 ### `active-strategy`
 

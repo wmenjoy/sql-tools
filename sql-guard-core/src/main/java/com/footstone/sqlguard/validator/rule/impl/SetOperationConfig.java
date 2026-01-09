@@ -17,11 +17,11 @@ import java.util.Set;
  * validation rule that detects SQL set operations (UNION, MINUS, EXCEPT, INTERSECT) which
  * can be used for data exfiltration and SQL injection attacks.</p>
  *
- * <p><strong>Default Configuration (Secure by Default):</strong></p>
+ * <p><strong>Default Configuration (Opt-In Design):</strong></p>
  * <ul>
- *   <li>enabled: true (active by default for security)</li>
+ *   <li>enabled: false (disabled by default, explicit opt-in required)</li>
  *   <li>riskLevel: CRITICAL (highest severity for SQL injection)</li>
- *   <li>allowedOperations: [] (empty list = block ALL set operations)</li>
+ *   <li>allowedOperations: [] (empty list = block ALL set operations when enabled)</li>
  * </ul>
  *
  * <p><strong>Allowlist Behavior:</strong></p>
@@ -34,13 +34,10 @@ import java.util.Set;
  * <p><strong>Valid Operation Names:</strong></p>
  * <ul>
  *   <li>UNION - Standard SQL union (removes duplicates)</li>
- *   <li>UNION_ALL - Union keeping all rows (JSqlParser uses UNION_ALL internally)</li>
+ *   <li>UNION_ALL - Union keeping all rows (JSqlParser uses UnionOp with isAll()=true)</li>
  *   <li>MINUS - Oracle-specific set difference</li>
  *   <li>EXCEPT - PostgreSQL/SQL Server set difference</li>
  *   <li>INTERSECT - Set intersection</li>
- *   <li>INTERSECT_ALL - Intersection keeping duplicates</li>
- *   <li>EXCEPT_ALL - Except keeping duplicates</li>
- *   <li>MINUS_ALL - Minus keeping duplicates</li>
  * </ul>
  *
  * <p><strong>YAML Configuration Example:</strong></p>
@@ -48,7 +45,7 @@ import java.util.Set;
  * sql-guard:
  *   rules:
  *     set-operation:
- *       enabled: true
+ *       enabled: true  # Explicitly enable this rule
  *       risk-level: CRITICAL
  *       allowed-operations:
  *         - UNION       # Allow UNION for reporting queries
@@ -61,8 +58,8 @@ import java.util.Set;
  * <pre>{@code
  * SELECT name FROM users WHERE id = '1' UNION SELECT password FROM admin_users--
  * }</pre>
- * <p>By default, all set operations are blocked. Applications with legitimate use cases
- * can selectively enable specific operations via the allowedOperations list.</p>
+ * <p>By default, this rule is disabled (opt-in design). When enabled, all set operations
+ * are blocked unless explicitly allowed via the allowedOperations list.</p>
  *
  * @see CheckerConfig
  * @see SetOperationChecker

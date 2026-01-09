@@ -33,7 +33,7 @@ class MissingOrderByCheckerTest {
   void setUp() {
     parser = new JSqlParserFacade();
     detector = new PaginationPluginDetector(null, null);
-    config = new MissingOrderByConfig();
+    config = new MissingOrderByConfig(true); // Explicitly enable for tests
     checker = new MissingOrderByChecker(detector, config);
   }
 

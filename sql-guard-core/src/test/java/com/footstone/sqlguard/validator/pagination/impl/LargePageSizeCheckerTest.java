@@ -34,7 +34,7 @@ class LargePageSizeCheckerTest {
   void setUp() {
     parser = new JSqlParserFacade();
     detector = new PaginationPluginDetector(null, null);
-    config = new PaginationAbuseConfig(); // Default: maxPageSize=1000
+    config = new PaginationAbuseConfig(); config.setEnabled(true); // Enabled for tests - Default: maxPageSize=1000
     checker = new LargePageSizeChecker(detector, config);
   }
 

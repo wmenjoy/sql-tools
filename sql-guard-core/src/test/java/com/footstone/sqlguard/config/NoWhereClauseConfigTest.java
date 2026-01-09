@@ -15,7 +15,7 @@ public class NoWhereClauseConfigTest {
     public void testDefaultConfiguration() {
         NoWhereClauseConfig config = new NoWhereClauseConfig();
         
-        assertTrue(config.isEnabled(), "Should be enabled by default");
+        assertFalse(config.isEnabled(), "Should be disabled by default (opt-in design)");
         assertEquals(RiskLevel.CRITICAL, config.getRiskLevel(), "Default risk level should be CRITICAL");
     }
 

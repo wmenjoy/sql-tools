@@ -31,7 +31,7 @@ class BlacklistFieldCheckerTest {
 
   @BeforeEach
   void setUp() {
-    config = new BlacklistFieldsConfig();
+    config = new BlacklistFieldsConfig(true); // Explicitly enable for tests
     checker = new BlacklistFieldChecker(config);
   }
 

@@ -108,8 +108,8 @@ class SqlGuardAutoConfigurationTest {
           SqlGuardProperties properties = context.getBean(SqlGuardProperties.class);
           assertNotNull(properties);
           
-          // Default enabled should be true
-          assertTrue(properties.isEnabled());
+          // Default enabled should be false (opt-in design for safety)
+          assertFalse(properties.isEnabled());
         });
   }
 

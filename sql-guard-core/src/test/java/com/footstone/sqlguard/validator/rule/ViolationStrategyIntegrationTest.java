@@ -55,7 +55,7 @@ class ViolationStrategyIntegrationTest {
         @DisplayName("Checker with WARN-like strategy should collect violations")
         void testWarnStrategy_CollectsViolations() {
             // SetStatementChecker has MEDIUM risk (similar to WARN behavior)
-            SetStatementConfig config = new SetStatementConfig();
+            SetStatementConfig config = new SetStatementConfig(true); // Explicitly enable for tests
 
             SetStatementChecker checker = new SetStatementChecker(config);
 
@@ -75,7 +75,7 @@ class ViolationStrategyIntegrationTest {
         @DisplayName("Multiple WARN violations should all be collected")
         void testMultipleWarnViolations_AllCollected() {
             // SetStatementChecker has MEDIUM risk (similar to WARN behavior)
-            SetStatementChecker setChecker = new SetStatementChecker(new SetStatementConfig());
+            SetStatementConfig cfg = new SetStatementConfig(); cfg.setEnabled(true); SetStatementChecker setChecker = new SetStatementChecker(cfg);
 
             // Two different SET statements
             String sql1 = "SET autocommit = 0";
@@ -96,7 +96,7 @@ class ViolationStrategyIntegrationTest {
         @Test
         @DisplayName("WARN strategy should preserve violation messages")
         void testWarnStrategy_PreservesMessages() {
-            SetStatementChecker checker = new SetStatementChecker(new SetStatementConfig());
+            SetStatementConfig cfg = new SetStatementConfig(); cfg.setEnabled(true); SetStatementChecker checker = new SetStatementChecker(cfg);
 
             String sql = "SET sql_mode = ''";
             SqlContext context = createContext(sql, SqlCommandType.SELECT);
@@ -114,10 +114,10 @@ class ViolationStrategyIntegrationTest {
         @DisplayName("WARN violations should not prevent subsequent checks")
         void testWarnViolations_DoNotPreventSubsequentChecks() {
             // First checker with WARN-like behavior
-            SetStatementChecker setChecker = new SetStatementChecker(new SetStatementConfig());
+            SetStatementConfig setCfg = new SetStatementConfig(); setCfg.setEnabled(true); SetStatementChecker setChecker = new SetStatementChecker(setCfg);
 
             // Second checker with BLOCK behavior
-            MultiStatementChecker msChecker = new MultiStatementChecker(new MultiStatementConfig());
+            MultiStatementConfig msCfg = new MultiStatementConfig(); msCfg.setEnabled(true); MultiStatementChecker msChecker = new MultiStatementChecker(msCfg);
 
             // SQL that triggers SET statement (WARN-like)
             String sql1 = "SET autocommit = 0";
@@ -152,7 +152,7 @@ class ViolationStrategyIntegrationTest {
         @DisplayName("Checker with BLOCK strategy should mark result as failed")
         void testBlockStrategy_MarksResultFailed() {
             // MultiStatementChecker defaults to BLOCK strategy with CRITICAL risk
-            MultiStatementChecker checker = new MultiStatementChecker(new MultiStatementConfig());
+            MultiStatementConfig cfg = new MultiStatementConfig(); cfg.setEnabled(true); MultiStatementChecker checker = new MultiStatementChecker(cfg);
 
             String sql = "SELECT * FROM users; DROP TABLE users";
             SqlContext context = createContext(sql, SqlCommandType.SELECT);
@@ -168,7 +168,7 @@ class ViolationStrategyIntegrationTest {
         @DisplayName("BLOCK violations should have CRITICAL risk level")
         void testBlockViolations_CriticalRiskLevel() {
             // IntoOutfileChecker is CRITICAL
-            IntoOutfileChecker checker = new IntoOutfileChecker(new IntoOutfileConfig());
+            IntoOutfileConfig cfg = new IntoOutfileConfig(); cfg.setEnabled(true); IntoOutfileChecker checker = new IntoOutfileChecker(cfg);
 
             String sql = "SELECT * INTO OUTFILE '/tmp/data.txt' FROM users";
             SqlContext context = createContext(sql, SqlCommandType.SELECT);
@@ -183,8 +183,8 @@ class ViolationStrategyIntegrationTest {
         @Test
         @DisplayName("Multiple BLOCK checkers should all contribute violations")
         void testMultipleBlockCheckers_AllContribute() {
-            MultiStatementChecker msChecker = new MultiStatementChecker(new MultiStatementConfig());
-            SqlCommentChecker scChecker = new SqlCommentChecker(new SqlCommentConfig());
+            MultiStatementConfig msCfg = new MultiStatementConfig(); msCfg.setEnabled(true); MultiStatementChecker msChecker = new MultiStatementChecker(msCfg);
+            SqlCommentConfig scCfg = new SqlCommentConfig(); scCfg.setEnabled(true); SqlCommentChecker scChecker = new SqlCommentChecker(scCfg);
 
             // SQL that triggers both checkers
             String sql = "SELECT * FROM users -- bypass; DROP TABLE users";
@@ -204,6 +204,7 @@ class ViolationStrategyIntegrationTest {
         void testBlockStrategy_CollectsAllViolations() {
             // Configure DeniedTableChecker with multiple denied tables
             DeniedTableConfig config = new DeniedTableConfig();
+            config.setEnabled(true); // Explicitly enable
             config.setDeniedTables(Arrays.asList("sys_*", "admin_*"));
             DeniedTableChecker checker = new DeniedTableChecker(config);
 
@@ -259,6 +260,7 @@ class ViolationStrategyIntegrationTest {
 
             // Test with SetStatementChecker which reliably detects SET statements
             SetStatementConfig setConfig = new SetStatementConfig();
+            setConfig.setEnabled(true); // Explicitly enable
             SetStatementChecker setChecker = new SetStatementChecker(setConfig);
 
             String sql = "SET autocommit = 0";
@@ -281,10 +283,10 @@ class ViolationStrategyIntegrationTest {
         @DisplayName("Mixed WARN/BLOCK strategies in same validation")
         void testMixedStrategies_SameValidation() {
             // WARN-like checker (MEDIUM risk)
-            SetStatementChecker setChecker = new SetStatementChecker(new SetStatementConfig());
+            SetStatementConfig setCfg = new SetStatementConfig(); setCfg.setEnabled(true); SetStatementChecker setChecker = new SetStatementChecker(setCfg);
 
             // BLOCK checker (CRITICAL risk)
-            MultiStatementChecker msChecker = new MultiStatementChecker(new MultiStatementConfig());
+            MultiStatementConfig msCfg = new MultiStatementConfig(); msCfg.setEnabled(true); MultiStatementChecker msChecker = new MultiStatementChecker(msCfg);
 
             // Run both on different SQLs into same result
             ValidationResult result = ValidationResult.pass();
@@ -360,8 +362,8 @@ class ViolationStrategyIntegrationTest {
         @DisplayName("Violation count with mixed strategies")
         void testViolationCountWithMixedStrategies() {
             // Create multiple checkers with different risk levels
-            MultiStatementChecker msChecker = new MultiStatementChecker(new MultiStatementConfig()); // CRITICAL
-            SetStatementChecker setChecker = new SetStatementChecker(new SetStatementConfig()); // MEDIUM
+            MultiStatementConfig msCfg = new MultiStatementConfig(); msCfg.setEnabled(true); MultiStatementChecker msChecker = new MultiStatementChecker(msCfg); // CRITICAL
+            SetStatementConfig setCfg = new SetStatementConfig(); setCfg.setEnabled(true); SetStatementChecker setChecker = new SetStatementChecker(setCfg); // MEDIUM
 
             ValidationResult result = ValidationResult.pass();
 

@@ -48,7 +48,7 @@ public class NoConditionPaginationCheckerMigrationTest {
     @BeforeEach
     public void setUp() {
         detector = Mockito.mock(PaginationPluginDetector.class);
-        config = new NoConditionPaginationConfig();
+        config = new NoConditionPaginationConfig(true); // Explicitly enable for tests
         config.setEnabled(true);
         checker = new NoConditionPaginationChecker(config, detector);
     }

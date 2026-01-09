@@ -51,7 +51,7 @@ public class LogicalPaginationCheckerMigrationTest {
     @BeforeEach
     public void setUp() {
         detector = Mockito.mock(PaginationPluginDetector.class);
-        config = new LogicalPaginationConfig();
+        config = new LogicalPaginationConfig(true); // Explicitly enable for tests
         config.setEnabled(true);
         checker = new LogicalPaginationChecker(detector, config);
     }

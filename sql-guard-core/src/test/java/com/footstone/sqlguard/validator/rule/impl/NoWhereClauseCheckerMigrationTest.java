@@ -41,7 +41,7 @@ public class NoWhereClauseCheckerMigrationTest {
 
     @BeforeEach
     public void setUp() {
-        config = new NoWhereClauseConfig();
+        config = new NoWhereClauseConfig(true); // Explicitly enable for tests
         config.setEnabled(true);
         checker = new NoWhereClauseChecker(config);
     }

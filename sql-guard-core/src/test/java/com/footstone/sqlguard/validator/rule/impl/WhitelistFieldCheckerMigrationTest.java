@@ -48,7 +48,7 @@ public class WhitelistFieldCheckerMigrationTest {
 
     @BeforeEach
     public void setUp() {
-        config = new WhitelistFieldsConfig();
+        config = new WhitelistFieldsConfig(true); // Explicitly enable for tests
         config.setEnabled(true);
 
         // Setup table-specific whitelist

@@ -122,7 +122,8 @@ public class NestedPropertiesTest {
     @Test
     public void testNoWhereClauseProperties_shouldHaveCorrectDefaults() {
         SqlGuardProperties.NoWhereClauseProperties props = new SqlGuardProperties.NoWhereClauseProperties();
-        assertTrue(props.isEnabled());
+        // Default is false in Spring Boot Starter (opt-in design)
+        assertFalse(props.isEnabled());
         assertEquals(RiskLevel.CRITICAL, props.getRiskLevel());
     }
 

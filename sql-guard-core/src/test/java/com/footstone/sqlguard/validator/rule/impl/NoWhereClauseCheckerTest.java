@@ -41,7 +41,7 @@ class NoWhereClauseCheckerTest {
   @BeforeEach
   void setUp() {
     parser = new JSqlParserFacade();
-    config = new NoWhereClauseConfig();
+    config = new NoWhereClauseConfig(true); // Explicitly enable for tests
     checker = new NoWhereClauseChecker(config);
   }
 

@@ -51,7 +51,7 @@ class MetadataStatementCheckerTest {
 
   @BeforeEach
   void setUp() {
-    config = new MetadataStatementConfig();
+    config = new MetadataStatementConfig(true); // Explicitly enable for tests
     checker = new MetadataStatementChecker(config);
   }
 
@@ -380,8 +380,9 @@ class MetadataStatementCheckerTest {
     @Test
     @DisplayName("Empty allowedStatements should block all metadata commands")
     void testEmptyAllowedStatements_blocksAll() {
-      // Default config has empty allowedStatements
+      // Default config has empty allowedStatements, explicitly enable
       MetadataStatementConfig emptyConfig = new MetadataStatementConfig();
+      emptyConfig.setEnabled(true); // Explicitly enable
       MetadataStatementChecker emptyChecker = new MetadataStatementChecker(emptyConfig);
 
       // Test SHOW
@@ -502,7 +503,7 @@ class MetadataStatementCheckerTest {
     @DisplayName("Default config should be enabled with HIGH risk level and empty allowedStatements")
     void testDefaultConfig() {
       MetadataStatementConfig defaultConfig = new MetadataStatementConfig();
-      assertTrue(defaultConfig.isEnabled(), "Should be enabled by default");
+      assertFalse(defaultConfig.isEnabled(), "Should be disabled by default (opt-in design)");
       assertEquals(RiskLevel.HIGH, defaultConfig.getRiskLevel(), "Should have HIGH risk level");
       assertTrue(defaultConfig.getAllowedStatements().isEmpty(), "Should have empty allowedStatements");
     }

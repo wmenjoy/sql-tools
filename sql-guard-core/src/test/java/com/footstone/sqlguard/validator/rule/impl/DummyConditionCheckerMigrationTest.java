@@ -45,7 +45,7 @@ public class DummyConditionCheckerMigrationTest {
 
     @BeforeEach
     public void setUp() {
-        config = new DummyConditionConfig();
+        config = new DummyConditionConfig(true); // Explicitly enable for tests
         config.setEnabled(true);
         checker = new DummyConditionChecker(config);
     }
