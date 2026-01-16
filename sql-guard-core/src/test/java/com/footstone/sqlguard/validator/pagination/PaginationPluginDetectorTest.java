@@ -1,14 +1,24 @@
 package com.footstone.sqlguard.validator.pagination;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.footstone.sqlguard.core.model.ExecutionLayer;
+import com.footstone.sqlguard.core.model.SqlCommandType;
+import com.footstone.sqlguard.core.model.SqlContext;
+import com.footstone.sqlguard.parser.JSqlParserFacade;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import net.sf.jsqlparser.statement.Statement;
 import org.apache.ibatis.plugin.Interceptor;
+import org.apache.ibatis.session.RowBounds;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -252,5 +262,277 @@ public class PaginationPluginDetectorTest {
    */
   static class MockOtherInterceptor {
     // Class name doesn't contain "PaginationInnerInterceptor"
+  }
+
+  // ============================================================
+  // Multi-Dialect Physical Pagination Detection Tests
+  // ============================================================
+
+  private JSqlParserFacade parser;
+  private PaginationPluginDetector detectorWithoutPlugin;
+
+  @BeforeEach
+  public void setUp() {
+    parser = new JSqlParserFacade();
+    // Create detector without any pagination plugins
+    detectorWithoutPlugin = new PaginationPluginDetector(null, null);
+  }
+
+  /**
+   * Test MySQL LIMIT clause detection - should return PHYSICAL.
+   */
+  @Test
+  public void testMySqlLimit_shouldDetectPhysical() {
+    String sql = "SELECT * FROM users WHERE age > 18 LIMIT 100";
+    Statement stmt = parser.parse(sql);
+
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(stmt)
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .build();
+
+    PaginationType type = detectorWithoutPlugin.detectPaginationType(context);
+    assertEquals(PaginationType.PHYSICAL, type,
+        "MySQL LIMIT should be detected as PHYSICAL pagination");
+  }
+
+  /**
+   * Test MySQL LIMIT with OFFSET - should return PHYSICAL.
+   */
+  @Test
+  public void testMySqlLimitWithOffset_shouldDetectPhysical() {
+    String sql = "SELECT * FROM users ORDER BY id LIMIT 10 OFFSET 100";
+    Statement stmt = parser.parse(sql);
+
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(stmt)
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .build();
+
+    PaginationType type = detectorWithoutPlugin.detectPaginationType(context);
+    assertEquals(PaginationType.PHYSICAL, type,
+        "MySQL LIMIT with OFFSET should be detected as PHYSICAL pagination");
+  }
+
+  /**
+   * Test SQL Server TOP clause detection - should return PHYSICAL.
+   */
+  @Test
+  public void testSqlServerTop_shouldDetectPhysical() {
+    String sql = "SELECT TOP 100 * FROM users WHERE age > 18";
+    Statement stmt = parser.parse(sql);
+
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(stmt)
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.JDBC)
+        .build();
+
+    PaginationType type = detectorWithoutPlugin.detectPaginationType(context);
+    assertEquals(PaginationType.PHYSICAL, type,
+        "SQL Server TOP should be detected as PHYSICAL pagination");
+  }
+
+  /**
+   * Test Oracle ROWNUM detection - should return PHYSICAL.
+   */
+  @Test
+  public void testOracleRownum_shouldDetectPhysical() {
+    String sql = "SELECT * FROM (SELECT * FROM users WHERE age > 18) WHERE ROWNUM <= 100";
+    Statement stmt = parser.parse(sql);
+
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(stmt)
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.JDBC)
+        .build();
+
+    PaginationType type = detectorWithoutPlugin.detectPaginationType(context);
+    assertEquals(PaginationType.PHYSICAL, type,
+        "Oracle ROWNUM should be detected as PHYSICAL pagination");
+  }
+
+  /**
+   * Test Oracle ROW_NUMBER() function detection - should return PHYSICAL.
+   */
+  @Test
+  public void testOracleRowNumber_shouldDetectPhysical() {
+    String sql = "SELECT * FROM (SELECT t.*, ROW_NUMBER() OVER (ORDER BY id) rn FROM users t) WHERE rn <= 100";
+    Statement stmt = parser.parse(sql);
+
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(stmt)
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.JDBC)
+        .build();
+
+    PaginationType type = detectorWithoutPlugin.detectPaginationType(context);
+    assertEquals(PaginationType.PHYSICAL, type,
+        "Oracle ROW_NUMBER() should be detected as PHYSICAL pagination");
+  }
+
+  /**
+   * Test DB2/Oracle 12c+ FETCH FIRST clause detection - should return PHYSICAL.
+   */
+  @Test
+  public void testDb2FetchFirst_shouldDetectPhysical() {
+    String sql = "SELECT * FROM users WHERE age > 18 FETCH FIRST 100 ROWS ONLY";
+    Statement stmt = parser.parse(sql);
+
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(stmt)
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.JDBC)
+        .build();
+
+    PaginationType type = detectorWithoutPlugin.detectPaginationType(context);
+    assertEquals(PaginationType.PHYSICAL, type,
+        "DB2/Oracle 12c+ FETCH FIRST should be detected as PHYSICAL pagination");
+  }
+
+  /**
+   * Test SQL Server TOP with RowBounds parameter but no plugin.
+   * Previously would be INCORRECTLY detected as LOGICAL.
+   * Now should be correctly detected as PHYSICAL (SQL has TOP, so pagination is at DB level).
+   */
+  @Test
+  public void testSqlServerTopWithRowBounds_shouldDetectPhysical() {
+    String sql = "SELECT TOP 100 * FROM users WHERE age > 18";
+    Statement stmt = parser.parse(sql);
+
+    // Add RowBounds parameter (pagination parameter)
+    RowBounds rowBounds = new RowBounds(0, 20);
+
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(stmt)
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .rowBounds(rowBounds)
+        .build();
+
+    // Detector without plugin - previously would return LOGICAL (WRONG!)
+    // Now should return PHYSICAL (CORRECT - SQL has TOP clause)
+    PaginationType type = detectorWithoutPlugin.detectPaginationType(context);
+    assertEquals(PaginationType.PHYSICAL, type,
+        "SQL Server TOP with RowBounds should be PHYSICAL (SQL has physical pagination)");
+  }
+
+  /**
+   * Test Oracle ROWNUM with RowBounds parameter but no plugin.
+   * Previously would be INCORRECTLY detected as LOGICAL.
+   * Now should be correctly detected as PHYSICAL.
+   */
+  @Test
+  public void testOracleRownumWithRowBounds_shouldDetectPhysical() {
+    String sql = "SELECT * FROM (SELECT * FROM users) WHERE ROWNUM <= 100";
+    Statement stmt = parser.parse(sql);
+
+    RowBounds rowBounds = new RowBounds(0, 20);
+
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(stmt)
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .rowBounds(rowBounds)
+        .build();
+
+    PaginationType type = detectorWithoutPlugin.detectPaginationType(context);
+    assertEquals(PaginationType.PHYSICAL, type,
+        "Oracle ROWNUM with RowBounds should be PHYSICAL (SQL has physical pagination)");
+  }
+
+  /**
+   * Test SELECT without any pagination - should return NONE.
+   */
+  @Test
+  public void testSelectWithoutPagination_shouldDetectNone() {
+    String sql = "SELECT * FROM users WHERE age > 18";
+    Statement stmt = parser.parse(sql);
+
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(stmt)
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .build();
+
+    PaginationType type = detectorWithoutPlugin.detectPaginationType(context);
+    assertEquals(PaginationType.NONE, type,
+        "SELECT without pagination should be NONE");
+  }
+
+  /**
+   * Test SELECT with RowBounds but no plugin and no LIMIT clause - should return LOGICAL.
+   * This is the dangerous case: pagination parameter exists but no plugin to intercept,
+   * and SQL has no physical pagination, so MyBatis loads all rows into memory.
+   */
+  @Test
+  public void testSelectWithRowBoundsNoPluginNoLimit_shouldDetectLogical() {
+    String sql = "SELECT * FROM users WHERE age > 18";
+    Statement stmt = parser.parse(sql);
+
+    RowBounds rowBounds = new RowBounds(0, 20);
+
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(stmt)
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .rowBounds(rowBounds)
+        .build();
+
+    PaginationType type = detectorWithoutPlugin.detectPaginationType(context);
+    assertEquals(PaginationType.LOGICAL, type,
+        "SELECT with RowBounds but no plugin and no LIMIT should be LOGICAL (dangerous)");
+  }
+
+  /**
+   * Test PostgreSQL LIMIT - should return PHYSICAL.
+   */
+  @Test
+  public void testPostgreSqlLimit_shouldDetectPhysical() {
+    String sql = "SELECT * FROM users WHERE age > 18 LIMIT 100 OFFSET 50";
+    Statement stmt = parser.parse(sql);
+
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(stmt)
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.JDBC)
+        .build();
+
+    PaginationType type = detectorWithoutPlugin.detectPaginationType(context);
+    assertEquals(PaginationType.PHYSICAL, type,
+        "PostgreSQL LIMIT should be detected as PHYSICAL pagination");
+  }
+
+  /**
+   * Test case-insensitive ROWNUM detection.
+   */
+  @Test
+  public void testOracleRownumLowerCase_shouldDetectPhysical() {
+    String sql = "SELECT * FROM (SELECT * FROM users) WHERE rownum <= 100";
+    Statement stmt = parser.parse(sql);
+
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(stmt)
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.JDBC)
+        .build();
+
+    PaginationType type = detectorWithoutPlugin.detectPaginationType(context);
+    assertEquals(PaginationType.PHYSICAL, type,
+        "Oracle ROWNUM (lowercase) should be detected as PHYSICAL pagination");
   }
 }

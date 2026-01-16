@@ -1,3 +1,13 @@
+---
+type: Technical Specification
+component: Validation Strategy
+version: 1.0
+created: 2024-12-10
+updated: 2025-01-16
+status: Active
+maintainer: SQL Safety Guard Team
+---
+
 # MyBatis 验证方案对比
 
 ## 📊 快速对比

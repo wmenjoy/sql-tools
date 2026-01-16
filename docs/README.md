@@ -1,125 +1,169 @@
 # SQL Safety Guard 文档索引 / Documentation Index
 
-## 中文文档 / Chinese Documentation
+欢迎使用 SQL Safety Guard 文档系统。本项目采用**七层文档架构**，确保文档的结构化、可维护性和易发现性。
 
-### 主要文档
-- **[项目主页 README](../README_CN.md)** - 项目概述、快速开始、构建说明
-- **[SQL Scanner CLI 完整指南](../sql-scanner-cli/README_CN.md)** - CLI 工具详细使用文档
-- **[CLI 使用指南](CLI-Usage-Guide_CN.md)** 🆕 - 实用场景和最佳实践
-- **[CLI 快速参考](CLI-Quick-Reference_CN.md)** - 命令行选项快速查找
-- **[配置示例](../sql-scanner-cli/config-example_CN.yml)** - 带中文注释的配置模板
+## 📚 七层文档架构 / Seven-Layer Documentation Architecture
 
-### 核心概念
-- **静态分析**：在构建时或按需扫描 SQL 代码
-- **运行时验证**：在运行时拦截和验证 SQL 执行
-- **风险级别**：CRITICAL、HIGH、MEDIUM、LOW
+### 1️⃣ 技术规范 (1-specs/)
+系统的技术规格、API 规范、架构设计、配置规范等权威技术文档。
 
-### 快速链接
-- [安装和构建](../README_CN.md#构建项目)
-- [CLI 基本用法](../sql-scanner-cli/README_CN.md#使用方法)
-- [CI/CD 集成](../sql-scanner-cli/README_CN.md#cicd-集成示例)
-- [配置指南](../sql-scanner-cli/README_CN.md#配置)
-- [故障排除](../sql-scanner-cli/README_CN.md#故障排除)
+- **[架构文档](1-specs/architecture/ARCHITECTURE.md)** - 系统整体架构设计
+- **[API 规范](1-specs/api/)** - API 接口技术规范
+  - [审计日志 API](1-specs/api/audit-log.md)
+- **[配置规范](1-specs/config/)** - 配置相关技术规范
+  - [审计日志写入器配置](1-specs/config/audit-log-writer-configuration.md)
+  - [静态分析配置](1-specs/config/STATIC_ANALYSIS_CONFIG_CN.md)
+- **[验证方案对比](1-specs/VALIDATION_COMPARISON.md)** - 不同验证方案的技术对比
+
+### 2️⃣ 产品需求 (2-requirements/)
+产品需求文档 (PRD)、用户故事、功能需求等。
+
+_（待补充）_
+
+### 3️⃣ 用户/开发指南 (3-guides/)
+面向最终用户和开发者的使用指南、教程、最佳实践。
+
+#### CLI 工具指南
+- **[CLI 使用指南](3-guides/cli/CLI-Usage-Guide_CN.md)** 🆕 - 实用场景和最佳实践
+- **[CLI 快速参考（中文）](3-guides/cli/CLI-Quick-Reference_CN.md)** - 命令行选项快速查找
+- **[CLI 快速参考（英文）](3-guides/cli/CLI-Quick-Reference.md)** - Command-line options quick reference
+
+#### 用户指南
+- **[增强型 HTML 报告](3-guides/user/ENHANCED_HTML_REPORT_CN.md)** - HTML 报告功能说明
+- **[HTML 报告改进](3-guides/user/ENHANCED_HTML_REPORT_IMPROVEMENTS.md)** - 报告功能改进详情
+- **[用户指南合集](3-guides/user/rules/)** - 规则说明和使用指南
+
+#### 开发者指南
+- **[API 示例](3-guides/developer/api-examples/)** - 各语言 API 使用示例
+  - [Java 示例](3-guides/developer/api-examples/java/)
+  - [JavaScript 示例](3-guides/developer/api-examples/javascript/)
+  - [Python 示例](3-guides/developer/api-examples/python/)
+- **[部署指南](3-guides/developer/deployment/)** - 部署相关文档
+  - [Kubernetes 部署](3-guides/developer/deployment/k8s/)
+  - [高可用部署](3-guides/developer/deployment/ha/)
+  - [监控配置](3-guides/developer/deployment/monitoring/)
+  - [安全配置](3-guides/developer/deployment/security/)
+  - [备份策略](3-guides/developer/deployment/backup/)
+- **[集成指南](3-guides/developer/integration/)** - 与其他系统集成
+- **[迁移指南](3-guides/developer/migration/)** - 版本迁移和升级
+- **[运维手册](3-guides/developer/operations/)** - 运维操作指南
+- **[开发教程](3-guides/developer/tutorials/)** - 开发教程和示例
+- **[开发示例](3-guides/developer/examples/)** - 代码示例
+
+### 4️⃣ 规划文档 (4-planning/)
+项目规划、技术提案、设计方案、实施计划等前瞻性文档。
+
+#### 技术提案
+- **[语义分析提案](4-planning/proposals/SEMANTIC_ANALYSIS_PROPOSAL.md)** - SQL 语义分析功能提案
+- **[核心优化提案](4-planning/proposals/sql-scanner-core-optimization-proposal.md)** - Scanner 核心优化方案
+
+#### 设计文档
+- **[系统设计](4-planning/2025-12-10-sql-safety-guard-design.md)** - 系统整体设计规划
+
+### 5️⃣ 业务知识库 (5-wiki/)
+领域知识、最佳实践、案例研究、技术分享等知识沉淀。
+
+- **[上下文工程指南](5-wiki/context_engineering_guide.md)** - 上下文工程知识和实践
+- **[案例研究](5-wiki/case-studies/)** - 实际应用案例分析
+
+### 6️⃣ 架构决策 (6-decisions/)
+架构决策记录 (ADR)，记录重要的技术决策及其背景、权衡和结果。
+
+_（待补充）_
+
+### 7️⃣ 文档归档 (7-archive/)
+已完成或过时的临时文档归档，按年份组织。
+
+#### 2025 年归档
+- [ExecutionResult 空安全分析](7-archive/2025/ExecutionResult_Null_Safety_Analysis.md)
+- [ExecutionResult 空安全修复总结](7-archive/2025/ExecutionResult_Null_Safety_Fix_Summary.md)
+- [ExecutionResult vs ValidationResult 概念澄清](7-archive/2025/ExecutionResult_vs_ValidationResult_Clarification.md)
+- [Statement ID 改进总结](7-archive/2025/STATEMENT_ID_IMPROVEMENT_SUMMARY.md)
+- [Statement ID 索引实现](7-archive/2025/STATEMENT_ID_INDEX_IMPLEMENTATION.md)
+- [ValidationResult vs AuditService 分析](7-archive/2025/ValidationResult_vs_AuditService_Analysis.md)
+- [文档更新总结](7-archive/2025/Documentation-Updates-Summary.md)
+- [系统完整性评估](7-archive/2025/SYSTEM_COMPLETENESS_ASSESSMENT.md)
+- [验证清单](7-archive/2025/VERIFICATION_CHECKLIST.md)
 
 ---
 
-## English Documentation
+## 🚀 快速开始 / Quick Start
 
-### Main Documentation
-- **[Project README](../README.md)** - Project overview, quick start, build instructions
-- **[SQL Scanner CLI Complete Guide](../sql-scanner-cli/README.md)** - Detailed CLI tool documentation
-- **[CLI Quick Reference](CLI-Quick-Reference.md)** - Quick lookup for command-line options
-- **[Configuration Example](../sql-scanner-cli/config-example.yml)** - Configuration template with comments
+### 新用户
+1. 阅读 [项目主页 README](../README_CN.md) 了解项目概述
+2. 查看 [CLI 使用指南](3-guides/cli/CLI-Usage-Guide_CN.md) 开始使用
+3. 参考 [CLI 快速参考](3-guides/cli/CLI-Quick-Reference_CN.md) 查找命令
 
-### Core Concepts
-- **Static Analysis**: Scan SQL code at build time or on-demand
-- **Runtime Validation**: Intercept and validate SQL execution at runtime
-- **Risk Levels**: CRITICAL, HIGH, MEDIUM, LOW
+### 开发者
+1. 阅读 [架构文档](1-specs/architecture/ARCHITECTURE.md) 了解系统设计
+2. 查看 [API 规范](1-specs/api/) 了解接口定义
+3. 参考 [开发者指南](3-guides/developer/) 进行开发集成
 
-### Quick Links
-- [Installation and Build](../README.md#building-the-project)
-- [CLI Basic Usage](../sql-scanner-cli/README.md#usage)
-- [CI/CD Integration](../sql-scanner-cli/README.md#cicd-integration-examples)
-- [Configuration Guide](../sql-scanner-cli/README.md#configuration)
-- [Troubleshooting](../sql-scanner-cli/README.md#troubleshooting)
+### 运维人员
+1. 查看 [部署指南](3-guides/developer/deployment/) 了解部署方案
+2. 参考 [运维手册](3-guides/developer/operations/) 进行日常运维
+3. 查阅 [监控配置](3-guides/developer/deployment/monitoring/) 配置监控
 
 ---
 
-## 文档结构 / Documentation Structure
+## 📖 外部文档链接 / External Documentation Links
 
-```
-sqltools/
-├── README.md / README_CN.md                     # 主项目文档
-├── docs/
-│   ├── README.md                                # 文档索引（本文件）
-│   ├── CLI-Usage-Guide_CN.md                   # 中文 CLI 使用指南 🆕
-│   ├── CLI-Quick-Reference.md                   # 英文快速参考
-│   ├── CLI-Quick-Reference_CN.md                # 中文快速参考
-│   └── plans/
-│       └── 2025-12-10-sql-safety-guard-design.md
-├── sql-scanner-cli/
-│   ├── README.md                                # 英文 CLI 完整指南
-│   ├── README_CN.md                             # 中文 CLI 完整指南
-│   ├── config-example.yml                       # 英文配置示例
-│   └── config-example_CN.yml                    # 中文配置示例
-└── sql-guard-core/
-    └── docs/
-        └── Dual-Config-Pattern.md               # 配置系统设计
-```
+### 项目主文档
+- **[项目主页 README (中文)](../README_CN.md)** - 项目概述、快速开始、构建说明
+- **[项目主页 README (English)](../README.md)** - Project overview, quick start, build instructions
 
-## 使用场景 / Use Cases
+### 模块文档
+- **[SQL Scanner CLI 完整指南 (中文)](../sql-scanner-cli/README_CN.md)** - CLI 工具详细使用文档
+- **[SQL Scanner CLI Complete Guide (English)](../sql-scanner-cli/README.md)** - Detailed CLI tool documentation
+- **[配置示例 (中文)](../sql-scanner-cli/config-example_CN.yml)** - 带中文注释的配置模板
+- **[Configuration Example (English)](../sql-scanner-cli/config-example.yml)** - Configuration template with comments
 
-### 场景 1：开发者本地扫描 / Developer Local Scan
-```bash
-java -jar sql-scanner-cli.jar -p /path/to/project
-```
-**文档**: [CLI 基本用法 / CLI Basic Usage](../sql-scanner-cli/README_CN.md#使用方法)
+---
 
-### 场景 2：生成 HTML 报告 / Generate HTML Report
-```bash
-java -jar sql-scanner-cli.jar -p /path/to/project -f html -o report.html
-```
-**文档**: [报告格式 / Report Formats](../sql-scanner-cli/README_CN.md#报告格式)
+## 🔍 按主题查找文档 / Find Documentation by Topic
 
-### 场景 3：CI/CD 集成 / CI/CD Integration
-```bash
-java -jar sql-scanner-cli.jar -p . --fail-on-critical -q
-```
-**文档**: [CI/CD 集成示例 / CI/CD Integration Examples](../sql-scanner-cli/README_CN.md#cicd-集成示例)
+### 静态分析 / Static Analysis
+- [静态分析配置规范](1-specs/config/STATIC_ANALYSIS_CONFIG_CN.md)
+- [CLI 使用指南 - 静态扫描](3-guides/cli/CLI-Usage-Guide_CN.md)
 
-### 场景 4：自定义配置 / Custom Configuration
-```bash
-java -jar sql-scanner-cli.jar -p /path/to/project -c config.yml
-```
-**文档**: [配置指南 / Configuration Guide](../sql-scanner-cli/README_CN.md#配置)
+### 审计日志 / Audit Logging
+- [审计日志 API 规范](1-specs/api/audit-log.md)
+- [审计日志写入器配置](1-specs/config/audit-log-writer-configuration.md)
 
-## 常见问题 / FAQ
+### 部署运维 / Deployment & Operations
+- [部署指南合集](3-guides/developer/deployment/)
+- [运维手册](3-guides/developer/operations/)
 
-### Q: 如何开始使用？/ How to get started?
-**A**: 查看 [快速开始 / Quick Start](../README_CN.md#快速开始) 部分
+### 开发集成 / Development & Integration
+- [API 示例](3-guides/developer/api-examples/)
+- [集成指南](3-guides/developer/integration/)
 
-### Q: 支持哪些 SQL 源？/ What SQL sources are supported?
-**A**: 
-- XML 映射器 / XML Mappers (MyBatis)
-- Java 注解 / Java Annotations (@Select, @Insert, etc.)
-- QueryWrapper 使用 / QueryWrapper usage (MyBatis-Plus)
+---
 
-### Q: 如何在 CI/CD 中使用？/ How to use in CI/CD?
-**A**: 查看 [CI/CD 集成 / CI/CD Integration](../sql-scanner-cli/README_CN.md#cicd-集成示例) 部分
+## 📝 文档规范 / Documentation Standards
 
-### Q: 如何自定义规则？/ How to customize rules?
-**A**: 查看 [配置示例 / Configuration Example](../sql-scanner-cli/config-example_CN.yml)
+本项目文档遵循以下规范：
 
-### Q: 遇到问题怎么办？/ What to do if I encounter issues?
-**A**: 查看 [故障排除 / Troubleshooting](../sql-scanner-cli/README_CN.md#故障排除) 部分
+1. **分层架构**：所有文档按七层结构组织
+2. **元数据标准**：每个文档包含版本、日期、状态、维护者信息
+3. **命名规范**：使用清晰、描述性的文件名
+4. **交叉引用**：文档间通过相对路径链接
+5. **版本控制**：重要变更记录在文档历史中
 
-## 贡献 / Contributing
+详见：[write-standard-document skill](../.claude/skills/write-standard-document/)
 
-欢迎贡献！请参考主项目文档了解更多信息。
+---
 
-Contributions are welcome! Please refer to the main project documentation for more information.
+## 🤝 贡献文档 / Contributing Documentation
 
-## 许可证 / License
+创建新文档时，请使用 `write-standard-document` skill 确保符合项目规范。
 
-Copyright (c) 2025 Footstone
+---
 
+**版本**: 2.0
+**最后更新**: 2025-01-15
+**维护者**: SQL Safety Guard Team
+
+---
+
+*使用 [write-standard-document skill](../.claude/skills/write-standard-document/) 创建的标准化文档*

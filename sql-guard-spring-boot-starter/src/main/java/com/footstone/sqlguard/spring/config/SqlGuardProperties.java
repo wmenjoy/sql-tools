@@ -101,6 +101,12 @@ public class SqlGuardProperties {
     @NestedConfigurationProperty
     private ParserConfig parser = new ParserConfig();
 
+    /**
+     * Audit log configuration.
+     */
+    @NestedConfigurationProperty
+    private AuditConfig audit = new AuditConfig();
+
     // Getters and setters
 
     public boolean isEnabled() {
@@ -151,6 +157,14 @@ public class SqlGuardProperties {
         this.parser = parser;
     }
 
+    public AuditConfig getAudit() {
+        return audit;
+    }
+
+    public void setAudit(AuditConfig audit) {
+        this.audit = audit;
+    }
+
     @Override
     public String toString() {
         return "SqlGuardProperties{" +
@@ -160,6 +174,7 @@ public class SqlGuardProperties {
                 ", deduplication=" + deduplication +
                 ", rules=" + rules +
                 ", parser=" + parser +
+                ", audit=" + audit +
                 '}';
     }
 
@@ -1331,8 +1346,104 @@ public class SqlGuardProperties {
 
         @Override
         public String toString() {
-            return "ReadOnlyTableProperties{enabled=" + enabled + ", riskLevel=" + riskLevel + 
+            return "ReadOnlyTableProperties{enabled=" + enabled + ", riskLevel=" + riskLevel +
                    ", readOnlyTables=" + readOnlyTables + '}';
+        }
+    }
+
+    /**
+     * Audit log configuration.
+     *
+     * <p><strong>Example YAML Configuration:</strong></p>
+     * <pre>{@code
+     * sql-guard:
+     *   audit:
+     *     enabled: true
+     *     writer-type: KAFKA  # or LOGBACK
+     *     kafka:
+     *       topic: sql-audit-events
+     * }</pre>
+     */
+    public static class AuditConfig {
+        /**
+         * Enable audit logging.
+         * Default: false
+         */
+        private boolean enabled = false;
+
+        /**
+         * Audit log writer type: LOGBACK or KAFKA.
+         * - LOGBACK: Write audit events to log file via logback
+         * - KAFKA: Write audit events directly to Kafka topic
+         * Default: LOGBACK
+         */
+        @NotNull
+        private String writerType = "LOGBACK";
+
+        /**
+         * Kafka configuration for audit log.
+         */
+        @NestedConfigurationProperty
+        private KafkaAuditConfig kafka = new KafkaAuditConfig();
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getWriterType() {
+            return writerType;
+        }
+
+        public void setWriterType(String writerType) {
+            this.writerType = writerType;
+        }
+
+        public KafkaAuditConfig getKafka() {
+            return kafka;
+        }
+
+        public void setKafka(KafkaAuditConfig kafka) {
+            this.kafka = kafka;
+        }
+
+        @Override
+        public String toString() {
+            return "AuditConfig{" +
+                    "enabled=" + enabled +
+                    ", writerType='" + writerType + '\'' +
+                    ", kafka=" + kafka +
+                    '}';
+        }
+
+        /**
+         * Kafka audit configuration.
+         */
+        public static class KafkaAuditConfig {
+            /**
+             * Kafka topic name for audit events.
+             * Default: sql-audit-events
+             */
+            @NotNull
+            private String topic = "sql-audit-events";
+
+            public String getTopic() {
+                return topic;
+            }
+
+            public void setTopic(String topic) {
+                this.topic = topic;
+            }
+
+            @Override
+            public String toString() {
+                return "KafkaAuditConfig{" +
+                        "topic='" + topic + '\'' +
+                        '}';
+            }
         }
     }
 }

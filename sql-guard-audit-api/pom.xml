@@ -18,6 +18,7 @@
     <properties>
         <java.version>1.8</java.version>
         <jackson.version>2.15.3</jackson.version>
+        <spring-kafka.version>2.9.13</spring-kafka.version>
     </properties>
 
     <dependencies>
@@ -45,6 +46,14 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <!-- Spring Kafka (Optional - only required for KafkaAuditWriter) -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+            <version>${spring-kafka.version}</version>
+            <optional>true</optional>
         </dependency>
 
         <!-- Testing -->
