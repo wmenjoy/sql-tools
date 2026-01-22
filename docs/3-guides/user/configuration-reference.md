@@ -1,3 +1,14 @@
+---
+type: User Guide
+component: Configuration
+version: 1.0
+created: 2024-12-01
+updated: 2025-01-16
+status: Active
+maintainer: SQL Safety Guard Team
+language: en
+---
+
 # Configuration Reference
 
 Complete reference for all SQL Safety Guard configuration properties.

@@ -1,3 +1,14 @@
+---
+type: User Guide
+component: CLI
+version: 1.0
+created: 2024-12-01
+updated: 2025-01-16
+status: Active
+maintainer: SQL Safety Guard Team
+language: zh-CN
+---
+
 # SQL Scanner CLI - 快速参考
 
 ## 安装

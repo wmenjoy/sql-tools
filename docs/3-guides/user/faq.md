@@ -1,3 +1,14 @@
+---
+type: User Guide
+component: FAQ
+version: 1.0
+created: 2024-12-01
+updated: 2025-01-16
+status: Active
+maintainer: SQL Safety Guard Team
+language: en
+---
+
 # Frequently Asked Questions (FAQ)
 
 Common questions and answers about SQL Safety Guard.

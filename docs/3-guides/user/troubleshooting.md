@@ -1,3 +1,14 @@
+---
+type: User Guide
+component: Troubleshooting
+version: 1.0
+created: 2024-12-01
+updated: 2025-01-16
+status: Active
+maintainer: SQL Safety Guard Team
+language: en
+---
+
 # Troubleshooting Guide
 
 Common issues and solutions for SQL Safety Guard.
