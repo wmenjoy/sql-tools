@@ -63,7 +63,9 @@ _（待补充）_
 ### 5️⃣ 业务知识库 (5-wiki/)
 领域知识、最佳实践、案例研究、技术分享等知识沉淀。
 
-- **[上下文工程指南](5-wiki/context_engineering_guide.md)** - 上下文工程知识和实践
+- **[上下文工程指南](5-wiki/context_engineering_guide.md)** - AI 协作的上下文工程最佳实践
+- **[SQL 安全最佳实践](5-wiki/sql-security-best-practices.md)** - SQL 注入防护、权限控制、审计策略等安全知识
+- **[审计规则设计指南](5-wiki/rule-design-guide.md)** - 如何设计和实现自定义审计规则
 - **[案例研究](5-wiki/case-studies/)** - 实际应用案例分析
 
 ### 6️⃣ 架构决策 (6-decisions/)

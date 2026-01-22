@@ -1,6 +1,17 @@
+---
+type: Knowledge Base
+component: Wiki
+version: 1.2.0
+created: 2026-01-09
+updated: 2026-01-22
+status: Active
+maintainer: SQL Safety Guard Team
+language: zh-CN
+---
+
 # 上下文工程：AI协作的最佳实践指南
 
-## 综合	
+## 综合
 
 ### 1.初始化
 
