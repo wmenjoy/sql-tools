@@ -455,6 +455,61 @@ class DeepPaginationCheckerTest {
     String message = result.getViolations().get(0).getMessage();
     assertTrue(message.contains("offset=15000"), "Message should contain offset value");
   }
+
+  // ==================== Multi-Dialect Tests (SQL Server 2012+ OFFSET ROWS) ====================
+
+  /**
+   * Test SQL Server 2012+ OFFSET ROWS syntax with deep offset.
+   * 
+   * <p>SQL Server 2012+ uses OFFSET/FETCH:
+   * {@code SELECT * FROM user ORDER BY id OFFSET 50000 ROWS FETCH NEXT 20 ROWS ONLY}</p>
+   * <p>Expected: Should detect offset=50000 > maxOffset(10000) and trigger MEDIUM violation</p>
+   */
+  @Test
+  void testSQLServerOffsetRows_DeepPagination_shouldViolate() throws Exception {
+    String sql = "SELECT * FROM user WHERE id > 0 ORDER BY id OFFSET 50000 ROWS FETCH NEXT 20 ROWS ONLY";
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(parser.parse(sql))
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectSQLServerOffsetRows")
+        .build();
+    ValidationResult result = ValidationResult.pass();
+
+    checker.check(context, result);
+
+    assertFalse(result.isPassed(), "Should detect deep offset in OFFSET ROWS clause");
+    assertEquals(RiskLevel.MEDIUM, result.getRiskLevel());
+    assertEquals(1, result.getViolations().size());
+    
+    String message = result.getViolations().get(0).getMessage();
+    assertTrue(message.contains("offset=50000"), "Message should contain 'offset=50000'");
+  }
+
+  /**
+   * Test SQL Server OFFSET ROWS syntax with small offset (within threshold).
+   * 
+   * <p>Expected: Should pass since offset=5000 < maxOffset(10000)</p>
+   */
+  @Test
+  void testSQLServerOffsetRows_SmallOffset_shouldPass() throws Exception {
+    String sql = "SELECT * FROM user WHERE id > 0 ORDER BY id OFFSET 5000 ROWS FETCH NEXT 20 ROWS ONLY";
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(parser.parse(sql))
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectSQLServerOffsetRowsSmall")
+        .build();
+    ValidationResult result = ValidationResult.pass();
+
+    checker.check(context, result);
+
+    assertTrue(result.isPassed(), "Should pass when OFFSET ROWS offset is within threshold");
+    assertEquals(RiskLevel.SAFE, result.getRiskLevel());
+    assertEquals(0, result.getViolations().size());
+  }
 }
 
 

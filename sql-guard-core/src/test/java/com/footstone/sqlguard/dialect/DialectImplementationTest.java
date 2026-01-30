@@ -146,6 +146,24 @@ class DialectImplementationTest {
         void testGetDatabaseType() {
             assertEquals("Oracle", dialect.getDatabaseType());
         }
+
+        @Test
+        @DisplayName("Should apply FETCH FIRST clause (Oracle 12c+ modern syntax)")
+        void testApplyLimitModern() throws Exception {
+            // Given
+            String sql = "SELECT * FROM employees";
+            Select select = (Select) CCJSqlParserUtil.parse(sql);
+
+            // When
+            dialect.applyLimitModern(select, 100);
+
+            // Then
+            String result = select.toString().toUpperCase();
+            assertTrue(result.contains("FETCH"),
+                    "Expected FETCH clause, got: " + result);
+            assertTrue(result.contains("100"),
+                    "Expected limit value 100, got: " + result);
+        }
     }
 
     @Nested
@@ -181,6 +199,28 @@ class DialectImplementationTest {
         @DisplayName("Should return correct database type")
         void testGetDatabaseType() {
             assertEquals("SQL Server", dialect.getDatabaseType());
+        }
+
+        @Test
+        @DisplayName("Should apply OFFSET/FETCH clause to SELECT with ORDER BY")
+        void testApplyLimitWithOffset() throws Exception {
+            // Given - SQL Server 2012+ requires ORDER BY for OFFSET/FETCH
+            String sql = "SELECT * FROM orders ORDER BY id";
+            Select select = (Select) CCJSqlParserUtil.parse(sql);
+
+            // When
+            dialect.applyLimitWithOffset(select, 20, 100);
+
+            // Then
+            String result = select.toString().toUpperCase();
+            assertTrue(result.contains("OFFSET"),
+                    "Expected OFFSET clause, got: " + result);
+            assertTrue(result.contains("FETCH"),
+                    "Expected FETCH clause, got: " + result);
+            assertTrue(result.contains("20"),
+                    "Expected offset value 20, got: " + result);
+            assertTrue(result.contains("100"),
+                    "Expected limit value 100, got: " + result);
         }
     }
 

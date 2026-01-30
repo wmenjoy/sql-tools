@@ -5,12 +5,16 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlCommandType;
 import com.footstone.sqlguard.core.model.SqlContext;
 import com.footstone.sqlguard.core.model.ExecutionLayer;
 import com.footstone.sqlguard.core.model.ValidationResult;
 import com.footstone.sqlguard.validator.pagination.PaginationPluginDetector;
+import com.footstone.sqlguard.validator.pagination.PaginationType;
 import com.footstone.sqlguard.validator.rule.impl.BlacklistFieldsConfig;
 import com.footstone.sqlguard.validator.rule.impl.NoPaginationConfig;
 import java.util.ArrayList;
@@ -52,6 +56,9 @@ public class NoPaginationCheckerMigrationTest {
   @BeforeEach
   public void setUp() {
     pluginDetector = Mockito.mock(PaginationPluginDetector.class);
+    // Configure mock to return NONE by default (no pagination detected)
+    // This allows the checker to proceed with validation
+    when(pluginDetector.detectPaginationType(any())).thenReturn(PaginationType.NONE);
 
     blacklistConfig = new BlacklistFieldsConfig();
     blacklistConfig.setEnabled(true);
@@ -120,6 +127,9 @@ public class NoPaginationCheckerMigrationTest {
           .statement(stmt)  // ✅ Uses statement field
           .build();
 
+      // Configure mock to return PHYSICAL (LIMIT = database-level pagination)
+      when(pluginDetector.detectPaginationType(context)).thenReturn(PaginationType.PHYSICAL);
+
       ValidationResult result = ValidationResult.pass();
       checker.check(context, result);
 
@@ -147,6 +157,9 @@ public class NoPaginationCheckerMigrationTest {
           .statement(stmt)  // ✅ Uses statement field
           .rowBounds(new RowBounds(0, 10))  // Pagination present
           .build();
+
+      // Configure mock to return LOGICAL (RowBounds without plugin = in-memory pagination)
+      when(pluginDetector.detectPaginationType(context)).thenReturn(PaginationType.LOGICAL);
 
       ValidationResult result = ValidationResult.pass();
       checker.check(context, result);

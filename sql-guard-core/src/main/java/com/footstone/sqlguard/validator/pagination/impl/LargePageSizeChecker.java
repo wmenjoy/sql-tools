@@ -6,9 +6,14 @@ import com.footstone.sqlguard.validator.pagination.PaginationPluginDetector;
 import com.footstone.sqlguard.validator.pagination.PaginationType;
 import com.footstone.sqlguard.validator.rule.AbstractRuleChecker;
 import com.footstone.sqlguard.validator.rule.impl.PaginationAbuseConfig;
+import net.sf.jsqlparser.statement.select.Fetch;
 import net.sf.jsqlparser.statement.select.Limit;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.select.SetOperationList;
+import net.sf.jsqlparser.statement.select.Top;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Checker detecting excessively large pageSize values in LIMIT queries.
@@ -94,6 +99,13 @@ public class LargePageSizeChecker extends AbstractRuleChecker {
    */
   private final PaginationAbuseConfig config;
 
+  private static final Pattern LIMIT_COMMA_PATTERN =
+      Pattern.compile("(?i)\\blimit\\s+(\\d+)\\s*,\\s*(\\d+)");
+  private static final Pattern LIMIT_OFFSET_PATTERN =
+      Pattern.compile("(?i)\\blimit\\s+(\\d+)\\s+offset\\s+(\\d+)");
+  private static final Pattern LIMIT_SIMPLE_PATTERN =
+      Pattern.compile("(?i)\\blimit\\s+(\\d+)");
+
   /**
    * Constructs a LargePageSizeChecker with required dependencies.
    *
@@ -152,32 +164,24 @@ public class LargePageSizeChecker extends AbstractRuleChecker {
       return;
     }
 
-    // Step 4: Extract Limit from PlainSelect
-    if (!(select.getSelectBody() instanceof PlainSelect)) {
-      return;
+    // Step 4: Extract Limit/Top/Fetch from SelectBody
+    Limit limit = null;
+    Top top = null;
+    Fetch fetch = null;
+    if (select.getSelectBody() instanceof PlainSelect) {
+      PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+      limit = plainSelect.getLimit();
+      top = plainSelect.getTop();
+      fetch = plainSelect.getFetch();
+    } else if (select.getSelectBody() instanceof SetOperationList) {
+      SetOperationList setOperationList = (SetOperationList) select.getSelectBody();
+      limit = setOperationList.getLimit();
     }
 
-    PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
-    Limit limit = plainSelect.getLimit();
-
-    // No LIMIT clause
-    if (limit == null) {
+    // Step 5: Calculate pageSize from LIMIT/TOP/FETCH clause (with SQL fallback)
+    Long pageSize = extractPageSize(limit, top, fetch, context);
+    if (pageSize == null) {
       return;
-    }
-
-    // Step 5: Calculate pageSize from LIMIT clause
-    long pageSize = 0;
-    if (limit.getRowCount() != null) {
-      // getRowCount() returns Expression, parse string to get numeric value
-      // Works for both "LIMIT n" and "LIMIT m,n" syntaxes
-      try {
-        String pageSizeStr = limit.getRowCount().toString();
-        pageSize = Long.parseLong(pageSizeStr);
-      } catch (NumberFormatException e) {
-        // If pageSize is a parameter placeholder (e.g., "?"), we can't determine the value
-        // Skip this check as we can't evaluate dynamic values at static analysis time
-        return;
-      }
     }
 
     // Step 6: Compare against threshold
@@ -187,6 +191,59 @@ public class LargePageSizeChecker extends AbstractRuleChecker {
       String suggestion = "建议降低pageSize到" + config.getMaxPageSize() + "以内,避免单次返回过多数据";
       addViolation(RiskLevel.MEDIUM, message, suggestion);
     }
+  }
+
+  private Long extractPageSize(Limit limit, Top top, Fetch fetch, SqlContext context) {
+    // Priority 1: Extract from LIMIT clause (MySQL/PostgreSQL)
+    if (limit != null && limit.getRowCount() != null) {
+      try {
+        String pageSizeStr = limit.getRowCount().toString();
+        return Long.parseLong(pageSizeStr);
+      } catch (NumberFormatException e) {
+        // Fall through to other methods
+      }
+    }
+
+    // Priority 2: Extract from TOP clause (SQL Server)
+    if (top != null && top.getExpression() != null) {
+      try {
+        String pageSizeStr = top.getExpression().toString();
+        return Long.parseLong(pageSizeStr);
+      } catch (NumberFormatException e) {
+        // Fall through to next method
+      }
+    }
+
+    // Priority 3: Extract from FETCH clause (DB2/Oracle 12c+)
+    if (fetch != null) {
+      long rowCount = fetch.getRowCount();
+      if (rowCount > 0) {
+        return rowCount;
+      }
+    }
+
+    // Priority 4: SQL string fallback for complex cases
+    String sql = context != null ? context.getSql() : null;
+    if (sql == null) {
+      return null;
+    }
+
+    Matcher commaMatcher = LIMIT_COMMA_PATTERN.matcher(sql);
+    if (commaMatcher.find()) {
+      return Long.parseLong(commaMatcher.group(2));
+    }
+
+    Matcher offsetMatcher = LIMIT_OFFSET_PATTERN.matcher(sql);
+    if (offsetMatcher.find()) {
+      return Long.parseLong(offsetMatcher.group(1));
+    }
+
+    Matcher simpleMatcher = LIMIT_SIMPLE_PATTERN.matcher(sql);
+    if (simpleMatcher.find()) {
+      return Long.parseLong(simpleMatcher.group(1));
+    }
+
+    return null;
   }
 
   /**

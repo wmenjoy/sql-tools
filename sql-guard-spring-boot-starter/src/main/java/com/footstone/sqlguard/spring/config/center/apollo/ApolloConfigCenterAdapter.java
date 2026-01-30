@@ -100,6 +100,11 @@ public class ApolloConfigCenterAdapter implements ConfigCenterAdapter {
             Class<?> eventClass = changeEvent.getClass();
             Object changedKeysSet = eventClass.getMethod("changedKeys").invoke(changeEvent);
             String namespace = (String) eventClass.getMethod("getNamespace").invoke(changeEvent);
+
+            if (!isNamespaceMonitored(namespace)) {
+                log.debug("Apollo config change ignored for namespace '{}'", namespace);
+                return;
+            }
             
             @SuppressWarnings("unchecked")
             java.util.Set<String> keys = (java.util.Set<String>) changedKeysSet;
@@ -127,6 +132,17 @@ public class ApolloConfigCenterAdapter implements ConfigCenterAdapter {
         } catch (Exception e) {
             log.error("Failed to process Apollo config change event", e);
         }
+    }
+
+    private boolean isNamespaceMonitored(String namespace) {
+        if (namespace == null) {
+            return false;
+        }
+        List<String> namespaces = apolloProperties != null ? apolloProperties.getNamespaces() : null;
+        if (namespaces == null || namespaces.isEmpty()) {
+            return true;
+        }
+        return namespaces.contains(namespace);
     }
 
     @Override
@@ -205,7 +221,6 @@ public class ApolloConfigCenterAdapter implements ConfigCenterAdapter {
         return "ApolloConfigCenterAdapter";
     }
 }
-
 
 
 

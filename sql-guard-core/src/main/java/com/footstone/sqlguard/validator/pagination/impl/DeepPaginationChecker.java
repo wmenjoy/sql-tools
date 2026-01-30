@@ -144,31 +144,31 @@ public class DeepPaginationChecker extends AbstractRuleChecker {
       return;
     }
 
-    // Step 5: Extract Limit from SELECT statement
+    // Step 5: Extract PlainSelect from SELECT statement
     if (!(select.getSelectBody() instanceof PlainSelect)) {
-      return; // Only PlainSelect has LIMIT clause (not UNION, etc.)
+      return; // Only PlainSelect has pagination clauses (not UNION, etc.)
     }
 
     PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
     Limit limit = plainSelect.getLimit();
-    if (limit == null) {
-      return; // No LIMIT clause
-    }
 
-    // Step 6: Calculate offset supporting multiple LIMIT syntaxes
+    // Step 6: Calculate offset supporting multiple pagination syntaxes
     long offset = 0;
+    boolean offsetFound = false;
 
     // In JSqlParser 4.6, OFFSET handling differs by syntax:
     // Syntax 1: "LIMIT n OFFSET m" - offset stored in PlainSelect.getOffset()
     // Syntax 2: "LIMIT m,n" (MySQL) - offset stored in Limit.getOffset()
+    // Syntax 3: "OFFSET m ROWS FETCH NEXT n ROWS ONLY" (SQL Server 2012+) - uses PlainSelect.getOffset()
     
-    // Try PlainSelect.getOffset() first (standard OFFSET keyword syntax)
+    // Try PlainSelect.getOffset() first (standard OFFSET keyword syntax, SQL Server OFFSET ROWS)
     if (plainSelect.getOffset() != null) {
       try {
         Offset offsetObj = plainSelect.getOffset();
         if (offsetObj.getOffset() != null) {
           String offsetStr = offsetObj.getOffset().toString();
           offset = Long.parseLong(offsetStr.trim());
+          offsetFound = true;
         }
       } catch (NumberFormatException e) {
         // If offset is a parameter placeholder (e.g., "?"), skip check
@@ -176,14 +176,20 @@ public class DeepPaginationChecker extends AbstractRuleChecker {
       }
     }
     // Try Limit.getOffset() for MySQL comma syntax
-    else if (limit.getOffset() != null) {
+    else if (limit != null && limit.getOffset() != null) {
       try {
         String offsetStr = limit.getOffset().toString();
         offset = Long.parseLong(offsetStr.trim());
+        offsetFound = true;
       } catch (NumberFormatException e) {
         // If offset is a parameter placeholder (e.g., "?"), skip check
         return;
       }
+    }
+
+    // Skip if no offset found (e.g., no LIMIT or OFFSET clause, just FETCH FIRST)
+    if (!offsetFound) {
+      return;
     }
 
     // Step 7: Compare against threshold

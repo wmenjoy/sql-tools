@@ -255,6 +255,30 @@ class ApolloConfigCenterAdapterTest {
     }
 
     /**
+     * Test that onChange ignores namespaces not configured in properties.
+     */
+    @Test
+    void testOnChange_withUnconfiguredNamespace_shouldIgnore() {
+        // Given
+        AtomicInteger notifyCount = new AtomicInteger(0);
+        ConfigReloadListener listener = (oldConfig, newConfig) -> notifyCount.incrementAndGet();
+        listeners.add(listener);
+
+        apolloProperties.setNamespaces(Arrays.asList("application"));
+        adapter = new ApolloConfigCenterAdapter(
+                new Object(), properties, environment, apolloProperties, listeners);
+
+        MockApolloConfigChangeEvent apolloEvent = new MockApolloConfigChangeEvent("other-namespace");
+        apolloEvent.addChange("sql-guard.active-strategy", "LOG", "BLOCK");
+
+        // When
+        adapter.onChange(apolloEvent);
+
+        // Then - should not trigger reload or notify listeners
+        assertEquals(0, notifyCount.get());
+    }
+
+    /**
      * Mock Apollo ConfigChangeEvent for testing.
      */
     private static class MockApolloConfigChangeEvent {

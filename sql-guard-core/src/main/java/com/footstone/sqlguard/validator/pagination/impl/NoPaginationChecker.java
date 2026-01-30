@@ -3,12 +3,12 @@ package com.footstone.sqlguard.validator.pagination.impl;
 import com.footstone.sqlguard.core.model.RiskLevel;
 import com.footstone.sqlguard.core.model.SqlContext;
 import com.footstone.sqlguard.validator.pagination.PaginationPluginDetector;
+import com.footstone.sqlguard.validator.pagination.PaginationType;
 import com.footstone.sqlguard.validator.rule.AbstractRuleChecker;
 import com.footstone.sqlguard.validator.rule.impl.BlacklistFieldsConfig;
 import com.footstone.sqlguard.validator.rule.impl.NoPaginationConfig;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
@@ -20,7 +20,6 @@ import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
-import org.apache.ibatis.session.RowBounds;
 
 /**
  * Checker for detecting SELECT queries completely lacking pagination limits.
@@ -89,11 +88,15 @@ public class NoPaginationChecker extends AbstractRuleChecker {
    * Validates SELECT statements for missing pagination.
    *
    * <p>This method is called by AbstractRuleChecker's template method for SELECT statements.
-   * It checks for pagination presence, whitelist exemptions, and risk assessment.</p>
+   * It uses {@link PaginationPluginDetector} to check for pagination presence (consistent with
+   * other checkers), then checks whitelist exemptions and risk assessment.</p>
+   *
+   * <p>Note: RowBounds/IPage without plugin will be caught by LogicalPaginationChecker,
+   * so we treat them as "pagination present" (type != NONE) to avoid double-reporting.</p>
    *
    * @param select the SELECT statement (type-safe)
    * @param context the SQL execution context
-   * @since 1.1.0
+   * @since 1.1.0 (refactored in 1.2.0 to use pluginDetector)
    */
   @Override
   public void visitSelect(Select select, SqlContext context) {
@@ -102,9 +105,13 @@ public class NoPaginationChecker extends AbstractRuleChecker {
       return;
     }
 
-    // Step 1: Check for pagination
-    if (hasPaginationLimit(select, context)) {
-      return;
+    // Step 1: Check for pagination using pluginDetector (consistent with other checkers)
+    // PHYSICAL = SQL has LIMIT/TOP/FETCH or plugin intercepts RowBounds/IPage
+    // LOGICAL = RowBounds/IPage without plugin (dangerous, but LogicalPaginationChecker handles it)
+    // NONE = No pagination detected
+    PaginationType type = pluginDetector.detectPaginationType(context);
+    if (type != PaginationType.NONE) {
+      return; // Has pagination attempt, skip (PHYSICAL or LOGICAL)
     }
 
     // Step 2: Check whitelist exemptions
@@ -114,77 +121,6 @@ public class NoPaginationChecker extends AbstractRuleChecker {
 
     // Step 3: Assess risk and add violation
     assessNoPaginationRisk(select, context);
-  }
-
-  // ==================== Pagination Detection ====================
-
-  /**
-   * Checks if any form of pagination is present.
-   *
-   * <p>Returns true if any of the following conditions are met:</p>
-   * <ul>
-   *   <li>SQL has LIMIT clause</li>
-   *   <li>RowBounds parameter exists (not null, not DEFAULT) - treated as pagination attempt</li>
-   *   <li>IPage parameter exists - treated as pagination attempt</li>
-   * </ul>
-   *
-   * <p>Note: RowBounds/IPage without plugin will be caught by LogicalPaginationChecker,
-   * so we treat them as "pagination present" to avoid double-reporting.</p>
-   *
-   * @param select the SELECT statement
-   * @param context SQL execution context
-   * @return true if pagination is present, false otherwise
-   */
-  private boolean hasPaginationLimit(Select select, SqlContext context) {
-    // Check SQL LIMIT clause
-    String sql = select.toString().toUpperCase();
-    if (sql.contains("LIMIT")) {
-      return true;
-    }
-
-    // Check RowBounds (MyBatis pagination parameter)
-    // Treat RowBounds as pagination attempt even without plugin
-    // (LogicalPaginationChecker will handle the case without plugin)
-    Object rowBounds = context.getRowBounds();
-    if (rowBounds != null && rowBounds instanceof RowBounds) {
-      RowBounds rb = (RowBounds) rowBounds;
-      // RowBounds.DEFAULT is infinite bounds (not pagination)
-      if (rb != RowBounds.DEFAULT) {
-        return true;
-      }
-    }
-
-    // Check IPage parameter (MyBatis-Plus pagination parameter)
-    // Treat IPage as pagination attempt even without plugin
-    if (hasPageParameter(context.getParams())) {
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
-   * Checks if any parameter is an IPage instance.
-   *
-   * @param params parameter map from SqlContext
-   * @return true if any parameter is IPage, false otherwise
-   */
-  private boolean hasPageParameter(Map<String, Object> params) {
-    if (params == null || params.isEmpty()) {
-      return false;
-    }
-
-    for (Object value : params.values()) {
-      if (value != null) {
-        String className = value.getClass().getName();
-        if (className.contains("IPage")
-            || className.contains("com.baomidou.mybatisplus.core.metadata.IPage")) {
-          return true;
-        }
-      }
-    }
-
-    return false;
   }
 
   // ==================== Whitelist Exemption ====================

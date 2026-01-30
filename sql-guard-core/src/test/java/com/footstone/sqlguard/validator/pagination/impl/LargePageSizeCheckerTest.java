@@ -197,6 +197,26 @@ class LargePageSizeCheckerTest {
     assertEquals(0, result.getViolations().size());
   }
 
+  @Test
+  void testUnionWithLimit_shouldDetectLargePageSize() throws Exception {
+    String sql = "SELECT id FROM user WHERE id > 0 UNION SELECT id FROM user_bak LIMIT 5000";
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(parser.parse(sql))
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectUnionLimit")
+        .build();
+    ValidationResult result = ValidationResult.pass();
+
+    checker.check(context, result);
+
+    assertFalse(result.isPassed());
+    assertEquals(RiskLevel.MEDIUM, result.getRiskLevel());
+    assertEquals(1, result.getViolations().size());
+    assertTrue(result.getViolations().get(0).getMessage().contains("pageSize=5000"));
+  }
+
   // ==================== Pagination Type Tests ====================
 
   @Test
@@ -356,5 +376,112 @@ class LargePageSizeCheckerTest {
     
     String message = result.getViolations().get(0).getMessage();
     assertTrue(message.contains("pageSize=100000"));
+  }
+
+  // ==================== Multi-Dialect Tests (SQL Server, DB2, Oracle) ====================
+
+  /**
+   * Test SQL Server TOP syntax with large page size.
+   * 
+   * <p>SQL Server uses TOP to limit rows: {@code SELECT TOP 5000 * FROM user}</p>
+   * <p>Expected: Should detect pageSize=5000 > maxPageSize(1000) and trigger MEDIUM violation</p>
+   */
+  @Test
+  void testSQLServerTop_LargePageSize_shouldViolate() throws Exception {
+    String sql = "SELECT TOP 5000 * FROM user WHERE status = 'active'";
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(parser.parse(sql))
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectSQLServerTop")
+        .build();
+    ValidationResult result = ValidationResult.pass();
+
+    checker.check(context, result);
+
+    assertFalse(result.isPassed(), "Should detect large pageSize in TOP clause");
+    assertEquals(RiskLevel.MEDIUM, result.getRiskLevel());
+    assertEquals(1, result.getViolations().size());
+    
+    String message = result.getViolations().get(0).getMessage();
+    assertTrue(message.contains("pageSize=5000"), "Message should contain 'pageSize=5000'");
+  }
+
+  /**
+   * Test SQL Server TOP syntax with small page size (within threshold).
+   * 
+   * <p>Expected: Should pass since pageSize=500 < maxPageSize(1000)</p>
+   */
+  @Test
+  void testSQLServerTop_SmallPageSize_shouldPass() throws Exception {
+    String sql = "SELECT TOP 500 * FROM user WHERE status = 'active'";
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(parser.parse(sql))
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectSQLServerTopSmall")
+        .build();
+    ValidationResult result = ValidationResult.pass();
+
+    checker.check(context, result);
+
+    assertTrue(result.isPassed(), "Should pass when TOP pageSize is within threshold");
+    assertEquals(RiskLevel.SAFE, result.getRiskLevel());
+    assertEquals(0, result.getViolations().size());
+  }
+
+  /**
+   * Test DB2/Oracle 12c+ FETCH FIRST syntax with large page size.
+   * 
+   * <p>DB2/Oracle uses FETCH FIRST to limit rows: 
+   * {@code SELECT * FROM user FETCH FIRST 5000 ROWS ONLY}</p>
+   * <p>Expected: Should detect pageSize=5000 > maxPageSize(1000) and trigger MEDIUM violation</p>
+   */
+  @Test
+  void testDB2FetchFirst_LargePageSize_shouldViolate() throws Exception {
+    String sql = "SELECT * FROM user WHERE status = 'active' FETCH FIRST 5000 ROWS ONLY";
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(parser.parse(sql))
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectDB2FetchFirst")
+        .build();
+    ValidationResult result = ValidationResult.pass();
+
+    checker.check(context, result);
+
+    assertFalse(result.isPassed(), "Should detect large pageSize in FETCH FIRST clause");
+    assertEquals(RiskLevel.MEDIUM, result.getRiskLevel());
+    assertEquals(1, result.getViolations().size());
+    
+    String message = result.getViolations().get(0).getMessage();
+    assertTrue(message.contains("pageSize=5000"), "Message should contain 'pageSize=5000'");
+  }
+
+  /**
+   * Test DB2 FETCH FIRST syntax with small page size (within threshold).
+   * 
+   * <p>Expected: Should pass since pageSize=500 < maxPageSize(1000)</p>
+   */
+  @Test
+  void testDB2FetchFirst_SmallPageSize_shouldPass() throws Exception {
+    String sql = "SELECT * FROM user WHERE status = 'active' FETCH FIRST 500 ROWS ONLY";
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(parser.parse(sql))
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectDB2FetchFirstSmall")
+        .build();
+    ValidationResult result = ValidationResult.pass();
+
+    checker.check(context, result);
+
+    assertTrue(result.isPassed(), "Should pass when FETCH FIRST pageSize is within threshold");
+    assertEquals(RiskLevel.SAFE, result.getRiskLevel());
+    assertEquals(0, result.getViolations().size());
   }
 }

@@ -698,6 +698,84 @@ class NoPaginationCheckerTest {
     assertEquals(RiskLevel.SAFE, result.getRiskLevel());
   }
 
+  // ==================== Multi-Dialect Pagination Detection Tests ====================
+
+  /**
+   * Test SQL Server TOP syntax should be recognized as pagination.
+   * 
+   * <p>SQL Server uses TOP to limit rows: {@code SELECT TOP 100 * FROM user}</p>
+   * <p>Expected: Should recognize as paginated and NOT trigger violation</p>
+   */
+  @Test
+  void testSQLServerTop_shouldRecognizeAsPaginated() throws Exception {
+    String sql = "SELECT TOP 100 * FROM user";
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(parser.parse(sql))
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectSQLServerTop")
+        .build();
+    ValidationResult result = ValidationResult.pass();
+
+    checker.check(context, result);
+
+    assertTrue(result.isPassed(), "Should recognize TOP as pagination and pass");
+    assertEquals(RiskLevel.SAFE, result.getRiskLevel());
+    assertEquals(0, result.getViolations().size());
+  }
+
+  /**
+   * Test DB2 FETCH FIRST syntax should be recognized as pagination.
+   * 
+   * <p>DB2 uses FETCH FIRST: {@code SELECT * FROM user FETCH FIRST 100 ROWS ONLY}</p>
+   * <p>Expected: Should recognize as paginated and NOT trigger violation</p>
+   */
+  @Test
+  void testDB2FetchFirst_shouldRecognizeAsPaginated() throws Exception {
+    String sql = "SELECT * FROM user FETCH FIRST 100 ROWS ONLY";
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(parser.parse(sql))
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectDB2FetchFirst")
+        .build();
+    ValidationResult result = ValidationResult.pass();
+
+    checker.check(context, result);
+
+    assertTrue(result.isPassed(), "Should recognize FETCH FIRST as pagination and pass");
+    assertEquals(RiskLevel.SAFE, result.getRiskLevel());
+    assertEquals(0, result.getViolations().size());
+  }
+
+  /**
+   * Test SQL Server OFFSET ROWS syntax should be recognized as pagination.
+   * 
+   * <p>SQL Server 2012+ uses OFFSET ROWS: 
+   * {@code SELECT * FROM user ORDER BY id OFFSET 10 ROWS FETCH NEXT 100 ROWS ONLY}</p>
+   * <p>Expected: Should recognize as paginated and NOT trigger violation</p>
+   */
+  @Test
+  void testSQLServerOffsetRows_shouldRecognizeAsPaginated() throws Exception {
+    String sql = "SELECT * FROM user ORDER BY id OFFSET 10 ROWS FETCH NEXT 100 ROWS ONLY";
+    SqlContext context = SqlContext.builder()
+        .sql(sql)
+        .statement(parser.parse(sql))
+        .type(SqlCommandType.SELECT)
+        .executionLayer(ExecutionLayer.MYBATIS)
+        .statementId("com.example.UserMapper.selectSQLServerOffsetRows")
+        .build();
+    ValidationResult result = ValidationResult.pass();
+
+    checker.check(context, result);
+
+    assertTrue(result.isPassed(), "Should recognize OFFSET ROWS as pagination and pass");
+    assertEquals(RiskLevel.SAFE, result.getRiskLevel());
+    assertEquals(0, result.getViolations().size());
+  }
+
   // ==================== Helper Methods ====================
 
   /**

@@ -2,7 +2,8 @@ package com.footstone.sqlguard.spring.config.center.apollo;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -44,7 +45,7 @@ public class ApolloConfigCenterProperties {
      *
      * <p>Default: ["application"]</p>
      */
-    private List<String> namespaces = Arrays.asList("application");
+    private List<String> namespaces = new ArrayList<>(Collections.singletonList("application"));
 
     public boolean isEnabled() {
         return enabled;
@@ -70,7 +71,6 @@ public class ApolloConfigCenterProperties {
                 '}';
     }
 }
-
 
 
 

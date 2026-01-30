@@ -14,6 +14,7 @@ import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.SettableListenableFuture;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -113,12 +114,16 @@ class KafkaAuditWriterTest {
         when(kafkaTemplate.send(anyString(), anyString(), anyString())).thenReturn(future);
 
         // Given: Event with parameters
+        Map<String, Object> params = new HashMap<>();
+        params.put("status", "ACTIVE");
+        params.put("id", 123);
+
         AuditEvent event = AuditEvent.builder()
                 .sql("UPDATE users SET status = ? WHERE id = ?")
                 .sqlType(SqlCommandType.UPDATE)
                 .executionLayer(ExecutionLayer.MYBATIS)
                 .statementId("UserMapper.updateStatus")
-                .params(Map.of("status", "ACTIVE", "id", 123))
+                .params(params)
                 .executionTimeMs(25L)
                 .rowsAffected(1)
                 .timestamp(Instant.now())
